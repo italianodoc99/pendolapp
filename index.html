@@ -1,0 +1,1944 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1D9E75">
+<title>PendolApp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+:root {
+  --green:#1D9E75;--green-l:#E1F5EE;--green-d:#0F6E56;--green-dd:#085041;
+  --blue:#378ADD;--blue-l:#E6F1FB;--blue-d:#185FA5;
+  --amber-l:#FAEEDA;--amber-d:#854F0B;
+  --coral:#D85A30;--coral-l:#FAECE7;--coral-d:#993C1D;
+  --red-l:#FCEBEB;--red:#A32D2D;
+  --bg:#F7F8F6;--surf:#FFF;--surf2:#F2F3F1;
+  --bord:rgba(0,0,0,0.08);--bord-m:rgba(0,0,0,0.14);
+  --txt:#1A1C19;--txt2:#5A6057;--txt3:#8C9189;
+  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+  --r:14px;--rsm:8px;--rfull:100px;
+  --shadow:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.04);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;background:var(--bg);}
+body{font-family:var(--font);color:var(--txt);}
+#app{display:flex;flex-direction:column;height:100dvh;max-width:430px;margin:0 auto;background:var(--surf);position:relative;overflow:hidden;box-shadow:0 0 60px rgba(0,0,0,0.12);}
+
+/* AUTH */
+#auth-overlay{position:absolute;inset:0;background:var(--surf);z-index:100;display:flex;flex-direction:column;overflow-y:auto;}
+#auth-overlay.hidden{display:none;}
+.auth-logo{padding:48px 32px 24px;text-align:center;}
+.auth-logo-icon{width:64px;height:64px;background:var(--green);border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:28px;}
+.auth-logo h1{font-size:26px;font-weight:600;letter-spacing:-.5px;}
+.auth-logo p{font-size:14px;color:var(--txt2);margin-top:4px;}
+.auth-tabs{display:flex;margin:0 24px 20px;background:var(--surf2);border-radius:var(--rsm);padding:3px;gap:3px;}
+.auth-tab{flex:1;padding:9px;border-radius:6px;font-size:14px;font-weight:500;border:none;background:transparent;color:var(--txt2);cursor:pointer;font-family:var(--font);transition:all .15s;}
+.auth-tab.active{background:var(--surf);color:var(--green-d);box-shadow:var(--shadow);}
+.auth-form{padding:0 24px 32px;}
+.auth-form .fg{margin-bottom:12px;}
+.auth-form label{font-size:12px;font-weight:500;color:var(--txt2);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;}
+.auth-form input{width:100%;padding:13px 14px;background:var(--surf2);border:1px solid var(--bord);border-radius:var(--rsm);font-size:15px;font-family:var(--font);color:var(--txt);outline:none;transition:border-color .15s;}
+.auth-form input:focus{border-color:var(--green);background:var(--surf);}
+.auth-btn{width:100%;padding:14px;background:var(--green);color:white;border:none;border-radius:var(--r);font-size:15px;font-weight:500;font-family:var(--font);cursor:pointer;margin-top:8px;transition:opacity .15s;}
+.auth-btn:active{opacity:.85;}
+.auth-btn:disabled{opacity:.5;cursor:not-allowed;}
+.auth-err{background:var(--red-l);border:1px solid rgba(163,45,45,.2);border-radius:var(--rsm);padding:10px 12px;font-size:13px;color:var(--red);margin-bottom:12px;display:none;}
+.auth-err.show{display:block;}
+
+/* SCREENS */
+.screen{display:none;flex-direction:column;flex:1;overflow:hidden;}
+.screen.active{display:flex;animation:fadeIn .18s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:12px;}
+.scroll::-webkit-scrollbar{display:none;}
+
+/* NAV */
+.nav{display:flex;border-top:1px solid var(--bord);padding:8px 0;padding-bottom:max(8px,env(safe-area-inset-bottom,8px));background:var(--surf);flex-shrink:0;}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 0;}
+.ni:active{opacity:.6;}
+.ni-icon{font-size:20px;line-height:1;}
+.ni-lbl{font-size:10px;color:var(--txt3);font-weight:500;}
+.ni.active .ni-lbl{color:var(--green);}
+.ni-pip{width:4px;height:4px;border-radius:50%;background:var(--green);opacity:0;}
+.ni.active .ni-pip{opacity:1;}
+
+/* COMMON */
+.ph{padding:12px 20px 14px;}
+.ph h1{font-size:24px;font-weight:600;letter-spacing:-.4px;}
+.ph p{font-size:14px;color:var(--txt2);margin-top:2px;}
+.card{background:var(--surf);border:1px solid var(--bord);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);}
+.mx{margin:0 16px;}
+.mb{margin-bottom:10px;}
+.badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:500;padding:3px 9px;border-radius:var(--rfull);}
+.bg{background:var(--green-l);color:var(--green-d);}
+.bb{background:var(--blue-l);color:var(--blue-d);}
+.ba{background:var(--amber-l);color:var(--amber-d);}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px 20px;border-radius:var(--r);border:none;font-family:var(--font);font-size:15px;font-weight:500;cursor:pointer;transition:transform .1s,opacity .15s;width:100%;}
+.btn:active{transform:scale(.98);opacity:.85;}
+.btn-p{background:var(--green);color:white;}
+.btn-s{background:var(--green-l);color:var(--green-d);}
+.btn-o{background:transparent;color:var(--txt);border:1px solid var(--bord-m);}
+.spinner{width:20px;height:20px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 32px;text-align:center;gap:12px;}
+.empty-icon{font-size:40px;}
+.empty-title{font-size:16px;font-weight:500;}
+.empty-sub{font-size:14px;color:var(--txt2);line-height:1.6;}
+
+/* HOME */
+.greeting{padding:16px 20px 0;display:flex;align-items:center;justify-content:space-between;}
+.greeting h2{font-size:22px;font-weight:600;letter-spacing:-.3px;}
+.greeting p{font-size:13px;color:var(--txt2);margin-top:1px;}
+.type-tog{display:flex;margin:14px 16px 12px;background:var(--surf2);border-radius:var(--rsm);padding:3px;gap:3px;}
+.tt{flex:1;padding:9px;border-radius:6px;font-size:13px;font-weight:500;border:none;background:transparent;color:var(--txt2);cursor:pointer;font-family:var(--font);transition:all .15s;}
+.tt.active{background:var(--surf);color:var(--green-d);box-shadow:var(--shadow);}
+.scard{margin:0 16px 12px;background:var(--surf);border:1px solid var(--bord);border-radius:var(--r);box-shadow:var(--shadow);}
+.srow{display:flex;align-items:center;gap:10px;padding:10px 14px;}
+.sdot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.sdot-f{background:var(--green);}
+.sdot-t{background:var(--coral);}
+.sinput{flex:1;border:none;background:transparent;font-size:15px;font-family:var(--font);color:var(--txt);outline:none;}
+.sinput::placeholder{color:var(--txt3);}
+.sdiv{height:1px;background:var(--bord);margin:0 14px 0 34px;}
+.chips{display:flex;gap:8px;padding:0 16px 4px;overflow-x:auto;}
+.chips::-webkit-scrollbar{display:none;}
+.chip{flex-shrink:0;padding:7px 14px;border-radius:var(--rfull);font-size:13px;font-weight:500;border:1px solid var(--bord-m);background:var(--surf);color:var(--txt2);cursor:pointer;white-space:nowrap;}
+.chip.active{background:var(--green-l);border-color:var(--green);color:var(--green-d);}
+
+/* RIDE CARD */
+.rc{cursor:pointer;}
+.rc:active{opacity:.85;}
+.rh{padding:12px 14px 8px;display:flex;align-items:flex-start;justify-content:space-between;}
+.av{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;flex-shrink:0;}
+.av-sm{width:36px;height:36px;font-size:13px;}
+.av-md{width:44px;height:44px;font-size:15px;}
+.av-lg{width:64px;height:64px;font-size:22px;}
+.av-g{background:var(--green-l);color:var(--green-d);}
+.av-b{background:var(--blue-l);color:var(--blue-d);}
+.av-a{background:var(--amber-l);color:var(--amber-d);}
+.rr{padding:0 14px 10px;display:flex;align-items:center;gap:8px;}
+.tc{text-align:center;}
+.tb{font-size:16px;font-weight:600;}
+.tp{font-size:11px;color:var(--txt2);margin-top:1px;}
+.rl{flex:1;height:1px;background:var(--bord-m);}
+.rd{width:6px;height:6px;border-radius:50%;background:var(--txt3);flex-shrink:0;}
+.rf{padding:8px 14px;border-top:1px solid var(--bord);display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+
+/* MAP */
+#map-detail{height:220px;width:100%;flex-shrink:0;z-index:1;}
+.map-back{position:absolute;top:14px;left:14px;background:var(--surf);border:1px solid var(--bord);border-radius:var(--rfull);padding:7px 14px;font-size:13px;font-weight:500;cursor:pointer;z-index:10;box-shadow:var(--shadow);}
+
+/* OFFER FORM */
+.form-lbl{font-size:12px;font-weight:500;color:var(--txt2);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;}
+.form-inp{width:100%;padding:11px 13px;background:var(--surf2);border:1px solid var(--bord);border-radius:var(--rsm);font-size:14px;font-family:var(--font);color:var(--txt);outline:none;margin-bottom:10px;}
+.form-inp:focus{border-color:var(--green);}
+.form-sel{width:100%;padding:11px 13px;background:var(--surf2);border:1px solid var(--bord);border-radius:var(--rsm);font-size:14px;font-family:var(--font);color:var(--txt);outline:none;appearance:none;margin-bottom:10px;}
+.seats-row{display:flex;gap:8px;margin-bottom:10px;}
+.seat-btn{flex:1;padding:10px;border:1px solid var(--bord-m);border-radius:var(--rsm);background:var(--surf);font-size:14px;font-family:var(--font);color:var(--txt2);cursor:pointer;text-align:center;transition:all .15s;}
+.seat-btn.active{background:var(--green-l);border-color:var(--green);color:var(--green-d);font-weight:500;}
+.day-chip{padding:6px 10px;border-radius:6px;font-size:12px;font-weight:500;border:1px solid var(--bord-m);background:var(--surf);color:var(--txt2);cursor:pointer;}
+.day-chip.active{background:var(--green-l);border-color:var(--green);color:var(--green-d);}
+#map-picker{height:180px;border-radius:var(--rsm);overflow:hidden;margin-bottom:10px;border:1px solid var(--bord);}
+.map-hint{font-size:12px;color:var(--txt2);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+/* AUTOCOMPLETE */
+.ac-wrap{position:relative;margin-bottom:10px;}
+.ac-wrap .form-inp{margin-bottom:0;}
+.ac-list{position:absolute;top:100%;left:0;right:0;background:var(--surf);border:1px solid var(--bord-m);border-top:none;border-radius:0 0 var(--rsm) var(--rsm);box-shadow:0 4px 12px rgba(0,0,0,.12);z-index:200;max-height:200px;overflow-y:auto;display:none;}
+.ac-list.open{display:block;}
+.ac-item{padding:10px 13px;font-size:13px;color:var(--txt);border-bottom:1px solid var(--bord);cursor:pointer;display:flex;align-items:flex-start;gap:8px;}
+.ac-item:last-child{border-bottom:none;}
+.ac-item:active{background:var(--surf2);}
+.ac-icon{font-size:14px;flex-shrink:0;margin-top:1px;}
+.ac-main{font-weight:500;font-size:13px;}
+.ac-sub{font-size:11px;color:var(--txt2);margin-top:1px;}
+/* WAYPOINTS */
+.wp-list{margin-bottom:8px;}
+.wp-row{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--surf2);border-radius:var(--rsm);margin-bottom:6px;border:1px solid var(--bord);}
+.wp-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.wp-inp{flex:1;border:none;background:transparent;font-size:14px;font-family:var(--font);color:var(--txt);outline:none;}
+.wp-inp::placeholder{color:var(--txt3);}
+.wp-del{width:22px;height:22px;border-radius:50%;border:none;background:rgba(0,0,0,.08);color:var(--txt2);cursor:pointer;font-size:13px;line-height:1;flex-shrink:0;}
+.add-wp-btn{width:100%;padding:9px;border:1.5px dashed var(--bord-m);border-radius:var(--rsm);background:transparent;font-size:13px;color:var(--green-d);cursor:pointer;font-family:var(--font);margin-bottom:12px;}
+
+/* JOURNEY PLANNER */
+.filter-bar{padding:8px 16px;display:flex;gap:8px;overflow-x:auto;flex-shrink:0;border-bottom:1px solid var(--bord);}
+.filter-bar::-webkit-scrollbar{display:none;}
+.fp{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--rfull);font-size:12px;font-weight:500;border:1px solid var(--bord-m);background:var(--surf);color:var(--txt2);cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.fp.active{background:var(--green-l);border-color:var(--green);color:var(--green-d);}
+.sort-row{display:flex;gap:6px;padding:4px 16px 8px;align-items:center;}
+.sort-lbl{font-size:12px;color:var(--txt2);font-weight:500;}
+.sort-btn{font-size:11px;padding:4px 10px;border-radius:var(--rfull);border:1px solid var(--bord-m);background:var(--surf);color:var(--txt2);cursor:pointer;font-family:var(--font);}
+.sort-btn.active{background:var(--green-l);border-color:var(--green);color:var(--green-d);font-weight:500;}
+.jcard{background:var(--surf);border:1px solid var(--bord);border-radius:var(--r);margin:0 16px 10px;overflow:hidden;box-shadow:var(--shadow);cursor:pointer;}
+.jcard:active{opacity:.88;}
+.jhead{padding:12px 14px 8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.jbadge{font-size:11px;padding:3px 9px;border-radius:var(--rfull);font-weight:500;background:var(--green-l);color:var(--green-d);}
+.jbadge.warn{background:var(--amber-l);color:var(--amber-d);}
+.jbadge.info{background:var(--blue-l);color:var(--blue-d);}
+.jsteps{padding:0 14px 8px;}
+.jstep{display:flex;align-items:flex-start;gap:10px;margin-bottom:2px;}
+.jsi{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-top:2px;}
+.jsb{flex:1;padding-bottom:6px;}
+.jst{font-size:13px;font-weight:500;color:var(--txt);}
+.jss{font-size:11px;color:var(--txt2);margin-top:1px;}
+.jstm{font-size:11px;font-family:var(--mono);color:var(--txt2);margin-top:2px;}
+.jconn{display:flex;align-items:center;gap:8px;padding:5px 14px;background:var(--amber-l);margin:0 -14px 4px;}
+.jconntxt{font-size:12px;color:var(--amber-d);font-weight:500;}
+.jfoot{border-top:1px solid var(--bord);padding:8px 14px;display:flex;gap:8px;}
+.no-results{display:flex;flex-direction:column;align-items:center;padding:32px 24px;text-align:center;gap:8px;}
+
+
+/* CHAT */
+.chat-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--bord);cursor:pointer;}
+.chat-item:active{background:var(--surf2);}
+.chat-unread{width:18px;height:18px;border-radius:50%;background:var(--green);color:white;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.msg-wrap{display:flex;flex-direction:column;padding:12px 14px;}
+.msg-bubble{max-width:75%;padding:9px 13px;border-radius:14px;font-size:14px;line-height:1.4;margin-bottom:2px;word-break:break-word;}
+.msg-mine{background:var(--green);color:white;align-self:flex-end;border-bottom-right-radius:4px;}
+.msg-other{background:var(--surf2);color:var(--txt);align-self:flex-start;border-bottom-left-radius:4px;}
+.msg-time{font-size:10px;color:var(--txt3);margin-bottom:8px;padding:0 2px;}
+.msg-time.right{text-align:right;}
+.chat-inp-row{display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid var(--bord);background:var(--surf);flex-shrink:0;}
+.chat-inp{flex:1;padding:10px 14px;background:var(--surf2);border:1px solid var(--bord);border-radius:var(--rfull);font-size:14px;font-family:var(--font);outline:none;}
+.chat-inp:focus{border-color:var(--green);}
+.send-btn{width:40px;height:40px;border-radius:50%;background:var(--green);border:none;color:white;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+/* PHOTO */
+.photo-ring{position:relative;display:inline-block;cursor:pointer;}
+.photo-edit{position:absolute;bottom:0;right:0;width:22px;height:22px;border-radius:50%;background:var(--green);border:2px solid var(--surf);display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;}
+/* SOCIAL VERIFY */
+.verify-card{border:1px solid var(--bord);border-radius:var(--r);padding:14px;margin-bottom:10px;background:var(--surf);}
+.vs{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:3px 8px;border-radius:var(--rfull);}
+.vs-done{background:var(--green-l);color:var(--green-d);}
+.vs-pend{background:var(--amber-l);color:var(--amber-d);}
+.vs-none{background:var(--surf2);color:var(--txt2);}
+/* TRANSIT V2 */
+.op-card{border:1px solid var(--bord);border-radius:var(--r);overflow:hidden;margin:0 16px 10px;background:var(--surf);box-shadow:var(--shadow);}
+.op-hdr{padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;}
+.op-logo{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.op-panel{display:none;background:var(--surf2);}
+.op-panel.open{display:block;}
+.line-row{display:flex;align-items:center;gap:8px;padding:9px 14px;border-top:1px solid var(--bord);}
+.ext-link{font-size:11px;padding:4px 8px;background:var(--blue-l);color:var(--blue-d);border-radius:var(--rfull);text-decoration:none;font-weight:500;white-space:nowrap;flex-shrink:0;}
+.rep-btn{font-size:11px;padding:4px 8px;background:var(--amber-l);color:var(--amber-d);border-radius:var(--rfull);border:none;cursor:pointer;font-family:var(--font);font-weight:500;flex-shrink:0;}
+/* OCR */
+.ocr-drop{border:2px dashed var(--bord-m);border-radius:var(--r);padding:24px;text-align:center;cursor:pointer;margin-bottom:14px;}
+.ocr-drop:hover{border-color:var(--green);background:var(--green-l);}
+.ocr-prog{background:var(--surf2);border-radius:var(--rsm);padding:12px;margin-bottom:12px;display:none;}
+.ocr-prog.show{display:block;}
+.prog-bar{height:5px;background:var(--bord);border-radius:3px;margin-top:8px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--green);border-radius:3px;transition:width .3s;}
+/* REGION FILTER */
+.region-row{display:flex;gap:8px;padding:0 16px 10px;overflow-x:auto;}
+.region-row::-webkit-scrollbar{display:none;}
+.ac-drop{position:absolute;left:0;right:0;top:100%;background:var(--surf);border:1px solid var(--bord);border-radius:var(--rsm);box-shadow:var(--shadow);z-index:100;max-height:180px;overflow-y:auto;}
+.ac-item{padding:10px 14px;font-size:14px;cursor:pointer;border-bottom:1px solid var(--bord);}
+.ac-item:last-child{border-bottom:none;}
+.ac-item:active{background:var(--surf2);}
+
+/* NEAR ME badge */
+
+/* CHAT */
+.chat-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--bord);cursor:pointer;}
+.chat-item:active{background:var(--surf2);}
+.chat-unread{width:18px;height:18px;border-radius:50%;background:var(--green);color:white;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.msg-bubble{max-width:75%;padding:9px 13px;border-radius:14px;font-size:14px;line-height:1.4;margin-bottom:4px;}
+.msg-mine{background:var(--green);color:white;align-self:flex-end;border-bottom-right-radius:4px;}
+.msg-other{background:var(--surf2);color:var(--txt);align-self:flex-start;border-bottom-left-radius:4px;}
+.msg-time{font-size:10px;color:var(--txt3);margin-bottom:8px;}
+.msg-time.right{text-align:right;}
+.chat-input-row{display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid var(--bord);background:var(--surf);flex-shrink:0;}
+.chat-inp{flex:1;padding:10px 14px;background:var(--surf2);border:1px solid var(--bord);border-radius:var(--rfull);font-size:14px;font-family:var(--font);outline:none;}
+.chat-inp:focus{border-color:var(--green);}
+.send-btn{width:40px;height:40px;border-radius:50%;background:var(--green);border:none;color:white;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+/* PHOTO PROFILE */
+.photo-ring{position:relative;display:inline-block;}
+.photo-ring img{width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--green-l);}
+.photo-edit{position:absolute;bottom:0;right:0;width:22px;height:22px;border-radius:50%;background:var(--green);border:2px solid var(--surf);display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;}
+/* SOCIAL VERIFY */
+.verify-card{border:1px solid var(--bord);border-radius:var(--r);padding:14px;margin-bottom:10px;}
+.verify-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.verify-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.verify-status{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:3px 8px;border-radius:var(--rfull);}
+.vs-done{background:var(--green-l);color:var(--green-d);}
+.vs-pend{background:var(--amber-l);color:var(--amber-d);}
+.vs-none{background:var(--surf2);color:var(--txt2);}
+
+.near-badge{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:var(--blue-l);color:var(--blue-d);border-radius:var(--rfull);font-size:12px;font-weight:500;cursor:pointer;border:1px solid rgba(55,138,221,.2);white-space:nowrap;}
+.near-badge.active{background:var(--green-l);color:var(--green-d);border-color:rgba(29,158,117,.3);}
+.dist-badge{font-size:10px;padding:2px 7px;background:var(--green-l);color:var(--green-d);border-radius:var(--rfull);font-weight:500;margin-left:auto;}
+
+/* TRANSIT */
+.lh{padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;}
+.lnum{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;font-family:var(--mono);flex-shrink:0;}
+.deps{display:none;border-top:1px solid var(--bord);background:var(--surf2);padding:10px 14px;}
+.deps.open{display:block;}
+.dep{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bord);}
+.dep:last-child{border-bottom:none;}
+.dtime{font-size:14px;font-weight:600;font-family:var(--mono);width:46px;}
+.dnext{font-size:12px;font-weight:500;}
+.dnow{color:var(--green);}
+.dsoon{color:var(--amber-d);}
+.dgone{color:var(--txt3);}
+
+/* CONTRIBUTE */
+.info-box{background:var(--blue-l);border:1px solid rgba(55,138,221,.2);border-radius:var(--rsm);padding:10px 12px;display:flex;gap:8px;margin-bottom:12px;}
+.stops-list{border:1px solid var(--bord);border-radius:var(--rsm);overflow:hidden;margin-bottom:10px;}
+.stop-row{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--bord);}
+.stop-row:last-child{border-bottom:none;}
+.stop-num{width:22px;height:22px;border-radius:50%;background:var(--green-l);color:var(--green-d);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.stop-inp{flex:1;border:none;background:transparent;font-size:13px;font-family:var(--font);color:var(--txt);outline:none;}
+.stop-time{width:55px;border:none;background:transparent;font-size:12px;font-family:var(--mono);color:var(--txt2);outline:none;text-align:right;}
+.add-stop{width:100%;padding:10px;border:1.5px dashed var(--bord-m);border-radius:var(--rsm);background:transparent;font-size:13px;color:var(--txt2);cursor:pointer;font-family:var(--font);margin-bottom:10px;}
+
+/* PROFILE */
+.prof-hero{padding:20px 16px;display:flex;align-items:center;gap:16px;}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--bord);border-bottom:1px solid var(--bord);}
+.stat-c{padding:14px 0;text-align:center;border-right:1px solid var(--bord);}
+.stat-c:last-child{border-right:none;}
+.stat-n{font-size:22px;font-weight:600;}
+.stat-l{font-size:11px;color:var(--txt2);margin-top:2px;}
+.menu-g{padding:12px 16px 4px;}
+.menu-gt{font-size:11px;font-weight:500;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.menu-i{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--bord);cursor:pointer;}
+.menu-i:last-child{border-bottom:none;}
+.mic{width:34px;height:34px;border-radius:var(--rsm);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+
+/* OVERLAY */
+#overlay{display:none;position:absolute;inset:0;background:rgba(0,0,0,.4);z-index:50;align-items:flex-end;}
+#overlay.show{display:flex;animation:fadeIn .2s ease;}
+.ov-sheet{background:var(--surf);border-radius:var(--r) var(--r) 0 0;width:100%;padding:20px 20px 32px;animation:slideUp .25s ease;}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.ov-icon{font-size:48px;text-align:center;margin-bottom:12px;}
+.ov-title{font-size:20px;font-weight:600;text-align:center;margin-bottom:6px;}
+.ov-sub{font-size:14px;color:var(--txt2);text-align:center;line-height:1.5;margin-bottom:20px;}
+
+.sb-top{display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font-size:12px;font-weight:500;color:var(--txt2);flex-shrink:0;}
+.loading-pulse{animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* AUTOCOMPLETE */
+.ac-wrap{position:relative;margin-bottom:10px;}
+.ac-wrap .form-inp{margin-bottom:0;}
+.ac-list{position:absolute;top:100%;left:0;right:0;background:var(--surf);border:1px solid var(--bord-m);border-radius:0 0 var(--rsm) var(--rsm);box-shadow:0 4px 12px rgba(0,0,0,.12);z-index:200;max-height:200px;overflow-y:auto;display:none;}
+.ac-list.open{display:block;}
+.ac-item{padding:10px 13px;font-size:13px;color:var(--txt);border-bottom:1px solid var(--bord);cursor:pointer;display:flex;align-items:center;gap:8px;}
+.ac-item:last-child{border-bottom:none;}
+.ac-item:active{background:var(--surf2);}
+.ac-icon{font-size:14px;flex-shrink:0;}
+.ac-main{font-weight:500;}
+.ac-sub{font-size:11px;color:var(--txt2);margin-top:1px;}
+
+/* WAYPOINTS */
+.wp-list{margin-bottom:10px;}
+.wp-row{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surf2);border-radius:var(--rsm);margin-bottom:6px;position:relative;}
+.wp-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.wp-inp{flex:1;border:none;background:transparent;font-size:14px;font-family:var(--font);color:var(--txt);outline:none;}
+.wp-inp::placeholder{color:var(--txt3);}
+.wp-del{width:22px;height:22px;border-radius:50%;border:none;background:var(--bord-m);color:var(--txt2);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.add-wp-btn{width:100%;padding:9px;border:1.5px dashed var(--bord-m);border-radius:var(--rsm);background:transparent;font-size:13px;color:var(--green-d);cursor:pointer;font-family:var(--font);margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:6px;}
+
+/* NEAR ME */
+.near-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:var(--blue-l);color:var(--blue-d);border-radius:var(--rfull);font-size:12px;font-weight:500;cursor:pointer;border:1px solid rgba(55,138,221,.2);}
+.near-badge.active{background:var(--green-l);color:var(--green-d);border-color:rgba(29,158,117,.3);}
+.dist-badge{font-size:10px;padding:2px 6px;background:var(--green-l);color:var(--green-d);border-radius:var(--rfull);font-weight:500;}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- AUTH -->
+<div id="auth-overlay">
+  <div class="auth-logo">
+    <div class="auth-logo-icon">🚌</div>
+    <h1>PendolApp</h1>
+    <p>Passaggi condivisi per pendolari</p>
+  </div>
+  <div class="auth-tabs">
+    <button class="auth-tab active" onclick="switchAuth('login')">Accedi</button>
+    <button class="auth-tab" onclick="switchAuth('register')">Registrati</button>
+  </div>
+  <div class="auth-form">
+    <div id="auth-err" class="auth-err"></div>
+    <div class="fg" id="field-name" style="display:none;">
+      <label>Nome e cognome</label>
+      <input type="text" id="inp-name" placeholder="Antonio Pio Rossi" autocomplete="name">
+    </div>
+    <div class="fg">
+      <label>Email</label>
+      <input type="email" id="inp-email" placeholder="tua@email.com" autocomplete="email">
+    </div>
+    <div class="fg">
+      <label>Password</label>
+      <input type="password" id="inp-pass" placeholder="Minimo 6 caratteri" autocomplete="current-password">
+    </div>
+    <div id="field-type" style="display:none;">
+      <label class="form-lbl">Sei uno studente o un pendolare?</label>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <div class="chip active" id="type-studente" onclick="selectType('studente')" style="flex:1;text-align:center;">🎓 Studente</div>
+        <div class="chip" id="type-pendolare" onclick="selectType('pendolare')" style="flex:1;text-align:center;">💼 Pendolare</div>
+      </div>
+    </div>
+    <button class="auth-btn" id="auth-btn" onclick="doAuth()">Accedi</button>
+    <div style="text-align:center;font-size:13px;color:var(--txt3);margin:12px 0;">oppure</div>
+    <button class="auth-btn" style="background:var(--surf2);color:var(--txt);border:1px solid var(--bord-m);" onclick="doGoogleAuth()">
+      <span style="font-size:16px;font-weight:700;">G</span> Continua con Google
+    </button>
+  </div>
+</div>
+
+<div class="sb-top"><span id="clock">9:41</span><span>●●●</span></div>
+
+<!-- ══ HOME ══ -->
+<div class="screen active" id="sc-home">
+  <div class="scroll">
+    <div class="greeting">
+      <div><h2 id="greeting-name">Ciao 👋</h2><p>Dove vuoi andare oggi?</p></div>
+      <div style="width:38px;height:38px;border-radius:50%;background:var(--surf2);border:1px solid var(--bord);display:flex;align-items:center;justify-content:center;font-size:18px;">🔔</div>
+    </div>
+    <div class="type-tog">
+      <button class="tt active" id="tt-cerca" onclick="setType('cerca')">Cerca passaggio</button>
+      <button class="tt" id="tt-offri" onclick="setType('offri')">Offri passaggio</button>
+    </div>
+    <div class="scard">
+      <div class="srow"><div class="sdot sdot-f"></div><input class="sinput" id="home-from" placeholder="Partenza (es. Caserta)"></div>
+      <div class="sdiv"></div>
+      <div class="srow"><div class="sdot sdot-t"></div><input class="sinput" id="home-to" placeholder="Destinazione (es. Napoli)"></div>
+      <div class="sdiv"></div>
+      <div class="srow" style="gap:8px;padding:6px 12px;"><span style="font-size:18px;">📅</span><input class="sinput" id="home-date" type="date" style="flex:1;color:var(--txt1);"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;padding:0 16px 10px;overflow-x:auto;">
+      <div class="chip active" onclick="selDate(this)">Oggi</div>
+      <div class="chip" onclick="selDate(this)">Domani</div>
+      <div class="chip" onclick="selDate(this)">Lun 31</div>
+      <div class="chip" onclick="selDate(this)">Mar 1</div>
+      <div class="near-badge" id="near-home" onclick="toggleNearMe(this)">📍 Vicino a me</div>
+    </div>
+    <div style="padding:0 16px 16px;"><button class="btn btn-p" onclick="doSearch()">Cerca percorsi</button></div>
+    <div style="padding:0 16px;margin-bottom:8px;font-size:11px;font-weight:500;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;" id="home-count">Caricamento...</div>
+    <div id="home-rides"></div>
+  </div>
+  <nav class="nav">
+    <div class="ni active"><div class="ni-icon">🏠</div><div class="ni-lbl">Home</div><div class="ni-pip"></div></div>
+    <div class="ni" onclick="goTo('sc-search',1)"><div class="ni-icon">🔍</div><div class="ni-lbl">Cerca</div><div class="ni-pip"></div></div>
+    <div class="ni" onclick="goTo('sc-offer',2)"><div class="ni-icon">🚗</div><div class="ni-lbl">Offri</div><div class="ni-pip"></div></div>
+    <div class="ni" onclick="goTo('sc-transit',3)"><div class="ni-icon">🚌</div><div class="ni-lbl">Orari</div><div class="ni-pip"></div></div>
+    <div class="ni" onclick="goTo('sc-profile',4)"><div class="ni-icon">👤</div><div class="ni-lbl">Profilo</div><div class="ni-pip"></div></div>
+  </nav>
+</div>
+
+<!-- ══ SEARCH ══ -->
+<div class="screen" id="sc-search">
+  <div style="padding:10px 16px 0;display:flex;align-items:center;gap:8px;">
+    <button onclick="goTo('sc-home',0)" style="width:34px;height:34px;border-radius:50%;background:var(--surf2);border:1px solid var(--bord);font-size:16px;cursor:pointer;flex-shrink:0;">←</button>
+    <div class="scard" style="margin:0;flex:1;position:relative;">
+      <div class="srow" style="padding:7px 12px;"><div class="sdot sdot-f"></div><input class="sinput" id="s-from" placeholder="Partenza" oninput="acSuggest('s-from','ac-from');planJourney()" onfocus="acSuggest('s-from','ac-from')" onblur="setTimeout(()=>document.getElementById('ac-from').style.display='none',200)" autocomplete="off"></div>
+      <div id="ac-from" class="ac-drop" style="display:none;"></div>
+      <div class="sdiv" style="margin-left:28px;"></div>
+      <div class="srow" style="padding:7px 12px;"><div class="sdot sdot-t"></div><input class="sinput" id="s-to" placeholder="Destinazione" oninput="acSuggest('s-to','ac-to');planJourney()" onfocus="acSuggest('s-to','ac-to')" onblur="setTimeout(()=>document.getElementById('ac-to').style.display='none',200)" autocomplete="off"></div>
+      <div id="ac-to" class="ac-drop" style="display:none;"></div>
+      <div class="sdiv" style="margin-left:28px;"></div>
+      <div class="srow" style="padding:5px 12px;gap:8px;"><span style="font-size:16px;">📅</span><input class="sinput" id="s-date" type="date" style="flex:1;color:var(--txt1);" oninput="planJourney()"></div>
+    </div>
+    <div class="near-badge" id="near-search" onclick="toggleNearMe(this)" style="flex-shrink:0;padding:6px 10px;">📍</div>
+  </div>
+  <div class="filter-bar">
+    <div class="fp active" id="fp0" onclick="setFC('any',this)">Tutti</div>
+    <div class="fp" id="fp1" onclick="setFC(0,this)">🚗 Diretto</div>
+    <div class="fp" id="fp2" onclick="setFC(1,this)">1 cambio</div>
+    <div class="fp" id="fp3" onclick="setFC(2,this)">Max 2 cambi</div>
+    <div style="width:1px;background:var(--bord);flex-shrink:0;margin:4px 0;"></div>
+    <div class="fp active" id="fw0" onclick="setFW('any',this)">Qualsiasi attesa</div>
+    <div class="fp" id="fw1" onclick="setFW(10,this)">Max 10 min</div>
+    <div class="fp" id="fw2" onclick="setFW(20,this)">Max 20 min</div>
+    <div class="fp" id="fw3" onclick="setFW(30,this)">Max 30 min</div>
+  </div>
+  <div class="sort-row">
+    <span class="sort-lbl" id="s-count" style="flex:1;font-size:13px;color:var(--txt2);"></span>
+    <span class="sort-lbl">Ordina:</span>
+    <button class="sort-btn active" id="sb0" onclick="setSrt('time',this)">⏱ Durata</button>
+    <button class="sort-btn" id="sb1" onclick="setSrt('cambi',this)">🔄 Cambi</button>
+    <button class="sort-btn" id="sb2" onclick="setSrt('price',this)">€ Prezzo</button>
+  </div>
+  <div class="scroll" id="s-results"></div>
+  <nav class="nav">
+    <div class="ni" onclick="goTo('sc-home',0)"><div class="ni-icon">🏠</div><div class="ni-lbl">Home</div><div class="ni-pip"></div></div>
+    <div class="ni active"><div class="ni-icon">🔍</div><div class="ni-lbl">Cerca</div><div class="ni-pip"></div></div>
+    <div class="ni" onclick="goTo('sc-offer',2)"><div class="ni-icon">🚗</div><div class="ni-lbl">Offri</div><div class="ni-pip"></div></div>
+    <div class="ni" onclick="goTo('sc-transit',3)"><div class="ni-icon">🚌</div><div class="ni-lbl">Orari</div><div class="ni-pip"></div></div>
+    <div class="ni" onclick="goTo('sc-profile',4)"><div class="ni-icon">👤</div><div class="ni-lbl">Profilo</div><div class="ni-pip"></div></div>
+  </nav>
+</div>
+
+<!-- ══ DETAIL ══ -->
+<div class="screen" id="sc-detail">
+  <div style="position:relative;flex-shrink:0;">
+    <div id="map-detail"></div>
+    <div class="map-back" id="detail-back-btn">← Indietro</div>
+  </div>
+  <div class="scroll" id="detail-body" style="padding:16px;"></div>
+</div>
+
+<!-- ══ OFFER ══ -->
+<div class="screen" id="sc-offer">
+  <div class="ph"><h1>Offri passaggio</h1><p>Condividi il tuo percorso quotidiano</p></div>
+  <div class="scroll" style="padding:0 16px;">
+    <label class="form-lbl">Da dove parti?</label>
+    <div class="ac-wrap">
+      <input class="form-inp" id="o-from" placeholder="Es. Caserta Centro, Via Roma" autocomplete="off" oninput="acSearch(this,'ac-from')">
+      <div class="ac-list" id="ac-from"></div>
+    </div>
+    <label class="form-lbl">Fermate intermedie (opzionale)</label>
+    <div class="wp-list" id="wp-list"></div>
+    <button class="add-wp-btn" onclick="addWaypoint()">+ Aggiungi fermata intermedia</button>
+    <label class="form-lbl">Dove vai?</label>
+    <div class="ac-wrap">
+      <input class="form-inp" id="o-to" placeholder="Es. Napoli Monte Sant'Angelo" autocomplete="off" oninput="acSearch(this,'ac-to')">
+      <div class="ac-list" id="ac-to"></div>
+    </div>
+    <label class="form-lbl">Tocca la mappa — 1° tocco = partenza, 2° = arrivo</label>
+    <div id="map-picker"></div>
+    <div style="display:flex;gap:8px;margin-top:6px;margin-bottom:10px;">
+      <div style="flex:1;background:var(--green-l);border-radius:var(--rsm);padding:8px 10px;">
+        <div style="font-size:10px;color:var(--green-d);font-weight:500;text-transform:uppercase;letter-spacing:.4px;">Partenza</div>
+        <div style="font-size:12px;color:var(--green-dd);margin-top:2px;line-height:1.3;" id="o-meeting">Tocca la mappa</div>
+      </div>
+      <div style="flex:1;background:var(--coral-l);border-radius:var(--rsm);padding:8px 10px;">
+        <div style="font-size:10px;color:var(--coral-d);font-weight:500;text-transform:uppercase;letter-spacing:.4px;">Arrivo</div>
+        <div style="font-size:12px;color:var(--coral-d);margin-top:2px;line-height:1.3;" id="o-arrival-lbl">Tocca la mappa</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <div style="flex:1;">
+        <label class="form-lbl">Orario partenza</label>
+        <input class="form-inp" type="time" id="o-time" value="07:15">
+      </div>
+      <div style="flex:1;">
+        <label class="form-lbl">Prezzo (€ a persona)</label>
+        <input class="form-inp" type="number" id="o-price" placeholder="1.50" step="0.50" min="0">
+      </div>
+    </div>
+    <label class="form-lbl">Posti disponibili</label>
+    <div class="seats-row">
+      <div class="seat-btn" onclick="selSeat(this)">1</div>
+      <div class="seat-btn active" onclick="selSeat(this)">2</div>
+      <div class="seat-btn" onclick="selSeat(this)">3</div>
+      <div class="seat-btn" onclick="selSeat(this)">4</div>
+    </div>
+    <label class="form-lbl">Giorni</label>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+      <div class="day-chip active" onclick="this.classList.toggle('active')">Lun</div>
+      <div class="day-chip active" onclick="this.classList.toggle('active')">Mar</div>
+      <div class="day-chip active" onclick="this.classList.toggle('active')">Mer</div>
+      <div class="day-chip active" onclick="this.classList.toggle('active')">Gio</div>
+      <div class="day-chip active" onclick="this.classList.toggle('active')">Ven</div>
+      <div class="day-chip" onclick="this.classList.toggle('active')">Sab</div>
+    </div>
+    <label class="form-lbl">Connessione bus / metro</label>
+    <input class="form-inp" id="o-transit" placeholder="Es. Bus ANM R2, Metro L1 (opzionale)">
+    <button class="btn btn-p" style="margin-bottom:24px;" id="publish-btn" onclick="publishRide()">Pubblica passaggio</button>
+  </div>
+  <nav class="nav">
+    <div class="ni" onclick="goTo('sc-home',0)"><div class="ni-icon">🏠</div><div class="ni-lbl">Home</div><div class="ni-pip"></div></div>
+    <div class="ni" onclick="goTo('sc-search',1)"><div class="ni-icon">🔍</div><div class="ni-lbl">Cerca</div><div class="ni-pip"></div></div>
+    <div class="ni active"><div class="ni-icon">🚗</div><div class="ni-lbl">Offri</div><div class="ni-pip"></div></div>
+    <div class="ni" onclick="goTo('sc-transit',3)"><div class="ni-icon">🚌</div><div class="ni-lbl">Orari</div><div class="ni-pip"></div></div>
+    <div class="ni" onclick="goTo('sc-profile',4)"><div class="ni-icon">👤</div><div class="ni-lbl">Profilo</div><div class="ni-pip"></div></div>
+  </nav>
+</div>
+
+<!-- ══ TRANSIT ══ -->
+<div class="screen" id="sc-transit">
+  <div class="ph"><h1>Orari mezzi</h1><p>GTFS + Contributi comunità</p></div>
+  <div class="region-row">
+    <div class="chip active" onclick="setRegion('all',this)">Tutti</div>
+    <div class="chip" onclick="setRegion('campania',this)">Campania</div>
+    <div class="chip" onclick="setRegion('lazio',this)">Lazio</div>
+    <div class="chip" onclick="setRegion('inter',this)">Interregionale</div>
+  </div>
+  <div class="scroll" id="transit-body"></div>
+  <nav class="nav">
+    <div class="ni" onclick="goTo('sc-home',0)"><div class="ni-icon">🏠</div><div class="ni-lbl">Home</div><div class="ni-pip"></div></div>
+    <div class="ni" onclick="goTo('sc-search',1)"><div class="ni-icon">🔍</div><div class="ni-lbl">Cerca</div><div class="ni-pip"></div></div>
+    <div class="ni" onclick="goTo('sc-offer',2)"><div class="ni-icon">🚗</div><div class="ni-lbl">Offri</div><div class="ni-pip"></div></div>
+    <div class="ni active" onclick="goTo('sc-transit',3)"><div class="ni-icon">🚌</div><div class="ni-lbl">Orari</div><div class="ni-pip"></div></div>
+    <div class="ni" onclick="goTo('sc-profile',4)"><div class="ni-icon">👤</div><div class="ni-lbl">Profilo</div><div class="ni-pip"></div></div>
+  </nav>
+</div>
+
+<!-- ══ CHAT LIST ══ -->
+<div class="screen" id="sc-chat">
+  <div class="ph"><h1>Messaggi</h1><p id="chat-subtitle">Le tue conversazioni</p></div>
+  <div class="scroll" id="chat-list-body">
+    <div class="empty"><div class="empty-icon">💬</div><div class="empty-title">Nessun messaggio ancora</div><div class="empty-sub">Quando prenoti un passaggio o qualcuno ti contatta, la chat apparirà qui.</div></div>
+  </div>
+  <nav class="nav">
+    <div class="ni" onclick="goTo('sc-home',0)"><div class="ni-icon">🏠</div><div class="ni-lbl">Home</div><div class="ni-pip"></div></div>
+    <div class="ni" onclick="goTo('sc-search',1)"><div class="ni-icon">🔍</div><div class="ni-lbl">Cerca</div><div class="ni-pip"></div></div>
+    <div class="ni" onclick="goTo('sc-offer',2)"><div class="ni-icon">🚗</div><div class="ni-lbl">Offri</div><div class="ni-pip"></div></div>
+    <div class="ni active" onclick="goTo('sc-transit',3)"><div class="ni-icon">🚌</div><div class="ni-lbl">Orari</div><div class="ni-pip"></div></div>
+    <div class="ni" onclick="goTo('sc-profile',4)"><div class="ni-icon">👤</div><div class="ni-lbl">Profilo</div><div class="ni-pip"></div></div>
+  </nav>
+</div>
+
+<!-- ══ CHAT DETAIL ══ -->
+<div class="screen" id="sc-chat-detail">
+  <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--bord);flex-shrink:0;">
+    <button onclick="goTo('sc-chat',3)" style="width:34px;height:34px;border-radius:50%;background:var(--surf2);border:1px solid var(--bord);font-size:16px;cursor:pointer;flex-shrink:0;">←</button>
+    <div class="av av-sm av-g" id="chat-detail-av">?</div>
+    <div style="flex:1;"><div style="font-size:15px;font-weight:500;" id="chat-detail-name">—</div><div style="font-size:12px;color:var(--green);" id="chat-detail-status">Online</div></div>
+  </div>
+  <div class="scroll" id="chat-messages" style="padding:12px 14px;display:flex;flex-direction:column;"></div>
+  <div class="chat-input-row">
+    <input class="chat-inp" id="chat-inp" placeholder="Scrivi un messaggio..." onkeydown="if(event.key==='Enter')sendMsg()">
+    <button class="send-btn" onclick="sendMsg()">↑</button>
+  </div>
+</div>
+
+<!-- ══ PROFILE ══ -->
+<div class="screen" id="sc-profile">
+  <div class="scroll">
+    <!-- Hero con foto -->
+    <div class="prof-hero">
+      <div class="photo-ring" onclick="triggerPhotoUpload()">
+        <div class="av av-lg av-g" id="prof-av">?</div>
+        <div class="photo-edit">📷</div>
+        <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="uploadPhoto(this)">
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:20px;font-weight:600;letter-spacing:-.3px;" id="prof-name">—</div>
+        <div style="font-size:13px;color:var(--txt2);margin-top:2px;" id="prof-type">—</div>
+        <div style="font-size:13px;color:var(--amber-d);margin-top:2px;" id="prof-rating">⭐ 5.0 · Nuovo utente</div>
+        <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;" id="prof-badges"></div>
+      </div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-c"><div class="stat-n" id="prof-trips">0</div><div class="stat-l">Passaggi</div></div>
+      <div class="stat-c"><div class="stat-n" style="color:var(--green);">€0</div><div class="stat-l">Risparmiati</div></div>
+      <div class="stat-c"><div class="stat-n" style="font-size:16px;">0 kg</div><div class="stat-l">CO₂</div></div>
+    </div>
+
+    <!-- Verifica social -->
+    <div class="menu-g">
+      <div class="menu-gt">Verifica identità</div>
+      <div style="background:var(--blue-l);border-radius:var(--rsm);padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--blue-d);line-height:1.5;">
+        ℹ️ Collegare un profilo social aumenta la fiducia degli altri utenti. <strong>Nessun documento richiesto</strong> — usiamo solo il link pubblico del tuo profilo.
+      </div>
+      <div class="verify-card">
+        <div class="verify-row">
+          <div class="verify-icon" style="background:#E8F0FE;">🔵</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:500;">Facebook</div><div style="font-size:12px;color:var(--txt2);">Profilo pubblico</div></div>
+          <span class="verify-status vs-none" id="fb-status">Non collegato</span>
+        </div>
+        <input class="form-inp" id="fb-url" placeholder="facebook.com/tuonome" style="margin-bottom:8px;">
+        <button class="btn btn-s" style="padding:9px;" onclick="linkSocial('facebook')">Collega Facebook</button>
+      </div>
+      <div class="verify-card">
+        <div class="verify-row">
+          <div class="verify-icon" style="background:#E8F5FF;">🐦</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:500;">Instagram / X</div><div style="font-size:12px;color:var(--txt2);">Profilo pubblico</div></div>
+          <span class="verify-status vs-none" id="ig-status">Non collegato</span>
+        </div>
+        <input class="form-inp" id="ig-url" placeholder="instagram.com/tuonome" style="margin-bottom:8px;">
+        <button class="btn btn-s" style="padding:9px;" onclick="linkSocial('instagram')">Collega Instagram / X</button>
+      </div>
+      <div class="verify-card">
+        <div class="verify-row">
+          <div class="verify-icon" style="background:#E8F5EE;">🎓</div>
+          <div style="flex:1;"><div style="font-size:14px;font-weight:500;">Email universitaria</div><div style="font-size:12px;color:var(--txt2);">@unina.it · @unicampania.it · ecc.</div></div>
+          <span class="verify-status vs-none" id="uni-status">Non verificata</span>
+        </div>
+        <input class="form-inp" id="uni-email" placeholder="tuanome@studenti.unina.it" style="margin-bottom:8px;">
+        <button class="btn btn-s" style="padding:9px;" onclick="linkSocial('university')">Invia codice verifica</button>
+      </div>
+    </div>
+
+    <div class="menu-g">
+      <div class="menu-gt">I miei passaggi</div>
+      <div class="menu-i" onclick="goTo('sc-offer',2)"><div class="mic" style="background:var(--green-l);">🚗</div><div style="flex:1;font-size:14px;">Pubblica un passaggio</div><span>›</span></div>
+      <div class="menu-i"><div class="mic" style="background:var(--blue-l);">📋</div><div style="flex:1;font-size:14px;">I miei passaggi</div><span id="my-rides-count" style="font-size:12px;color:var(--txt2);"></span></div>
+    </div>
+    <div style="padding:4px 16px 8px;font-size:13px;color:var(--txt3);" id="prof-email"></div>
+    <div style="padding:0 16px 24px;">
+      <button style="width:100%;padding:13px;background:var(--red-l);color:var(--red);border:none;border-radius:var(--r);font-size:15px;font-weight:500;font-family:var(--font);cursor:pointer;" onclick="doLogout()">Esci dall'account</button>
+    </div>
+  </div>
+  <nav class="nav">
+    <div class="ni" onclick="goTo('sc-home',0)"><div class="ni-icon">🏠</div><div class="ni-lbl">Home</div><div class="ni-pip"></div></div>
+    <div class="ni" onclick="goTo('sc-search',1)"><div class="ni-icon">🔍</div><div class="ni-lbl">Cerca</div><div class="ni-pip"></div></div>
+    <div class="ni" onclick="goTo('sc-offer',2)"><div class="ni-icon">🚗</div><div class="ni-lbl">Offri</div><div class="ni-pip"></div></div>
+    <div class="ni" onclick="goTo('sc-transit',3)"><div class="ni-icon">🚌</div><div class="ni-lbl">Orari</div><div class="ni-pip"></div></div>
+    <div class="ni active"><div class="ni-icon">👤</div><div class="ni-lbl">Profilo</div><div class="ni-pip"></div></div>
+  </nav>
+</div>
+
+
+<!-- ══ CHAT LIST ══ -->
+<div class="screen" id="sc-chat">
+  <div class="ph"><h1>Messaggi</h1><p id="chat-sub">Le tue conversazioni</p></div>
+  <div class="scroll" id="chat-list-body">
+    <div class="empty"><div class="empty-icon">💬</div><div class="empty-title">Nessun messaggio ancora</div><div class="empty-sub">Prenota un passaggio per iniziare a chattare con il guidatore.</div></div>
+  </div>
+  <nav class="nav">
+    <div class="ni" onclick="goTo('sc-home',0)"><div class="ni-icon">🏠</div><div class="ni-lbl">Home</div><div class="ni-pip"></div></div>
+    <div class="ni" onclick="goTo('sc-search',1)"><div class="ni-icon">🔍</div><div class="ni-lbl">Cerca</div><div class="ni-pip"></div></div>
+    <div class="ni" onclick="goTo('sc-offer',2)"><div class="ni-icon">🚗</div><div class="ni-lbl">Offri</div><div class="ni-pip"></div></div>
+    <div class="ni active"><div class="ni-icon">💬</div><div class="ni-lbl">Chat</div><div class="ni-pip"></div></div>
+    <div class="ni" onclick="goTo('sc-profile',4)"><div class="ni-icon">👤</div><div class="ni-lbl">Profilo</div><div class="ni-pip"></div></div>
+  </nav>
+</div>
+
+<!-- ══ CHAT DETAIL ══ -->
+<div class="screen" id="sc-chat-detail">
+  <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--bord);flex-shrink:0;">
+    <button onclick="goTo('sc-chat',3)" style="width:34px;height:34px;border-radius:50%;background:var(--surf2);border:1px solid var(--bord);font-size:16px;cursor:pointer;flex-shrink:0;">←</button>
+    <div class="av av-sm av-g" id="cd-av">?</div>
+    <div style="flex:1;"><div style="font-size:15px;font-weight:500;" id="cd-name">—</div><div style="font-size:12px;color:var(--green);">Online</div></div>
+  </div>
+  <div class="scroll msg-wrap" id="chat-msgs"></div>
+  <div class="chat-inp-row">
+    <input class="chat-inp" id="chat-inp" placeholder="Scrivi un messaggio..." onkeydown="if(event.key==='Enter')sendMsg()">
+    <button class="send-btn" onclick="sendMsg()">↑</button>
+  </div>
+</div>
+
+<!-- ══ OCR ══ -->
+<div class="screen" id="sc-ocr">
+  <div style="display:flex;align-items:center;gap:10px;padding:10px 16px 8px;flex-shrink:0;">
+    <button onclick="goTo('sc-transit',3)" style="width:34px;height:34px;border-radius:50%;background:var(--surf2);border:1px solid var(--bord);font-size:16px;cursor:pointer;flex-shrink:0;">←</button>
+    <div><div style="font-size:18px;font-weight:600;">Carica orari</div><p style="font-size:13px;color:var(--txt2);">PDF, foto o screenshot</p></div>
+  </div>
+  <div class="scroll" style="padding:0 16px;">
+    <div style="background:var(--blue-l);border:1px solid rgba(55,138,221,.2);border-radius:var(--rsm);padding:10px 12px;display:flex;gap:8px;margin-bottom:12px;">
+      <span>ℹ️</span><p style="font-size:12px;color:var(--blue-d);line-height:1.5;">Claude AI estrae automaticamente gli orari. Verranno verificati prima della pubblicazione.</p>
+    </div>
+    <div class="ocr-drop" onclick="document.getElementById('ocr-inp').click()" ondragover="event.preventDefault();this.style.borderColor='var(--green)'" ondragleave="this.style.borderColor=''" ondrop="handleOcrDrop(event)">
+      <div style="font-size:36px;margin-bottom:8px;">📄</div>
+      <div style="font-size:14px;font-weight:500;">Tocca o trascina il file</div>
+      <div style="font-size:12px;color:var(--txt2);margin-top:4px;">PDF · JPG · PNG · max 10MB</div>
+      <input type="file" id="ocr-inp" accept=".pdf,.jpg,.jpeg,.png,.webp" style="display:none" onchange="handleOcrFile(this.files[0])">
+    </div>
+    <div class="ocr-prog" id="ocr-prog">
+      <div style="font-size:13px;font-weight:500;" id="ocr-ptxt">Analisi in corso...</div>
+      <div style="font-size:12px;color:var(--txt2);margin-top:2px;" id="ocr-psub">Claude sta leggendo gli orari</div>
+      <div class="prog-bar"><div class="prog-fill" id="ocr-pbar" style="width:0%"></div></div>
+    </div>
+    <label class="form-lbl">Operatore (opzionale)</label>
+    <input class="form-inp" id="ocr-op" placeholder="Es. Angelino, Ferrazza...">
+    <label class="form-lbl">Tratta (opzionale)</label>
+    <input class="form-inp" id="ocr-rt" placeholder="Es. Caserta → Napoli">
+    <div style="height:16px;"></div>
+  </div>
+</div>
+
+<!-- OVERLAY -->
+<div id="overlay" onclick="if(event.target===this)closeOverlay()">
+  <div class="ov-sheet" id="ov-content"></div>
+</div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// Stubs — chiamati prima che il modulo ES sia pronto
+// Vengono rimpiazzati dalle funzioni reali quando il modulo carica
+var _pendingCalls = [];
+['switchAuth','goTo','doAuth','doGoogleAuth','doSearch','showOv','closeOverlay',
+ 'setType','selDate','selSeat','selectType','toggleNearMe','openDetail','openJDetail',
+ 'openChatDetail','openChatWith','sendMsg','publishRide','addWaypoint','removeWaypoint',
+ 'acSelect','acSearch','linkSocial','reportLine','setRegion','setFC','setFW','setSrt',
+ 'doLogout','triggerPhotoUpload','uploadPhoto','handleOcrFile','handleOcrDrop',
+ 'updatePickerMap','safeStr','planJourney'
+].forEach(function(fn) {
+  window[fn] = function() {
+    var args = arguments;
+    _pendingCalls.push({fn:fn, args:args});
+    if(fn === 'switchAuth') {
+      // switchAuth is needed immediately for the auth screen tabs
+      var tabs = document.querySelectorAll('.auth-tab');
+      var mode = args[0];
+      tabs.forEach(function(t){ t.classList.remove('active'); });
+      var target = document.querySelector('.auth-tab[onclick*="' + mode + '"]');
+      if(target) target.classList.add('active');
+      var loginF = document.getElementById('auth-login-form');
+      var regF = document.getElementById('auth-register-form');
+      if(loginF) loginF.style.display = mode==='login'?'':'none';
+      if(regF) regF.style.display = mode==='register'?'':'none';
+    }
+  };
+});
+// Replay queued calls once module loads
+window._replayPending = function() {
+  _pendingCalls.forEach(function(c){
+    if(typeof window[c.fn] === 'function' && window[c.fn] !== window._replayPending) {
+      try { window[c.fn].apply(null, c.args); } catch(e){}
+    }
+  });
+  _pendingCalls = [];
+};
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+         GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, updateProfile }
+  from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, collection, addDoc, query,
+         orderBy, onSnapshot, where, serverTimestamp, getDocs }
+  from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const cfg = {
+  apiKey:"AIzaSyDbRzFSxNJdKShirV-U8HqqXyZZmIaG2Po",
+  authDomain:"pendolapp-579b1.firebaseapp.com",
+  projectId:"pendolapp-579b1",
+  storageBucket:"pendolapp-579b1.firebasestorage.app",
+  messagingSenderId:"699792841726",
+  appId:"1:699792841726:web:c8f94d9aff639039d4beaf"
+};
+const fbApp = initializeApp(cfg);
+const auth = getAuth(fbApp);
+window._firebaseAuth = auth;
+const db = getFirestore(fbApp);
+const gProvider = new GoogleAuthProvider();
+
+// ── stato globale ────────────────────────────────────────────────────────────
+let currentUser = null;
+let allRides = [];
+let mapDetail = null;
+let mapPicker = null;
+let pickerMarker = null;
+let pickedLat = 40.8518; // default Napoli
+let pickedLng = 14.2681;
+window._authMode = 'login';
+window.selectedType = 'studente';
+window._selSeats = 2;
+
+// ── auth state ────────────────────────────────────────────────────────────────
+onAuthStateChanged(auth, async user => {
+  if (user) {
+    currentUser = user;
+    const snap = await getDoc(doc(db,'users',user.uid));
+    const p = snap.exists() ? snap.data() : {};
+    const name = p.name || user.displayName || user.email.split('@')[0];
+    const type = p.type || 'pendolare';
+    const initials = name.split(' ').slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('');
+    document.getElementById('greeting-name').textContent = `Ciao, ${name.split(' ')[0]} 👋`;
+    document.getElementById('prof-name').textContent = name;
+    document.getElementById('prof-type').textContent = type==='studente'?'🎓 Studente':'💼 Pendolare';
+    document.getElementById('prof-av').textContent = initials||'?';
+    document.getElementById('prof-email').textContent = user.email;
+    document.getElementById('auth-overlay').classList.add('hidden');
+    if(p.photoBase64) applyPhoto(p.photoBase64,'prof-av',64);
+    renderProfileBadges(p);
+    listenRides();
+    renderTransitFull();
+    planJourney();
+    initMapPicker();
+    // expose firestore methods for chat
+    window._fb = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+    // expose individual Firestore functions used by feature modules
+    const {addDoc:_ad,collection:_col,doc:_doc,getDoc:_gd,setDoc:_sd,updateDoc:_ud,
+           query:_q,where:_w,orderBy:_ob,onSnapshot:_os,serverTimestamp:_ts,
+           increment:_inc,getDocs:_gds,deleteDoc:_dd} = window._fb;
+    window._fb.addDoc=_ad; window._fb.collection=_col; window._fb.doc=_doc;
+    window._fb.getDoc=_gd; window._fb.setDoc=_sd; window._fb.updateDoc=_ud;
+    window._fb.query=_q; window._fb.where=_w; window._fb.orderBy=_ob;
+    window._fb.onSnapshot=_os; window._fb.serverTimestamp=_ts;
+    window._fb.increment=_inc; window._fb.getDocs=_gds; window._fb.deleteDoc=_dd;
+    listenChats();
+  } else {
+    currentUser = null;
+    document.getElementById('auth-overlay').classList.remove('hidden');
+  }
+});
+
+// ── auth ─────────────────────────────────────────────────────────────────────
+window.switchAuth = m => {
+  document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&m==='login')||(i===1&&m==='register')));
+  document.getElementById('field-name').style.display = m==='register'?'block':'none';
+  document.getElementById('field-type').style.display = m==='register'?'block':'none';
+  document.getElementById('auth-btn').textContent = m==='register'?'Crea account':'Accedi';
+  document.getElementById('auth-err').classList.remove('show');
+  window._authMode = m;
+};
+window.selectType = t => {
+  window.selectedType = t;
+  document.getElementById('type-studente').classList.toggle('active',t==='studente');
+  document.getElementById('type-pendolare').classList.toggle('active',t==='pendolare');
+};
+window.doAuth = async () => {
+  const btn = document.getElementById('auth-btn');
+  const err = document.getElementById('auth-err');
+  const email = document.getElementById('inp-email').value.trim();
+  const pass = document.getElementById('inp-pass').value;
+  err.classList.remove('show'); btn.disabled=true;
+  btn.innerHTML='<div class="spinner"></div>';
+  try {
+    if (window._authMode==='register') {
+      const name = document.getElementById('inp-name').value.trim();
+      if(!name) throw {message:'Inserisci il tuo nome e cognome.'};
+      const c = await createUserWithEmailAndPassword(auth,email,pass);
+      await updateProfile(c.user,{displayName:name});
+      await setDoc(doc(db,'users',c.user.uid),{name,email,type:window.selectedType,createdAt:serverTimestamp(),rating:5.0,trips:0});
+    } else {
+      await signInWithEmailAndPassword(auth,email,pass);
+    }
+  } catch(e) {
+    const m={
+      'auth/email-already-in-use':'Email già registrata.',
+      'auth/user-not-found':'Nessun account con questa email.',
+      'auth/wrong-password':'Password errata.',
+      'auth/invalid-credential':'Email o password non corretti.',
+      'auth/weak-password':'Password troppo corta (min. 6 caratteri).',
+    };
+    err.textContent=m[e.code]||e.message; err.classList.add('show');
+    btn.disabled=false; btn.textContent=window._authMode==='register'?'Crea account':'Accedi';
+  }
+};
+window.doGoogleAuth = async () => {
+  try {
+    const r = await signInWithPopup(auth,gProvider);
+    const snap = await getDoc(doc(db,'users',r.user.uid));
+    if(!snap.exists()) await setDoc(doc(db,'users',r.user.uid),{name:r.user.displayName||'Utente',email:r.user.email,type:'pendolare',createdAt:serverTimestamp(),rating:5.0,trips:0});
+  } catch(e) {
+    document.getElementById('auth-err').textContent='Login Google non riuscito.';
+    document.getElementById('auth-err').classList.add('show');
+  }
+};
+window.doLogout = () => signOut(auth);
+
+// ── rides listener (Firestore realtime) ───────────────────────────────────────
+function listenRides() {
+  const q = query(collection(db,'rides'), orderBy('createdAt','desc'));
+  onSnapshot(q, snap => {
+    allRides = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderRideList(allRides, 'home-rides');
+    document.getElementById('home-count').textContent =
+      allRides.length ? `${allRides.length} passagg${allRides.length===1?'io':'i'} disponibili` : 'Nessun passaggio ancora — sii il primo!';
+    liveSearch();
+    // conta i miei passaggi
+    const mine = allRides.filter(r=>r.driverId===currentUser?.uid).length;
+    document.getElementById('my-rides-count').textContent = mine||'';
+  });
+}
+
+// ── render rides ──────────────────────────────────────────────────────────────
+function rideHTML(r) {
+  const initials = (r.driverName||'?').split(' ').slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('');
+  const colors = ['av-g','av-b','av-a'];
+  const col = colors[Math.abs((r.driverName||'').charCodeAt(0)||0) % 3];
+  const isOwn = r.driverId === currentUser?.uid;
+  const distStr = (nearMeActive && r._dist!=null) ? `<span class="dist-badge">📍 ${r._dist<1?(r._dist*1000).toFixed(0)+'m':r._dist.toFixed(1)+'km'}</span>` : '';
+  const wpStr = (r.waypoints&&r.waypoints.length) ? `<div style="font-size:11px;color:var(--txt2);padding:4px 14px 6px;display:flex;align-items:center;gap:4px;">↳ <span>${r.waypoints.join(' → ')}</span></div>` : '';
+  return `<div class="card mx mb rc" onclick="openDetail('${r.id}')">
+    <div class="rh">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="av av-sm ${col}">${initials}</div>
+        <div>
+          <div style="font-size:14px;font-weight:500;">${r.driverName||'Anonimo'}${isOwn?' <span style="font-size:10px;background:var(--green-l);color:var(--green-d);padding:2px 6px;border-radius:10px;">tu</span>':''}</div>
+          <div style="font-size:12px;color:var(--txt2);">⭐ ${r.rating||5.0} · ${r.driverType==='studente'?'Studente':'Pendolare'}</div>
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:18px;font-weight:600;color:var(--green);">€${parseFloat(r.price||0).toFixed(2)}</div>
+        <div style="font-size:11px;color:var(--txt3);">a persona</div>
+      </div>
+    </div>
+    <div class="rr">
+      <div class="tc"><div class="tb">${r.depTime||'--:--'}</div><div class="tp">${(r.from||'').split(' ')[0]}</div></div>
+      <div class="rl"></div><div class="rd"></div><div class="rl"></div>
+      <div class="tc"><div class="tb">${r.arrTime||'--:--'}</div><div class="tp">${(r.to||'').split(' ').slice(-1)[0]}</div></div>
+    </div>
+    ${wpStr}
+    <div class="rf">
+      <span class="badge bg">🚗 Auto</span>
+      ${r.transit?`<span class="badge bb">🚌 ${r.transit}</span>`:''}
+      ${distStr}
+      <span style="margin-left:auto;font-size:12px;color:var(--txt2);">${r.seats||1} ${r.seats===1?'posto':'posti'}</span>
+    </div>
+  </div>`;
+}
+
+function renderRideList(rides, containerId) {
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  if(!rides.length) {
+    el.innerHTML=`<div class="empty"><div class="empty-icon">🚗</div><div class="empty-title">Nessun passaggio trovato</div><div class="empty-sub">Prova a cercare un'altra tratta oppure pubblica tu il primo passaggio!</div></div>`;
+    return;
+  }
+  el.innerHTML = rides.map(rideHTML).join('');
+}
+
+// ── live search ───────────────────────────────────────────────────────────────
+window.liveSearch = () => {
+  const from = (document.getElementById('s-from')?.value||'').trim().toLowerCase();
+  const to = (document.getElementById('s-to')?.value||'').trim().toLowerCase();
+  let filtered = allRides.filter(r=>{
+    const mf = !from || (r.from||'').toLowerCase().includes(from) || (r.waypoints||[]).some(w=>w.toLowerCase().includes(from));
+    const mt = !to   || (r.to||'').toLowerCase().includes(to)   || (r.waypoints||[]).some(w=>w.toLowerCase().includes(to));
+    return mf && mt;
+  });
+  // ordina per distanza se near me attivo
+  if(nearMeActive && userLat && userLng) {
+    filtered = filtered.map(r=>({...r, _dist:distKm(userLat,userLng,r.lat||41.07,r.lng||14.33)}))
+      .sort((a,b)=>a._dist-b._dist);
+  }
+  renderRideList(filtered,'s-results');
+  document.getElementById('s-count').textContent = filtered.length
+    ? `${filtered.length} passagg${filtered.length===1?'io':'i'} trovati${nearMeActive?' · ordinati per distanza':''}`
+    : 'Nessun risultato — prova termini diversi';
+};
+
+window.doSearch = () => {
+  document.getElementById('s-from').value = document.getElementById('home-from').value;
+  document.getElementById('s-to').value = document.getElementById('home-to').value;
+  const hDate = document.getElementById('home-date').value;
+  if(hDate) document.getElementById('s-date').value = hDate;
+  goTo('sc-search',1);
+  planJourney();
+};
+
+// ── detail con mappa Leaflet ──────────────────────────────────────────────────
+window.openDetail = id => {
+  const r = allRides.find(x=>x.id===id);
+  if(!r) return;
+  document.getElementById('detail-back-btn').onclick = () => goTo('sc-search',1);
+  document.getElementById('detail-body').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+      <div class="av av-md av-g">${(r.driverName||'?').split(' ').slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('')}</div>
+      <div style="flex:1;"><div style="font-size:17px;font-weight:600;">${r.driverName||'Anonimo'}</div>
+        <div style="font-size:13px;color:var(--txt2);">⭐ ${r.rating||5.0} · ${r.driverType==='studente'?'Studente':'Pendolare'}</div></div>
+      <div style="font-size:22px;font-weight:700;color:var(--green);">€${parseFloat(r.price||0).toFixed(2)}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;">
+      <div style="background:var(--surf2);border-radius:var(--rsm);padding:10px;text-align:center;"><div style="font-size:11px;color:var(--txt2);">Partenza</div><div style="font-size:16px;font-weight:600;font-family:var(--mono);">${r.depTime||'--:--'}</div></div>
+      <div style="background:var(--surf2);border-radius:var(--rsm);padding:10px;text-align:center;"><div style="font-size:11px;color:var(--txt2);">Posti</div><div style="font-size:16px;font-weight:600;">${r.seats||1}</div></div>
+      <div style="background:var(--surf2);border-radius:var(--rsm);padding:10px;text-align:center;"><div style="font-size:11px;color:var(--txt2);">Prezzo</div><div style="font-size:16px;font-weight:600;color:var(--green);">€${parseFloat(r.price||0).toFixed(2)}</div></div>
+    </div>
+    <div style="background:var(--green-l);border-radius:var(--rsm);padding:10px 12px;margin-bottom:14px;">
+      <div style="font-size:12px;color:var(--green-d);font-weight:500;">📍 Punto di ritrovo</div>
+      <div style="font-size:14px;color:var(--green-dd);margin-top:3px;">${r.meetingPoint||r.from||'Da definire'}</div>
+    </div>
+    <div style="font-size:13px;color:var(--txt2);margin-bottom:14px;"><strong>Da:</strong> ${r.from||'—'}<br><strong>A:</strong> ${r.to||'—'}${r.transit?`<br><strong>Connessione:</strong> ${r.transit}`:''}</div>
+    ${r.driverId!==currentUser?.uid?`
+    <button class="btn btn-p" style="margin-bottom:10px;" onclick="openChatWith('${r.driverId}','${r.driverName||'Guidatore'}','${r.id}');showOv('booking','${r.driverName||'il guidatore'}')">Prenota · €${parseFloat(r.price||0).toFixed(2)}</button>
+    <button class="btn btn-o" onclick="openChatWith('${r.driverId}','${r.driverName||'Guidatore'}','${r.id}')">Scrivi a ${(r.driverName||'').split(' ')[0]||'lui'} prima</button>
+    `:`<div style="text-align:center;font-size:13px;color:var(--green-d);padding:12px;">✓ Questo è il tuo passaggio</div>`}
+  `;
+
+  // mappa con marker punto di ritrovo
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sc-detail').classList.add('active');
+  setTimeout(()=>{
+    if(mapDetail) { mapDetail.remove(); mapDetail=null; }
+    mapDetail = L.map('map-detail',{zoomControl:false,attributionControl:false});
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapDetail);
+    const lat = r.lat||40.8518;
+    const lng = r.lng||14.2681;
+    mapDetail.setView([lat,lng],14);
+    const greenIcon = L.divIcon({html:'<div style="background:#1D9E75;width:20px;height:20px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);"></div>',className:'',iconAnchor:[10,10]});
+    L.marker([lat,lng],{icon:greenIcon}).addTo(mapDetail).bindPopup(`📍 ${r.meetingPoint||r.from||'Punto di ritrovo'}`).openPopup();
+  },100);
+};
+
+// ── autocomplete Nominatim ────────────────────────────────────────────────────
+let acTimers = {};
+window.acSearch = (inp, listId) => {
+  const val = inp.value.trim();
+  const list = document.getElementById(listId);
+  if(val.length < 3) { list.classList.remove('open'); return; }
+  clearTimeout(acTimers[listId]);
+  acTimers[listId] = setTimeout(async () => {
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val+' Campania')}&format=json&limit=5&countrycodes=it&accept-language=it`);
+      const data = await res.json();
+      if(!data.length) { list.classList.remove('open'); return; }
+      list.innerHTML = data.map(d => {
+        const parts = d.display_name.split(',');
+        const main = parts[0].trim();
+        const sub = parts.slice(1,3).join(',').trim();
+        return `<div class="ac-item" onclick="acSelect('${inp.id}','${listId}',\`${d.display_name.replace(/`/g,"'")}\`,${d.lat},${d.lon})">
+          <div class="ac-icon">📍</div>
+          <div><div class="ac-main">${main}</div><div class="ac-sub">${sub}</div></div>
+        </div>`;
+      }).join('');
+      list.classList.add('open');
+    } catch(e) { list.classList.remove('open'); }
+  }, 400);
+};
+window.acSelect = (inpId, listId, name, lat, lng) => {
+  const inp = document.getElementById(inpId);
+  const short = name.split(',')[0].trim();
+  inp.value = short;
+  inp.dataset.lat = lat;
+  inp.dataset.lng = lng;
+  inp.dataset.full = name;
+  document.getElementById(listId).classList.remove('open');
+  // se è o-from o o-to aggiorna mappa picker
+  if(inpId==='o-from') { pickedLat=parseFloat(lat); pickedLng=parseFloat(lng); updatePickerMap(); }
+  if(inpId==='o-to')   { pickedArrLat=parseFloat(lat); pickedArrLng=parseFloat(lng); updatePickerMap(); }
+};
+// chiudi ac se click fuori
+document.addEventListener('click', e => {
+  if(!e.target.closest('.ac-wrap')) document.querySelectorAll('.ac-list').forEach(l=>l.classList.remove('open'));
+});
+
+// ── waypoints ─────────────────────────────────────────────────────────────────
+let wpCount = 0;
+let waypoints = [];
+window.addWaypoint = () => {
+  wpCount++;
+  const id = 'wp-'+wpCount;
+  const colors = ['#f59e0b','#8b5cf6','#ec4899','#14b8a6'];
+  const color = colors[(wpCount-1)%4];
+  const row = document.createElement('div');
+  row.className = 'wp-row'; row.id = id+'-row';
+  row.innerHTML = `<div class="wp-dot" style="background:${color};"></div>
+    <input class="wp-inp" id="${id}" placeholder="Es. Aversa, Afragola..." autocomplete="off" oninput="acSearch(this,'ac-${id}')">
+    <div class="ac-list" id="ac-${id}" style="top:100%;position:absolute;left:0;right:0;z-index:300;"></div>
+    <button class="wp-del" onclick="removeWaypoint('${id}-row')">×</button>`;
+  document.getElementById('wp-list').appendChild(row);
+  waypoints.push({id, lat:null, lng:null});
+};
+window.removeWaypoint = rowId => {
+  const row = document.getElementById(rowId);
+  if(row) row.remove();
+};
+
+// ── map picker — partenza + arrivo ────────────────────────────────────────────
+let pickerMarkerFrom = null;
+let pickerMarkerTo = null;
+let pickerClickCount = 0;
+let pickedArrLat = null;
+let pickedArrLng = null;
+
+function iconDot(color) {
+  return L.divIcon({html:`<div style="background:${color};width:18px;height:18px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.35);"></div>`,className:'',iconAnchor:[9,9]});
+}
+
+function revGeocode(lat, lng, elId) {
+  fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
+    .then(r=>r.json())
+    .then(d=>{ document.getElementById(elId).textContent = d.display_name?.split(',').slice(0,2).join(', ')||`${lat.toFixed(4)}, ${lng.toFixed(4)}`; })
+    .catch(()=>{ document.getElementById(elId).textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`; });
+}
+
+window.updatePickerMap = () => {
+  if(!mapPicker) return;
+  if(pickedLat && pickedLng) {
+    if(pickerMarkerFrom) mapPicker.removeLayer(pickerMarkerFrom);
+    pickerMarkerFrom = L.marker([pickedLat,pickedLng],{icon:iconDot('#1D9E75')}).addTo(mapPicker);
+    revGeocode(pickedLat,pickedLng,'o-meeting');
+  }
+  if(pickedArrLat && pickedArrLng) {
+    if(pickerMarkerTo) mapPicker.removeLayer(pickerMarkerTo);
+    pickerMarkerTo = L.marker([pickedArrLat,pickedArrLng],{icon:iconDot('#D85A30')}).addTo(mapPicker);
+    revGeocode(pickedArrLat,pickedArrLng,'o-arrival-lbl');
+    if(pickedLat) mapPicker.fitBounds([[pickedLat,pickedLng],[pickedArrLat,pickedArrLng]],{padding:[30,30]});
+  }
+};
+
+function initMapPicker() {
+  if(mapPicker) return;
+  setTimeout(()=>{
+    mapPicker = L.map('map-picker',{zoomControl:true,attributionControl:false});
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapPicker);
+    mapPicker.setView([41.0761,14.3320],10);
+    mapPicker.on('click', e=>{
+      pickerClickCount++;
+      if(pickerClickCount % 2 === 1) {
+        // primo tocco = partenza
+        pickedLat = e.latlng.lat; pickedLng = e.latlng.lng;
+        if(pickerMarkerFrom) mapPicker.removeLayer(pickerMarkerFrom);
+        pickerMarkerFrom = L.marker([pickedLat,pickedLng],{icon:iconDot('#1D9E75')}).addTo(mapPicker).bindPopup('Partenza').openPopup();
+        revGeocode(pickedLat,pickedLng,'o-meeting');
+      } else {
+        // secondo tocco = arrivo
+        pickedArrLat = e.latlng.lat; pickedArrLng = e.latlng.lng;
+        if(pickerMarkerTo) mapPicker.removeLayer(pickerMarkerTo);
+        pickerMarkerTo = L.marker([pickedArrLat,pickedArrLng],{icon:iconDot('#D85A30')}).addTo(mapPicker).bindPopup('Arrivo').openPopup();
+        revGeocode(pickedArrLat,pickedArrLng,'o-arrival-lbl');
+        mapPicker.fitBounds([[pickedLat,pickedLng],[pickedArrLat,pickedArrLng]],{padding:[30,30]});
+      }
+    });
+  },200);
+}
+
+// ── vicino a me ───────────────────────────────────────────────────────────────
+let userLat = null, userLng = null, nearMeActive = false;
+window.toggleNearMe = el => {
+  nearMeActive = !nearMeActive;
+  el.classList.toggle('active', nearMeActive);
+  document.querySelectorAll('.near-badge').forEach(b=>{ b.classList.toggle('active',nearMeActive); b.textContent=nearMeActive?'✓ Vicino a me':'📍 Vicino a me'; });
+  if(nearMeActive) {
+    navigator.geolocation?.getCurrentPosition(pos=>{
+      userLat=pos.coords.latitude; userLng=pos.coords.longitude;
+      liveSearch();
+    }, ()=>{ nearMeActive=false; document.querySelectorAll('.near-badge').forEach(b=>{b.classList.remove('active');b.textContent='📍 Vicino a me';}); alert('Posizione non disponibile. Abilita i permessi di geolocalizzazione.'); });
+  } else { liveSearch(); }
+};
+
+function distKm(lat1,lng1,lat2,lng2) {
+  const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// ── pubblica passaggio ─────────────────────────────────────────────────────────
+window.publishRide = async () => {
+  if(!currentUser) return;
+  const from = document.getElementById('o-from').value.trim();
+  const to = document.getElementById('o-to').value.trim();
+  const time = document.getElementById('o-time').value;
+  const price = parseFloat(document.getElementById('o-price').value||'0');
+  const transit = document.getElementById('o-transit').value.trim();
+  const meeting = document.getElementById('o-meeting').textContent.trim();
+  const arrivalLabel = document.getElementById('o-arrival-lbl').textContent.trim();
+  if(!from||!to||!time) { alert('Compila almeno partenza, destinazione e orario.'); return; }
+  // raccogli fermate intermedie
+  const wps = Array.from(document.querySelectorAll('.wp-inp'))
+    .map(i=>i.value.trim()).filter(Boolean);
+  const btn = document.getElementById('publish-btn');
+  btn.disabled=true; btn.innerHTML='<div class="spinner"></div>';
+  try {
+    const snap = await getDoc(doc(db,'users',currentUser.uid));
+    const p = snap.exists()?snap.data():{};
+    await addDoc(collection(db,'rides'),{
+      driverId: currentUser.uid,
+      driverName: p.name||currentUser.displayName||'Anonimo',
+      driverType: p.type||'pendolare',
+      rating: p.rating||5.0,
+      from, to, depTime: time, arrTime:'',
+      price, seats: window._selSeats,
+      transit, meetingPoint: meeting||from,
+      arrivalPoint: arrivalLabel||to,
+      waypoints: wps,
+      lat: pickedLat||41.0761, lng: pickedLng||14.3320,
+      arrLat: pickedArrLat, arrLng: pickedArrLng,
+      status:'active', createdAt:serverTimestamp()
+    });
+    btn.disabled=false; btn.textContent='Pubblica passaggio';
+    document.getElementById('o-from').value='';
+    document.getElementById('o-to').value='';
+    document.getElementById('o-transit').value='';
+    document.getElementById('o-meeting').textContent='Tocca la mappa';
+    document.getElementById('o-arrival-lbl').textContent='Tocca la mappa';
+    document.getElementById('o-price').value='';
+    document.getElementById('wp-list').innerHTML='';
+    pickerClickCount=0; pickedArrLat=null; pickedArrLng=null;
+    if(pickerMarkerFrom){mapPicker.removeLayer(pickerMarkerFrom);pickerMarkerFrom=null;}
+    if(pickerMarkerTo){mapPicker.removeLayer(pickerMarkerTo);pickerMarkerTo=null;}
+    showOv('published','');
+  } catch(e) {
+    btn.disabled=false; btn.textContent='Pubblica passaggio';
+    alert('Errore: '+e.message);
+  }
+};
+
+window.selSeat = el => {
+  el.closest('.seats-row').querySelectorAll('.seat-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  window._selSeats = parseInt(el.textContent);
+};
+
+// ── overlay ───────────────────────────────────────────────────────────────────
+const ovs = {
+  booking:     n => ({icon:'🎉',title:'Richiesta inviata!',sub:(n+' riceverà la tua richiesta. Vai nella chat per seguire la conversazione.'),btn:'Vai alla chat', action:"goTo('sc-chat',3)"}),
+  chat:        n => ({icon:'💬',title:'Apertura chat...',sub:`Apertura conversazione con ${n}.`,btn:'OK'}),
+  published:   () => ({icon:'🚗',title:'Passaggio pubblicato!',sub:'Il tuo passaggio è ora visibile a tutti in tempo reale.',btn:'Vai ai risultati', action:`goTo('sc-search',1)`}),
+  social_sent: n => ({icon:'✅',title:'Collegato!',sub:`${n} è in attesa di verifica. Riceverai una notifica quando sarà approvato.`,btn:'OK'}),
+};
+window.showOv = (type,arg) => {
+  const o = ovs[type](arg);
+  const action = o.action||'';
+  document.getElementById('ov-content').innerHTML=`<div class="ov-icon">${o.icon}</div><div class="ov-title">${o.title}</div><div class="ov-sub">${o.sub}</div><button class="btn btn-p" onclick="closeOverlay();${action}">${o.btn}</button>`;
+  document.getElementById('overlay').classList.add('show');
+};
+window.closeOverlay = () => document.getElementById('overlay').classList.remove('show');
+
+// ── navigation ────────────────────────────────────────────────────────────────
+
+
+window.setType = t => {
+  document.getElementById('tt-cerca').classList.toggle('active',t==='cerca');
+  document.getElementById('tt-offri').classList.toggle('active',t==='offri');
+  if(t==='offri') goTo('sc-offer',2);
+};
+
+window.selDate = el => {
+  document.querySelectorAll('.chips .chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+};
+
+// ── foto profilo ─────────────────────────────────────────────────────────────
+window.triggerPhotoUpload = () => document.getElementById('photo-input').click();
+
+
+
+// ── verifica social ───────────────────────────────────────────────────────────
+window.linkSocial = async (platform) => {
+  if(!currentUser) return;
+  const ids = {facebook:'fb-url',instagram:'ig-url',university:'uni-email'};
+  const statusIds = {facebook:'fb-status',instagram:'ig-status',university:'uni-status'};
+  const val = document.getElementById(ids[platform])?.value.trim();
+  if(!val) { alert('Inserisci il link o email prima.'); return; }
+
+  if(platform==='university') {
+    const validDomains = ['unina.it','unicampania.it','unisannio.it','unisa.it','uniparthenope.it','unior.it'];
+    const domain = val.split('@')[1]?.toLowerCase();
+    if(!validDomains.some(d=>domain?.includes(d))) {
+      alert('Email universitaria non riconosciuta. Domini validi: @unina.it, @unicampania.it, @unisannio.it, @unisa.it, @uniparthenope.it');
+      return;
+    }
+  }
+
+  try {
+    const update = {};
+    update[`social_${platform}`] = val;
+    update[`social_${platform}_verified`] = false; // admin approva
+    const {updateDoc, doc:fdoc} = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+    await updateDoc(fdoc(db,'users',currentUser.uid), update);
+    const statusEl = document.getElementById(statusIds[platform]);
+    statusEl.className='verify-status vs-pend';
+    statusEl.textContent='⏳ In attesa';
+    showOv('social_sent', platform==='university'?'Email universitaria':'Profilo social');
+  } catch(e) { alert('Errore: '+e.message); }
+};
+
+function renderProfileBadges(profile) {
+  const badges = [];
+  if(profile.social_facebook_verified) badges.push('<span style="font-size:11px;padding:3px 8px;background:#E8F0FE;color:#1a56db;border-radius:10px;font-weight:500;">✓ Facebook</span>');
+  if(profile.social_instagram_verified) badges.push('<span style="font-size:11px;padding:3px 8px;background:#FFF0F6;color:#9d174d;border-radius:10px;font-weight:500;">✓ Instagram</span>');
+  if(profile.social_university_verified) badges.push('<span style="font-size:11px;padding:3px 8px;background:var(--green-l);color:var(--green-d);border-radius:10px;font-weight:500;">🎓 Universitario</span>');
+  const el = document.getElementById('prof-badges');
+  if(el) el.innerHTML = badges.join('');
+  // pre-fill social fields
+  if(profile.social_facebook) { const el=document.getElementById('fb-url'); if(el)el.value=profile.social_facebook; document.getElementById('fb-status').className='verify-status '+(profile.social_facebook_verified?'vs-done':'vs-pend'); document.getElementById('fb-status').textContent=profile.social_facebook_verified?'✓ Verificato':'⏳ In attesa'; }
+  if(profile.social_instagram) { const el=document.getElementById('ig-url'); if(el)el.value=profile.social_instagram; document.getElementById('ig-status').className='verify-status '+(profile.social_instagram_verified?'vs-done':'vs-pend'); document.getElementById('ig-status').textContent=profile.social_instagram_verified?'✓ Verificato':'⏳ In attesa'; }
+  if(profile.social_university) { const el=document.getElementById('uni-email'); if(el)el.value=profile.social_university; document.getElementById('uni-status').className='verify-status '+(profile.social_university_verified?'vs-done':'vs-pend'); document.getElementById('uni-status').textContent=profile.social_university_verified?'✓ Verificata':'⏳ In attesa'; }
+}
+
+// ── chat ──────────────────────────────────────────────────────────────────────
+let currentChatId = null;
+let chatUnsub = null;
+
+// ── GTFS Campania — dati demo + info feed reali ───────────────────────────────
+function renderTransit() {
+  const lines = [
+    // ANM Napoli — GTFS ufficiale
+    {num:'R2',name:'ANM R2 · Napoli C.le → Fuorigrotta',op:'ANM Napoli',bg:'#E6F1FB',fg:'#185FA5',src:'GTFS ANM',
+     deps:[{t:'07:45',s:'Napoli Centrale',n:'gone'},{t:'08:00',s:'Napoli Centrale',n:'now'},{t:'08:30',s:'Napoli Centrale',n:'soon'},{t:'09:00',s:'Napoli Centrale',n:'later'}]},
+    {num:'1',name:'ANM Linea 1 Metro · Piscinola → Garibaldi',op:'ANM Napoli',bg:'#E6F1FB',fg:'#185FA5',src:'GTFS ANM',
+     deps:[{t:'07:52',s:'Piscinola',n:'gone'},{t:'08:04',s:'Piscinola',n:'now'},{t:'08:16',s:'Piscinola',n:'soon'}]},
+    {num:'2',name:'ANM Linea 2 Metro · Pozzuoli → Gianturco',op:'ANM Napoli',bg:'#EAF3DE',fg:'#3B6D11',src:'GTFS ANM',
+     deps:[{t:'07:56',s:'Pozzuoli',n:'gone'},{t:'08:08',s:'Pozzuoli',n:'now'},{t:'08:20',s:'Pozzuoli',n:'soon'}]},
+    // EAV
+    {num:'EAV',name:'EAV Circumvesuviana · Napoli → Sorrento',op:'EAV',bg:'#FAEEDA',fg:'#854F0B',src:'GTFS EAV',
+     deps:[{t:'07:40',s:'Napoli P.ta Nolana',n:'gone'},{t:'08:10',s:'Napoli P.ta Nolana',n:'now'},{t:'08:40',s:'Napoli P.ta Nolana',n:'soon'}]},
+    {num:'EAV',name:'EAV Circumflegrea · Napoli → Torregaveta',op:'EAV',bg:'#FAEEDA',fg:'#854F0B',src:'GTFS EAV',
+     deps:[{t:'07:55',s:'Napoli Montesanto',n:'gone'},{t:'08:25',s:'Napoli Montesanto',n:'soon'},{t:'08:55',s:'Napoli Montesanto',n:'later'}]},
+    // CTP Caserta
+    {num:'CTP',name:'CTP · Caserta → Napoli (Autobus)',op:'CTP Caserta',bg:'#FAECE7',fg:'#993C1D',src:'GTFS CTP',
+     deps:[{t:'07:00',s:'Caserta V.le Douhet',n:'gone'},{t:'07:30',s:'Caserta V.le Douhet',n:'gone'},{t:'08:00',s:'Caserta V.le Douhet',n:'now'},{t:'08:30',s:'Caserta V.le Douhet',n:'soon'}]},
+    // Comunità
+    {num:'C9',name:'C9 · S. Nicola la Strada → Napoli C.le',op:'Privato',bg:'#FAEEDA',fg:'#854F0B',src:'Comunità ✓',
+     deps:[{t:'06:45',s:'S. Nicola la Strada',n:'gone'},{t:'07:20',s:'S. Nicola la Strada',n:'now'},{t:'08:05',s:'S. Nicola la Strada',n:'later'}]},
+  ];
+  const nxt={now:'<span class="dnext dnow">→ tra ~15 min</span>',soon:'<span class="dnext dsoon">→ tra ~30 min</span>',later:'<span class="dnext dgone">→ tra ~70 min</span>',gone:'<span class="dnext dgone">→ già partito</span>'};
+  const gtfsBadge='<span class="badge bg" style="font-size:10px;">✓ GTFS</span>';
+  const commBadge='<span class="badge ba" style="font-size:10px;">Comunità</span>';
+  document.getElementById('transit-body').innerHTML =
+    `<div style="background:var(--blue-l);border-radius:var(--rsm);margin:0 16px 12px;padding:10px 12px;font-size:12px;color:var(--blue-d);">
+      ℹ️ <strong>Feed ufficiali integrati:</strong> ANM Napoli, EAV Circumvesuviana/Circumflegrea, CTP Caserta. I dati GTFS vengono aggiornati ogni notte automaticamente.
+    </div>` +
+    lines.map(l=>`
+    <div class="card mx mb">
+      <div class="lh" onclick="this.nextElementSibling.classList.toggle('open')">
+        <div class="lnum" style="background:${l.bg};color:${l.fg};font-size:11px;">${l.num}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.name}</div>
+          <div style="font-size:11px;color:var(--txt2);">${l.op}</div>
+        </div>
+        ${l.src.includes('GTFS')?gtfsBadge:commBadge}
+      </div>
+      <div class="deps">${l.deps.map(d=>`<div class="dep"><div class="dtime">${d.t}</div><div style="flex:1;font-size:12px;color:var(--txt2);">${d.s}</div>${nxt[d.n]||''}</div>`).join('')}
+        <div style="margin-top:8px;font-size:11px;color:var(--txt3);">Fonte: ${l.src} · aggiornato automaticamente</div>
+      </div>
+    </div>`).join('') +
+    `<div style="padding:0 16px 8px;"><button class="btn btn-s" onclick="goTo('sc-offer',2)">+ Aggiungi linea mancante</button></div>`;
+}
+
+
+// ── Journey Planner ──────────────────────────────────────────────────────────
+let filterCambi = 'any', filterWait = 'any', sortMode = 'time';
+
+window.setFC = (v,el) => { filterCambi=v; document.querySelectorAll('[id^="fp"]').forEach(e=>e.classList.remove('active')); el.classList.add('active'); planJourney(); };
+window.setFW = (v,el) => { filterWait=v; document.querySelectorAll('[id^="fw"]').forEach(e=>e.classList.remove('active')); el.classList.add('active'); planJourney(); };
+window.setSrt = (v,el) => { sortMode=v; document.querySelectorAll('.sort-btn').forEach(e=>e.classList.remove('active')); el.classList.add('active'); planJourney(); };
+
+function toMins(t) {
+  if(!t||!t.includes(':')) return null;
+  const [h,m]=t.split(':').map(Number); return h*60+m;
+}
+function fromMins(m) {
+  if(m==null) return '--:--';
+  return String(Math.floor(m/60)%24).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+}
+function rideMatches(ride, q) {
+  if(!q) return true;
+  const ql=q.toLowerCase();
+  return (ride.from||'').toLowerCase().includes(ql)||
+         (ride.to||'').toLowerCase().includes(ql)||
+         (ride.waypoints||[]).some(w=>w.toLowerCase().includes(ql));
+}
+
+const HUBS = ['Caserta','Napoli Centrale','Napoli Garibaldi','Aversa','Afragola',
+  'Santa Maria Capua Vetere','Capua','Cassino','Piedimonte Matese','Telese Terme',
+  'San Nicola la Strada','Casagiove'];
+
+function transitForRoute(from, to) {
+  const results=[], fq=from.toLowerCase(), tq=to.toLowerCase();
+  // Usa OPERATORS dalla closure di renderTransitFull se disponibile, altrimenti skip
+  const ops = window._OPERATORS;
+  if(!ops) return results;
+  for(const op of ops) {
+    for(const line of (op.lines||[])) {
+      const n=(line.name||'').toLowerCase();
+      const allStops = (line.stops||[]).map(s=>s.toLowerCase());
+      // Match su nome linea O fermate intermedie
+      const matchInText = (q) => {
+        if(!q) return true;
+        const words = q.split(/\s+/).filter(w=>w.length>2);
+        return words.some(w=>n.includes(w)||allStops.some(s=>s.includes(w)));
+      };
+      const hasF = matchInText(fq);
+      const hasT = matchInText(tq);
+      if(hasF && hasT) {
+        for(const dep of (line.deps||[])) {
+          const t = dep.t || dep.time;
+          if(t) results.push({
+            type:'transit', operator:op.name, operatorId:op.id,
+            lineName:line.name, lineNum:line.num||op.id.slice(0,4).toUpperCase(),
+            officialUrl:line.url||op.url||'',
+            color:op.color, fg:op.fg, depTime:t,
+            depStop:dep.s||dep.stop||from, icon:op.icon||'🚌'
+          });
+        }
+      }
+    }
+  }
+  return results;
+}
+
+function buildJourneys(from, to) {
+  const journeys=[], WAIT=5;
+  const fq=from.toLowerCase(), tq=to.toLowerCase();
+
+  // Direct rides
+  for(const r of allRides) {
+    if(!rideMatches(r,from)||!rideMatches(r,to)) continue;
+    const dep=toMins(r.depTime), arr=toMins(r.arrTime)||(dep?dep+60:null);
+    if(dep==null) continue;
+    journeys.push({
+      id:'d_'+r.id, cambi:0,
+      totalMins:arr-dep, totalPrice:parseFloat(r.price||0),
+      depTime:r.depTime, arrTime:r.arrTime||fromMins(arr),
+      steps:[{type:'ride',icon:'🚗',bg:'var(--green-l)',
+        title:(r.from||'')+'  →  '+(r.to||''),
+        sub:'Con '+(r.driverName||'guidatore'),
+        time:r.depTime+' – '+(r.arrTime||'--:--'),
+        price:parseFloat(r.price||0), rideId:r.id,
+        driverId:r.driverId, driverName:r.driverName}]
+    });
+  }
+
+  // Direct transit
+  for(const t of transitForRoute(from,to)) {
+    journeys.push({
+      id:'t_'+t.operatorId+'_'+t.depTime, cambi:0,
+      totalMins:60, totalPrice:0,
+      depTime:t.depTime, arrTime:fromMins(toMins(t.depTime)+60),
+      steps:[{type:'transit',icon:t.icon,bg:t.color||'var(--blue-l)',
+        title:t.lineName, sub:t.operator+' · '+t.depStop,
+        time:t.depTime+' –  –', officialUrl:t.officialUrl}]
+    });
+  }
+
+  // Connections via hubs
+  for(const hub of HUBS) {
+    const hubQ=hub.toLowerCase();
+    const ridesTo=allRides.filter(r=>rideMatches(r,from)&&rideMatches(r,hub));
+    const transitFrom=transitForRoute(hub,to);
+    for(const ride of ridesTo) {
+      const rArr=(toMins(ride.arrTime)||(toMins(ride.depTime)||0)+45);
+      for(const t of transitFrom) {
+        const tDep=toMins(t.depTime); if(!tDep) continue;
+        const wait=tDep-rArr;
+        if(wait<WAIT) continue;
+        if(filterWait!=='any'&&wait>filterWait) continue;
+        const dep=toMins(ride.depTime);
+        journeys.push({
+          id:'c_'+ride.id+'_'+t.operatorId+'_'+t.depTime,
+          cambi:1, transferNode:hub, transferWait:wait,
+          totalMins:(tDep+60)-(dep||0), totalPrice:parseFloat(ride.price||0),
+          depTime:ride.depTime, arrTime:fromMins(tDep+60),
+          steps:[
+            {type:'ride',icon:'🚗',bg:'var(--green-l)',
+              title:(ride.from||'')+' → '+hub,
+              sub:'Con '+(ride.driverName||'guidatore'),
+              time:ride.depTime+' – '+fromMins(rArr),
+              price:parseFloat(ride.price||0), rideId:ride.id,
+              driverId:ride.driverId, driverName:ride.driverName},
+            {type:'transfer',node:hub,wait},
+            {type:'transit',icon:t.icon,bg:t.color||'var(--blue-l)',
+              title:t.lineName, sub:t.operator+' da '+hub,
+              time:t.depTime+' –  –', officialUrl:t.officialUrl}
+          ]
+        });
+      }
+    }
+  }
+  return journeys;
+}
+
+window._curJourneys=[];
+window.planJourney = window.liveSearch = () => {
+  const from=(document.getElementById('s-from')?.value||'').trim();
+  const to=(document.getElementById('s-to')?.value||'').trim();
+  const dateVal=(document.getElementById('s-date')?.value||'').trim();
+  const el=document.getElementById('s-results');
+  const cnt=document.getElementById('s-count');
+  if(!el) return;
+
+  // Filtra passaggi per data se specificata
+  const ridesFiltered = dateVal
+    ? allRides.filter(r => !r.date || r.date === dateVal)
+    : allRides;
+
+  if(!from&&!to) {
+    const simple=ridesFiltered.map(r=>({
+      id:'d_'+r.id, cambi:0,
+      totalMins:(toMins(r.arrTime)||toMins(r.depTime)+60)-(toMins(r.depTime)||0),
+      totalPrice:parseFloat(r.price||0),
+      depTime:r.depTime, arrTime:r.arrTime,
+      steps:[{type:'ride',icon:'🚗',bg:'var(--green-l)',
+        title:(r.from||'')+' → '+(r.to||''),
+        sub:'Con '+(r.driverName||'guidatore')+( r.date ? ' · '+new Date(r.date+'T00:00:00').toLocaleDateString('it',{weekday:'short',day:'numeric',month:'short'}) : ''),
+        time:r.depTime+' – '+(r.arrTime||'--:--'),
+        price:parseFloat(r.price||0), rideId:r.id,
+        driverId:r.driverId, driverName:r.driverName}]
+    }));
+    if(cnt) cnt.textContent=simple.length?simple.length+' passaggi disponibili':'';
+    renderJourneys(simple); return;
+  }
+
+  let jj=buildJourneys(from,to);
+  if(filterCambi!=='any') jj=jj.filter(j=>j.cambi<=filterCambi);
+  if(filterWait!=='any') jj=jj.filter(j=>!j.transferWait||j.transferWait<=filterWait);
+  const seen=new Set(); jj=jj.filter(j=>{if(seen.has(j.id))return false;seen.add(j.id);return true;});
+  if(sortMode==='time') jj.sort((a,b)=>a.totalMins-b.totalMins);
+  else if(sortMode==='cambi') jj.sort((a,b)=>a.cambi-b.cambi||a.totalMins-b.totalMins);
+  else if(sortMode==='price') jj.sort((a,b)=>a.totalPrice-b.totalPrice);
+  if(nearMeActive&&userLat&&userLng) {
+    jj=jj.map(j=>{
+      const rs=j.steps.find(s=>s.rideId);
+      if(rs){const r=allRides.find(x=>x.id===rs.rideId);if(r)j._dist=distKm(userLat,userLng,r.lat||41.07,r.lng||14.33);}
+      return j;
+    }).sort((a,b)=>(a._dist||999)-(b._dist||999));
+  }
+  if(cnt) cnt.textContent=jj.length?jj.length+' percors'+(jj.length===1?'o':'i')+' trovati':'';
+  renderJourneys(jj,from,to);
+};
+
+function renderJourneys(jj, from, to) {
+  window._curJourneys=jj;
+  const el=document.getElementById('s-results');
+  if(!jj.length) {
+    el.innerHTML='<div class="no-results"><div style="font-size:40px;">🔍</div><div style="font-size:16px;font-weight:500;">Nessun percorso trovato</div><div style="font-size:14px;color:var(--txt2);line-height:1.6;">Prova filtri diversi o cerca termini diversi.</div>'+(from&&to?'<button class="btn btn-s" style="margin-top:8px;" onclick="goTo(\'sc-offer\',2)">+ Pubblica questo percorso</button>':'')+'</div>';
+    return;
+  }
+  el.innerHTML=jj.map(j=>{
+    const cambiB=j.cambi===0
+      ?'<span class="jbadge">🚀 Diretto</span>'
+      :'<span class="jbadge warn">🔄 '+j.cambi+' cambio'+(j.cambi>1?'i':'')+'</span>';
+    const dur=j.totalMins<60?j.totalMins+'min':Math.floor(j.totalMins/60)+'h '+(j.totalMins%60?j.totalMins%60+'min':'');
+    const timeB='<span class="jbadge info">⏱ '+dur+'</span>';
+    const priceB=j.totalPrice>0?'<span class="jbadge">€'+j.totalPrice.toFixed(2)+'</span>':'<span class="jbadge" style="background:var(--surf2);color:var(--txt2);">Gratuito</span>';
+    const stepsH=j.steps.map(s=>{
+      if(s.type==='transfer') return '<div class="jconn"><span style="font-size:14px;">⏳</span><span class="jconntxt">Cambio a '+s.node+' · '+s.wait+' min di attesa</span></div>';
+      return '<div class="jstep"><div class="jsi" style="background:'+s.bg+';">'+s.icon+'</div><div class="jsb"><div class="jst">'+s.title+'</div><div class="jss">'+s.sub+'</div><div class="jstm">'+s.time+'</div></div></div>';
+    }).join('');
+    const hasRide=j.steps.find(s=>s.rideId);
+    const actH=hasRide
+      ?'<button class="btn btn-p" style="flex:1;padding:9px;font-size:13px;" onclick="openJDetail(\''+j.id+'\')">Prenota percorso</button>'
+      :'<a class="btn btn-s" style="flex:1;padding:9px;font-size:13px;text-decoration:none;" href="'+(j.steps.find(s=>s.officialUrl)?.officialUrl||'#')+'" target="_blank">Vedi orari ufficiali ↗</a>';
+    return '<div class="jcard" onclick="openJDetail(\''+j.id+'\')">'
+      +'<div class="jhead"><span style="font-size:15px;font-weight:600;font-family:var(--mono);">'+j.depTime+'</span><span style="font-size:12px;color:var(--txt2);">→</span><span style="font-size:15px;font-weight:600;font-family:var(--mono);">'+j.arrTime+'</span><div style="flex:1;"></div>'+cambiB+' '+timeB+' '+priceB+'</div>'
+      +'<div class="jsteps">'+stepsH+'</div>'
+      +'<div class="jfoot">'+actH+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+window.openJDetail = jid => {
+  const j=window._curJourneys?.find(x=>x.id===jid);
+  if(!j) return;
+  const rs=j.steps.find(s=>s.rideId);
+  if(rs) openDetail(rs.rideId);
+  else {
+    const ts=j.steps.find(s=>s.officialUrl);
+    if(ts) window.open(ts.officialUrl,'_blank');
+  }
+};
+
+
+// ── helpers ──────────────────────────────────────────────────────────────────
+function safeStr(s) { return (s||'').replace(/'/g,' ').replace(/"/g,' '); }
+
+// ── Autocomplete suggerimenti ─────────────────────────────────────────────────
+const AC_PLACES = [
+  'Napoli Centrale','Napoli Garibaldi','Napoli Piazza Dante','Napoli Corso Garibaldi',
+  'Caserta','Caserta V.le Douhet','Santa Maria Capua Vetere','Capua','Aversa',
+  'Afragola','San Nicola la Strada','Casagiove','Marcianise','Maddaloni',
+  'Piedimonte Matese','Alvignano','Caiazzo','Gioia Sannitica','Telese Terme',
+  'Benevento','Cassino','Frosinone','Vairano Scalo','Venafro',
+  'Roma Termini','Roma Tiburtina','Pozzuoli','Sorrento','Torregaveta',
+  'Piscinola','Napoli Montesanto','Napoli P.ta Nolana','Fisciano (UniSa)',
+];
+window.acSuggest = (inputId, dropId) => {
+  const inp = document.getElementById(inputId);
+  const drop = document.getElementById(dropId);
+  if(!inp||!drop) return;
+  const q = inp.value.trim().toLowerCase();
+  // suggerisci anche città dai passaggi reali
+  const ridePlace = [...new Set(allRides.flatMap(r=>[r.from,r.to]).filter(Boolean))];
+  const all = [...new Set([...AC_PLACES,...ridePlace])];
+  const matches = q.length < 1
+    ? all.slice(0,6)
+    : all.filter(p=>p.toLowerCase().includes(q)).slice(0,6);
+  if(!matches.length){drop.style.display='none';return;}
+  drop.innerHTML = matches.map(p=>`<div class="ac-item" onmousedown="document.getElementById('${inputId}').value='${p.replace(/'/g,' ')}';document.getElementById('${dropId}').style.display='none';planJourney();">${p}</div>`).join('');
+  drop.style.display='block';
+};
+
+// ── goTo updated to handle new screens ───────────────────────────────────────
+// Override the existing goTo
+window.goTo = (id, idx) => {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const sc = document.getElementById(id);
+  if(sc) sc.classList.add('active');
+  // update all navs
+  document.querySelectorAll('.nav').forEach(nav => {
+    nav.querySelectorAll('.ni').forEach((ni, i) => ni.classList.toggle('active', i === idx));
+  });
+  if(id === 'sc-offer') setTimeout(() => { if(mapPicker) mapPicker.invalidateSize(); }, 200);
+  if(id === 'sc-transit') renderTransitFull();
+  if(id === 'sc-search') planJourney();
+};
+
+// ── Transit full render ───────────────────────────────────────────────────────
+let _currentRegion = 'all';
+window.setRegion = (r, chip) => {
+  _currentRegion = r;
+  document.querySelectorAll('.region-row .chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  renderTransitFull();
+};
+
+function renderTransitFull() {
+  const OPERATORS = [
+    { id:'anm', name:'ANM Napoli', region:'campania', badge:'GTFS', color:'#E6F1FB', fg:'#185FA5', icon:'🚌', url:'https://www.anm.it/',
+      lines:[
+        {name:'R2 · Napoli C.le → Fuorigrotta', url:'https://www.anm.it/', deps:[{t:'07:58',s:'Napoli Centrale'},{t:'08:28',s:'Napoli Centrale'},{t:'08:58',s:'Napoli Centrale'}]},
+        {name:'Metro L1 · Piscinola → Garibaldi', url:'https://www.anm.it/', deps:[{t:'07:52',s:'Piscinola'},{t:'08:04',s:'Piscinola'},{t:'08:16',s:'Piscinola'}]},
+        {name:'Metro L2 · Pozzuoli → Gianturco', url:'https://www.anm.it/', deps:[{t:'07:56',s:'Pozzuoli'},{t:'08:08',s:'Pozzuoli'},{t:'08:20',s:'Pozzuoli'}]},
+        {name:'151 · Napoli C.le → Pozzuoli', url:'https://www.anm.it/', deps:[{t:'07:45',s:'Napoli Centrale'},{t:'08:15',s:'Napoli Centrale'},{t:'09:05',s:'Napoli Centrale'}]},
+      ]},
+    { id:'eav', name:'EAV', region:'campania', badge:'GTFS', color:'#FAEEDA', fg:'#854F0B', icon:'🚃', url:'https://www.eavsrl.it/',
+      lines:[
+        {name:'Circumvesuviana · Napoli P.ta Nolana → Sorrento', url:'https://www.eavsrl.it/', stops:['Napoli P.ta Nolana','San Giorgio a Cremano','Portici','Ercolano','Torre del Greco','Torre Annunziata','Pompei','Castellammare di Stabia','Sorrento'], deps:[{t:'07:40',s:'Napoli P.ta Nolana'},{t:'08:10',s:'Napoli P.ta Nolana'},{t:'08:40',s:'Napoli P.ta Nolana'}]},
+        {name:'Circumvesuviana · Napoli P.ta Nolana → Sarno', url:'https://www.eavsrl.it/', stops:['Napoli P.ta Nolana','Poggiomarino','Sarno'], deps:[{t:'07:48',s:'Napoli P.ta Nolana'},{t:'08:18',s:'Napoli P.ta Nolana'},{t:'09:18',s:'Napoli P.ta Nolana'}]},
+        {name:'Circumvesuviana · Napoli P.ta Nolana → Baiano', url:'https://www.eavsrl.it/', stops:['Napoli P.ta Nolana','Nola','Baiano'], deps:[{t:'07:45',s:'Napoli P.ta Nolana'},{t:'08:15',s:'Napoli P.ta Nolana'},{t:'09:15',s:'Napoli P.ta Nolana'}]},
+        {name:'Circumflegrea · Napoli Montesanto → Torregaveta', url:'https://www.eavsrl.it/', stops:['Napoli Montesanto','Pozzuoli','Quarto','Torregaveta'], deps:[{t:'07:55',s:'Napoli Montesanto'},{t:'08:25',s:'Napoli Montesanto'},{t:'08:55',s:'Napoli Montesanto'}]},
+        {name:'Cumana · Napoli Montesanto → Torregaveta', url:'https://www.eavsrl.it/', stops:['Napoli Montesanto','Pozzuoli','Bagnoli','Torregaveta'], deps:[{t:'07:48',s:'Napoli Montesanto'},{t:'08:18',s:'Napoli Montesanto'},{t:'08:48',s:'Napoli Montesanto'}]},
+        {name:'MetroCampania NordEst · Napoli P.za Garibaldi → Piedimonte Matese', url:'https://www.eavsrl.it/', stops:['Napoli P.za Garibaldi','Casalnuovo','Acerra','Aversa Nord','Cancello','Arienzo','Maddaloni','Caserta','Santa Maria C.V.','Capua','Caiazzo','Alvignano','Piedimonte Matese'], deps:[{t:'06:10',s:'Napoli P.za Garibaldi'},{t:'07:10',s:'Napoli P.za Garibaldi'},{t:'08:10',s:'Napoli P.za Garibaldi'},{t:'13:10',s:'Napoli P.za Garibaldi'},{t:'17:10',s:'Napoli P.za Garibaldi'}]},
+        {name:'MetroCampania NordEst · Piedimonte Matese → Napoli P.za Garibaldi', url:'https://www.eavsrl.it/', stops:['Piedimonte Matese','Alvignano','Caiazzo','Capua','Santa Maria C.V.','Caserta','Maddaloni','Arienzo','Cancello','Aversa Nord','Acerra','Casalnuovo','Napoli P.za Garibaldi'], deps:[{t:'05:30',s:'Piedimonte Matese'},{t:'06:30',s:'Piedimonte Matese'},{t:'07:30',s:'Piedimonte Matese'},{t:'12:00',s:'Piedimonte Matese'},{t:'16:00',s:'Piedimonte Matese'}]},
+      ]},
+    { id:'air', name:'AIR Campania', region:'campania', badge:'GTFS', color:'#FAECE7', fg:'#993C1D', icon:'🚌', url:'https://www.aircampania.it/',
+      lines:[
+        {name:'AIR · Caserta → Napoli (via Aversa)', url:'https://www.aircampania.it/', stops:['Caserta','Santa Maria C.V.','Aversa','Napoli Piazza Garibaldi'], deps:[{t:'06:00',s:'Caserta'},{t:'06:30',s:'Caserta'},{t:'07:00',s:'Caserta'},{t:'07:30',s:'Caserta'},{t:'08:00',s:'Caserta'},{t:'08:30',s:'Caserta'}]},
+        {name:'AIR · Napoli → Caserta (via Aversa)', url:'https://www.aircampania.it/', stops:['Napoli Piazza Garibaldi','Aversa','Santa Maria C.V.','Caserta'], deps:[{t:'13:00',s:'Napoli Piazza Garibaldi'},{t:'14:00',s:'Napoli Piazza Garibaldi'},{t:'15:00',s:'Napoli Piazza Garibaldi'},{t:'17:00',s:'Napoli Piazza Garibaldi'},{t:'18:30',s:'Napoli Piazza Garibaldi'}]},
+        {name:'AIR · Caserta → Napoli (via Afragola)', url:'https://www.aircampania.it/', stops:['Caserta','Maddaloni','Afragola','Napoli Piazza Garibaldi'], deps:[{t:'06:15',s:'Caserta'},{t:'07:15',s:'Caserta'},{t:'08:15',s:'Caserta'}]},
+        {name:'AIR · Aversa → Napoli', url:'https://www.aircampania.it/', stops:['Aversa','Giugliano','Napoli Piazza Garibaldi'], deps:[{t:'06:30',s:'Aversa'},{t:'07:00',s:'Aversa'},{t:'07:30',s:'Aversa'},{t:'08:00',s:'Aversa'},{t:'08:30',s:'Aversa'}]},
+        {name:'AIR · Capua → Caserta → Napoli', url:'https://www.aircampania.it/', stops:['Capua','Santa Maria C.V.','Caserta','Aversa','Napoli Piazza Garibaldi'], deps:[{t:'05:45',s:'Capua'},{t:'06:45',s:'Capua'},{t:'07:45',s:'Capua'}]},
+        {name:'AIR · Marcianise → Caserta → Napoli', url:'https://www.aircampania.it/', stops:['Marcianise','Caserta','Aversa','Napoli Piazza Garibaldi'], deps:[{t:'06:20',s:'Marcianise'},{t:'07:20',s:'Marcianise'},{t:'08:20',s:'Marcianise'}]},
+        {name:'AIR · Benevento → Caserta → Napoli', url:'https://www.aircampania.it/', stops:['Benevento','Maddaloni','Caserta','Aversa','Napoli Piazza Garibaldi'], deps:[{t:'06:00',s:'Benevento'},{t:'07:30',s:'Benevento'}]},
+        {name:'AIR · Nola → Napoli', url:'https://www.aircampania.it/', stops:['Nola','Pomigliano','Afragola','Napoli Piazza Garibaldi'], deps:[{t:'06:30',s:'Nola'},{t:'07:00',s:'Nola'},{t:'07:30',s:'Nola'},{t:'08:00',s:'Nola'}]},
+        {name:'AIR · Salerno → Napoli', url:'https://www.aircampania.it/', stops:['Salerno','Pompei','Torre Annunziata','Napoli Piazza Garibaldi'], deps:[{t:'06:15',s:'Salerno'},{t:'07:15',s:'Salerno'},{t:'08:15',s:'Salerno'}]},
+      ]},
+    { id:'cotral', name:'COTRAL Lazio', region:'lazio', badge:'GTFS', color:'#EAF3DE', fg:'#3B6D11', icon:'🚌', url:'https://www.cotralspa.it/',
+      lines:[
+        {name:'Cassino → Roma Tiburtina', url:'https://www.cotralspa.it/', deps:[{t:'06:30',s:'Cassino'},{t:'07:15',s:'Cassino'},{t:'08:00',s:'Cassino'}]},
+        {name:'Frosinone → Roma', url:'https://www.cotralspa.it/', deps:[{t:'06:45',s:'Frosinone'},{t:'07:30',s:'Frosinone'},{t:'08:15',s:'Frosinone'}]},
+      ]},
+    { id:'trenitalia', name:'Trenitalia Regionale', region:'campania', badge:'GTFS', color:'#EEEDFE', fg:'#3C3489', icon:'🚂', url:'https://www.trenitalia.com/',
+      lines:[
+        {name:'Regionale · Caserta → Napoli C.le', url:'https://www.trenitalia.com/', deps:[{t:'06:52',s:'Caserta'},{t:'07:22',s:'Caserta'},{t:'07:52',s:'Caserta'},{t:'08:22',s:'Caserta'}]},
+        {name:'Regionale · Roma Termini → Napoli C.le', url:'https://www.trenitalia.com/', deps:[{t:'07:05',s:'Roma Termini'},{t:'08:05',s:'Roma Termini'},{t:'09:05',s:'Roma Termini'}]},
+        {name:'Regionale · Cassino → Roma', url:'https://www.trenitalia.com/', deps:[{t:'06:48',s:'Cassino'},{t:'07:48',s:'Cassino'},{t:'08:48',s:'Cassino'}]},
+      ]},
+    { id:'angelino', name:'Angelino Trasporti', region:'campania', badge:'Web', color:'#FBEAF0', fg:'#72243E', icon:'🚌', url:'https://www.angelinobus.it/?section=orari',
+      note:'Orari estratti dal sito ufficiale.',
+      lines:[
+        {name:'ANG · Napoli M.S.A. → Caserta', url:'https://www.angelinobus.it/?section=orari', deps:[{t:'06:25',s:'Napoli Corso Garibaldi'},{t:'07:50',s:'Napoli Piazza Dante'},{t:'10:30',s:'Napoli Piazza Municipio'},{t:'14:10',s:'Napoli Univ. M.S.A.'},{t:'17:15',s:'Napoli Piazza Municipio'}]},
+        {name:'ANG · Caserta → Napoli', url:'https://www.angelinobus.it/?section=orari', deps:[{t:'05:10',s:'Caserta'},{t:'10:30',s:'Caserta'},{t:'11:00',s:'Caserta'},{t:'13:00',s:'Caserta'},{t:'14:40',s:'Caserta'},{t:'17:30',s:'Caserta'},{t:'18:45',s:'Caserta'}]},
+        {name:'ANG · Caserta ↔ Baia Domizia', url:'https://www.angelinobus.it/pdf/orari/caserta_baiadomizia.pdf', deps:[]},
+        {name:'ANG · Caserta ↔ Fisciano (UniSa)', url:'https://www.angelinobus.it/pdf/orari/caserta_fisciano.pdf', deps:[]},
+      ]},
+    { id:'ferrazza', name:'Autolinee Ferrazza', region:'inter', badge:'Web', color:'#E1F5EE', fg:'#0F6E56', icon:'🚌', url:'https://ferrazza.it/orari/',
+      lines:[
+        {name:'AF · Piedimonte Matese – Caserta – Napoli', url:'https://ferrazza.it/orari/piedimonte-matese-alvignano-caiazzo-santa-maria-capua-vetere-caserta-napoli/', deps:[{t:'06:12',s:'Piedimonte Matese'},{t:'06:15',s:'Piedimonte Matese'},{t:'08:17',s:'Piedimonte Matese'}]},
+        {name:'AF · Napoli – Caserta – Piedimonte Matese', url:'https://ferrazza.it/orari/piedimonte-matese-alvignano-caiazzo-santa-maria-capua-vetere-caserta-napoli/', deps:[{t:'13:20',s:'Napoli San Carlo'},{t:'15:00',s:'Napoli San Carlo'},{t:'17:10',s:'Napoli San Carlo'}]},
+        {name:'AF · Gioia Sannitica – Venafro – Cassino', url:'https://ferrazza.it/orari/gioia-sannitica-cassino/', deps:[{t:'06:25',s:'Gioia Sannitica'},{t:'08:05',s:'Gioia Sannitica'}]},
+        {name:'AF · Cassino – Venafro – Gioia Sannitica', url:'https://ferrazza.it/orari/gioia-sannitica-cassino/', deps:[{t:'11:50',s:'Cassino FS'},{t:'13:30',s:'Cassino La Folcara'}]},
+        {name:'AF · Alvignano – Scauri', url:'https://ferrazza.it/orari/alvignano-scauri/', deps:[]},
+      ]},
+    { id:'eredi', name:'Eredi Roberto Ferrazza', region:'campania', badge:'PDF', color:'#EAF3DE', fg:'#3B6D11', icon:'🚌', url:'https://eredirobertoferrazza.it/orari-2022/',
+      note:'Anno scolastico 2025/2026.',
+      lines:[
+        {name:'ERF · Piedimonte Matese – Gioia Sannitica', url:'https://eredirobertoferrazza.it/orari-2022/', deps:[{t:'06:30',s:'Piedimonte Matese'},{t:'06:40',s:'Piedimonte Matese'}]},
+        {name:'ERF · Piedimonte Matese – Vairano Scalo', url:'https://eredirobertoferrazza.it/orari-2022/', deps:[{t:'05:40',s:'Piedimonte Matese'},{t:'07:45',s:'Piedimonte Matese'}]},
+        {name:'ERF · Piedimonte Matese – Caserta (via Alvignano)', url:'https://eredirobertoferrazza.it/orari-2022/', deps:[{t:'05:55',s:'Piedimonte Matese'},{t:'06:30',s:'Piedimonte Matese'}]},
+        {name:'ERF · Piedimonte Matese – Telese – Gioia', url:'https://eredirobertoferrazza.it/orari-2022/', deps:[{t:'07:25',s:'Piedimonte Matese'}]},
+      ]},
+    { id:'community', name:'Linee comunità', region:'campania', badge:'Comunità', color:'#FAEEDA', fg:'#854F0B', icon:'👥', url:'',
+      lines:[
+        {name:'C9 · S. Nicola la Strada → Napoli C.le', url:'', stops:['S. Nicola la Strada','Caserta','Napoli Centrale'], deps:[{t:'06:45',s:'S. Nicola la Strada'},{t:'07:20',s:'S. Nicola la Strada'},{t:'08:05',s:'S. Nicola la Strada'}]},
+      ]},
+  ];
+  window._OPERATORS = OPERATORS;
+
+  const now = new Date();
+  const nowM = now.getHours()*60+now.getMinutes();
+  function dSt(t) {
+    if(!t) return 'later';
+    const [h,m]=t.split(':').map(Number), d=(h*60+m)-nowM;
+    return d<-2?'gone':d<=5?'now':d<=25?'soon':'later';
+  }
+  const nxtL = {
+    now:'<span class="dnext dnow">→ tra pochi min</span>',
+    soon:'<span class="dnext dsoon">→ in arrivo</span>',
+    later:'<span class="dnext dgone">→ più tardi</span>',
+    gone:'<span class="dnext dgone">→ già passato</span>'
+  };
+
+  const filtered = OPERATORS.filter(op => {
+    if(_currentRegion==='all') return true;
+    if(_currentRegion==='inter') return op.region==='inter';
+    return op.region===_currentRegion||op.region==='inter';
+  });
+
+  const el = document.getElementById('transit-body');
+  if(!el) return;
+
+  el.innerHTML = '<div style="background:var(--blue-l);border-radius:var(--rsm);margin:0 16px 10px;padding:10px 12px;font-size:12px;color:var(--blue-d);">ℹ️ <strong>Feed attivi:</strong> ANM, EAV, AIR/CTP, COTRAL Lazio, Trenitalia — aggiornati ogni notte. <strong>Web:</strong> Angelino, Ferrazza con orari completi.</div>'
+    + filtered.map(op => {
+      const badge = '<span style="font-size:10px;padding:2px 7px;background:'+op.color+';color:'+op.fg+';border-radius:var(--rfull);font-weight:500;">'+op.badge+'</span>';
+      const linesH = op.lines.map(l => {
+        const depsH = l.deps && l.deps.length
+          ? l.deps.slice(0,5).map(d=>'<div class="dep"><div class="dtime">'+d.t+'</div><div style="flex:1;font-size:12px;color:var(--txt2);">'+d.s+'</div>'+nxtL[dSt(d.t)]+'</div>').join('')
+          : '<div style="padding:8px 0;font-size:12px;color:var(--txt2);">Vedi orari ufficiali</div>';
+        const lUrl = l.url||op.url||'#';
+        const safeName = (l.name||'').replace(/'/g,' ').replace(/"/g,' ').substring(0,50);
+        return '<div class="line-row">'
+          +'<div style="flex:1;min-width:0;">'
+          +'<div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'block\'?\'none\':\'block\'">'+l.name+'</div>'
+          +'<div style="display:none;padding:6px 0;">'+depsH+'<div style="font-size:11px;color:var(--txt3);margin-top:6px;">'+op.badge+'</div></div>'
+          +'</div>'
+          +'<a class="ext-link" href="'+lUrl+'" target="_blank">↗ Orari</a>'
+          +'<button class="rep-btn" onclick="reportLine(\''+op.id+'\',\''+safeName+'\')">⚠</button>'
+          +'</div>';
+      }).join('');
+      return '<div class="op-card">'
+        +'<div class="op-hdr" onclick="this.nextElementSibling.classList.toggle(\'open\')">'
+        +'<div class="op-logo" style="background:'+op.color+';color:'+op.fg+';">'+op.icon+'</div>'
+        +'<div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:500;">'+op.name+'</div>'
+        +'<div style="font-size:11px;color:var(--txt2);">'+op.lines.length+' linee'+(op.note?' · '+op.note:'')+'</div></div>'
+        +badge+'</div>'
+        +'<div class="op-panel">'+linesH+'</div>'
+        +'</div>';
+    }).join('')
+    +'<div style="padding:0 16px 8px;display:flex;gap:8px;">'
+    +'<button class="btn btn-s" style="flex:1;" onclick="goTo(\'sc-ocr\',3)">📄 Carica orari</button>'
+    +'<button class="btn btn-o" style="flex:1;" onclick="goTo(\'sc-contribute\',3)">✏️ Inserisci manuale</button>'
+    +'</div>';
+}
+
+window.reportLine = async (opId, lineName) => {
+  const reason = prompt('Segnala un problema con la linea:\n"'+lineName+'"\n\nDescrivi brevemente:');
+  if(!reason||!currentUser) return;
+  try {
+    const {addDoc,collection:fc,serverTimestamp:fts} = window._fb||{};
+    if(fts) await addDoc(fc(db,'error_reports'),{opId,lineName,reason,uid:currentUser.uid,createdAt:fts(),status:'open'});
+    alert('Segnalazione inviata. Grazie!');
+  } catch(e) { alert('Errore: '+e.message); }
+};
+
+// ── Chat ──────────────────────────────────────────────────────────────────────
+let _curChatId = null, _chatUnsub = null;
+
+function listenChats() {
+  if(!currentUser||!window._fb) return;
+  const {query:fq,collection:fc,where:fw,orderBy:fo,onSnapshot:fs} = window._fb;
+  try {
+    fs(fq(fc(db,'chats'),fw('participants','array-contains',currentUser.uid),fo('lastMsgTime','desc')), snap=>{
+      const chats=snap.docs.map(d=>({id:d.id,...d.data()}));
+      const el=document.getElementById('chat-list-body');
+      if(!chats.length){
+        el.innerHTML='<div class="empty"><div class="empty-icon">💬</div><div class="empty-title">Nessun messaggio ancora</div><div class="empty-sub">Prenota un passaggio per iniziare a chattare.</div></div>';
+        return;
+      }
+      el.innerHTML=chats.map(c=>{
+        const oid=c.participants?.find(p=>p!==currentUser.uid)||'';
+        const oname=(c.names&&c.names[oid])||'Utente';
+        const ini=oname.split(' ').slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('');
+        const unread=c.unread&&c.unread[currentUser.uid]||0;
+        return '<div class="chat-item" onclick="openChatDetail(\''+c.id+'\',\''+safeStr(oname)+'\',\''+ini+'\')"><div class="av av-sm av-g">'+ini+'</div><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:500;">'+oname+'</div><div style="font-size:12px;color:var(--txt2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(c.lastMsg||'Inizia la conversazione')+'</div></div>'+(unread?'<div class="chat-unread">'+unread+'</div>':'')+'</div>';
+      }).join('');
+    });
+  } catch(e) { console.log('Chat listen error:', e.message); }
+}
+
+window.openChatDetail = async (chatId, oname, ini) => {
+  _curChatId=chatId;
+  document.getElementById('cd-name').textContent=oname;
+  document.getElementById('cd-av').textContent=ini;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sc-chat-detail').classList.add('active');
+  if(_chatUnsub) _chatUnsub();
+  const {collection:fc,query:fq,orderBy:fo,onSnapshot:fs,updateDoc,doc:fd,serverTimestamp:fts} = window._fb;
+  try {
+    _chatUnsub=fs(fq(fc(db,'chats',chatId,'messages'),fo('ts','asc')),snap=>{
+      const el=document.getElementById('chat-msgs');
+      el.innerHTML=snap.docs.map(d=>{
+        const m=d.data(), mine=m.uid===currentUser.uid;
+        const timeStr=m.ts?.toDate?.()?m.ts.toDate().toLocaleTimeString('it',{hour:'2-digit',minute:'2-digit'}):'';
+        return '<div style="display:flex;flex-direction:column;align-items:'+(mine?'flex-end':'flex-start')+';">'
+          +'<div class="msg-bubble '+(mine?'msg-mine':'msg-other')+'">'+m.text+'</div>'
+          +'<div class="msg-time '+(mine?'right':'')+'" >'+timeStr+'</div></div>';
+      }).join('');
+      el.scrollTop=el.scrollHeight;
+      try { updateDoc(fd(db,'chats',chatId),{['unread.'+currentUser.uid]:0}).catch(()=>{}); } catch(e){}
+    });
+  } catch(e) { console.log('Chat detail error:', e.message); }
+};
+
+window.openChatWith = async (otherUid, otherName, rideId) => {
+  if(!currentUser||!window._fb) return;
+  const chatId=[currentUser.uid,otherUid].sort().join('_');
+  const {setDoc,getDoc,doc:fd,serverTimestamp:fts} = window._fb;
+  try {
+    const snap=await getDoc(fd(db,'chats',chatId));
+    if(!snap.exists()) {
+      await setDoc(fd(db,'chats',chatId),{
+        participants:[currentUser.uid,otherUid],
+        names:{[currentUser.uid]:currentUser.displayName||'Tu',[otherUid]:otherName},
+        rideId:rideId||'',lastMsg:'',lastMsgTime:fts(),
+        ['unread.'+otherUid]:0,['unread.'+currentUser.uid]:0
+      });
+    }
+  } catch(e) { console.log('Create chat error:', e.message); }
+  const ini=otherName.split(' ').slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('');
+  openChatDetail(chatId,otherName,ini);
+};
+
+window.sendMsg = async () => {
+  if(!_curChatId||!currentUser||!window._fb) return;
+  const inp=document.getElementById('chat-inp');
+  const text=inp.value.trim(); if(!text) return;
+  inp.value='';
+  const {addDoc,collection:fc,updateDoc,doc:fd,serverTimestamp:fts,increment} = window._fb;
+  try {
+    await addDoc(fc(db,'chats',_curChatId,'messages'),{text,uid:currentUser.uid,ts:fts()});
+    const snap=await window._fb.getDoc(fd(db,'chats',_curChatId));
+    const other=snap.data()?.participants?.find(p=>p!==currentUser.uid);
+    await updateDoc(fd(db,'chats',_curChatId),{lastMsg:text,lastMsgTime:fts(),...(other?{['unread.'+other]:increment(1)}:{})});
+  } catch(e) { console.log('Send msg error:', e.message); }
+};
+
+// ── Photo upload ──────────────────────────────────────────────────────────────
+window.uploadPhoto = async (input) => {
+  const file=input.files[0]; if(!file||!currentUser) return;
+  if(file.size>3*1024*1024){alert('Foto troppo grande. Massimo 3MB.');return;}
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    const b64=e.target.result;
+    try {
+      const {updateDoc,doc:fd} = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+      await updateDoc(fd(db,'users',currentUser.uid),{photoBase64:b64});
+      applyPhoto(b64,'prof-av',64);
+    } catch(err){alert('Errore: '+err.message);}
+  };
+  reader.readAsDataURL(file);
+};
+
+function applyPhoto(b64, elId, size) {
+  const el=document.getElementById(elId); if(!el||!b64) return;
+  el.innerHTML=''; el.style.background='transparent'; el.style.padding='0';
+  const img=document.createElement('img');
+  img.src=b64;
+  img.style.cssText='width:'+size+'px;height:'+size+'px;border-radius:50%;object-fit:cover;';
+  el.appendChild(img);
+}
+
+// ── Social verify ─────────────────────────────────────────────────────────────
+// ── OCR upload ────────────────────────────────────────────────────────────────
+window.handleOcrDrop = e => {
+  e.preventDefault();
+  const file=e.dataTransfer.files[0]; if(file) handleOcrFile(file);
+};
+window.handleOcrFile = async file => {
+  if(!currentUser){alert('Devi fare login prima.');return;}
+  if(!file) return;
+  if(file.size>10*1024*1024){alert('File troppo grande. Massimo 10MB.');return;}
+  const prog=document.getElementById('ocr-prog');
+  const bar=document.getElementById('ocr-pbar');
+  const ptxt=document.getElementById('ocr-ptxt');
+  const psub=document.getElementById('ocr-psub');
+  prog.classList.add('show'); bar.style.width='20%';
+  ptxt.textContent='Caricamento...'; psub.textContent=file.name;
+  try {
+    bar.style.width='60%'; ptxt.textContent='Salvataggio richiesta...';
+    const {addDoc,collection:fc,serverTimestamp:fts} = window._fb;
+    await addDoc(fc(db,'ocr_queue'),{
+      filename:file.name, fileType:file.type,
+      uploadedBy:currentUser.uid, uploaderName:currentUser.displayName||'Anonimo',
+      operator:document.getElementById('ocr-op').value,
+      route:document.getElementById('ocr-rt').value,
+      status:'queued', createdAt:fts()
+    });
+    bar.style.width='100%'; ptxt.textContent='✓ Richiesta inviata!';
+    psub.textContent="Verranno estratti e verificati entro 24 ore.";
+    document.getElementById('ocr-op').value='';
+    document.getElementById('ocr-rt').value='';
+    setTimeout(()=>{prog.classList.remove('show');bar.style.width='0%';},4000);
+  } catch(e) {
+    prog.classList.remove('show'); bar.style.width='0%';
+    alert('Errore: '+e.message);
+  }
+};
+
+
+
+// ── orologio ──────────────────────────────────────────────────────────────────
+const tick=()=>{const n=new Date();document.getElementById('clock').textContent=n.getHours()+':'+String(n.getMinutes()).padStart(2,'0');};
+tick(); setInterval(tick,30000);
+// Imposta data di oggi nei campi data
+(()=>{const t=new Date().toISOString().slice(0,10);['home-date','s-date'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=t;});})();
+  if(window._replayPending) window._replayPending();
+</script>
+</body>
+</html>
