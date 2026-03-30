@@ -208,9 +208,13 @@ body{font-family:var(--font);color:var(--txt);}
 .send-btn{width:40px;height:40px;border-radius:50%;background:var(--green);border:none;color:white;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 /* PHOTO */
 .photo-ring{position:relative;display:inline-block;cursor:pointer;}
+.photo-ring img{width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--green-l);}
 .photo-edit{position:absolute;bottom:0;right:0;width:22px;height:22px;border-radius:50%;background:var(--green);border:2px solid var(--surf);display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;}
 /* SOCIAL VERIFY */
 .verify-card{border:1px solid var(--bord);border-radius:var(--r);padding:14px;margin-bottom:10px;background:var(--surf);}
+.verify-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.verify-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.verify-status{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:3px 8px;border-radius:var(--rfull);}
 .vs{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:3px 8px;border-radius:var(--rfull);}
 .vs-done{background:var(--green-l);color:var(--green-d);}
 .vs-pend{background:var(--amber-l);color:var(--amber-d);}
@@ -240,33 +244,6 @@ body{font-family:var(--font);color:var(--txt);}
 .ac-item:active{background:var(--surf2);}
 
 /* NEAR ME badge */
-
-/* CHAT */
-.chat-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--bord);cursor:pointer;}
-.chat-item:active{background:var(--surf2);}
-.chat-unread{width:18px;height:18px;border-radius:50%;background:var(--green);color:white;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.msg-bubble{max-width:75%;padding:9px 13px;border-radius:14px;font-size:14px;line-height:1.4;margin-bottom:4px;}
-.msg-mine{background:var(--green);color:white;align-self:flex-end;border-bottom-right-radius:4px;}
-.msg-other{background:var(--surf2);color:var(--txt);align-self:flex-start;border-bottom-left-radius:4px;}
-.msg-time{font-size:10px;color:var(--txt3);margin-bottom:8px;}
-.msg-time.right{text-align:right;}
-.chat-input-row{display:flex;align-items:center;gap:8px;padding:10px 14px;border-top:1px solid var(--bord);background:var(--surf);flex-shrink:0;}
-.chat-inp{flex:1;padding:10px 14px;background:var(--surf2);border:1px solid var(--bord);border-radius:var(--rfull);font-size:14px;font-family:var(--font);outline:none;}
-.chat-inp:focus{border-color:var(--green);}
-.send-btn{width:40px;height:40px;border-radius:50%;background:var(--green);border:none;color:white;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-/* PHOTO PROFILE */
-.photo-ring{position:relative;display:inline-block;}
-.photo-ring img{width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--green-l);}
-.photo-edit{position:absolute;bottom:0;right:0;width:22px;height:22px;border-radius:50%;background:var(--green);border:2px solid var(--surf);display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;}
-/* SOCIAL VERIFY */
-.verify-card{border:1px solid var(--bord);border-radius:var(--r);padding:14px;margin-bottom:10px;}
-.verify-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
-.verify-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
-.verify-status{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:3px 8px;border-radius:var(--rfull);}
-.vs-done{background:var(--green-l);color:var(--green-d);}
-.vs-pend{background:var(--amber-l);color:var(--amber-d);}
-.vs-none{background:var(--surf2);color:var(--txt2);}
-
 .near-badge{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:var(--blue-l);color:var(--blue-d);border-radius:var(--rfull);font-size:12px;font-weight:500;cursor:pointer;border:1px solid rgba(55,138,221,.2);white-space:nowrap;}
 .near-badge.active{background:var(--green-l);color:var(--green-d);border-color:rgba(29,158,117,.3);}
 .dist-badge{font-size:10px;padding:2px 7px;background:var(--green-l);color:var(--green-d);border-radius:var(--rfull);font-weight:500;margin-left:auto;}
@@ -319,32 +296,6 @@ body{font-family:var(--font);color:var(--txt);}
 .sb-top{display:flex;justify-content:space-between;align-items:center;padding:10px 20px 0;font-size:12px;font-weight:500;color:var(--txt2);flex-shrink:0;}
 .loading-pulse{animation:pulse 1.5s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-
-/* AUTOCOMPLETE */
-.ac-wrap{position:relative;margin-bottom:10px;}
-.ac-wrap .form-inp{margin-bottom:0;}
-.ac-list{position:absolute;top:100%;left:0;right:0;background:var(--surf);border:1px solid var(--bord-m);border-radius:0 0 var(--rsm) var(--rsm);box-shadow:0 4px 12px rgba(0,0,0,.12);z-index:200;max-height:200px;overflow-y:auto;display:none;}
-.ac-list.open{display:block;}
-.ac-item{padding:10px 13px;font-size:13px;color:var(--txt);border-bottom:1px solid var(--bord);cursor:pointer;display:flex;align-items:center;gap:8px;}
-.ac-item:last-child{border-bottom:none;}
-.ac-item:active{background:var(--surf2);}
-.ac-icon{font-size:14px;flex-shrink:0;}
-.ac-main{font-weight:500;}
-.ac-sub{font-size:11px;color:var(--txt2);margin-top:1px;}
-
-/* WAYPOINTS */
-.wp-list{margin-bottom:10px;}
-.wp-row{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surf2);border-radius:var(--rsm);margin-bottom:6px;position:relative;}
-.wp-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-.wp-inp{flex:1;border:none;background:transparent;font-size:14px;font-family:var(--font);color:var(--txt);outline:none;}
-.wp-inp::placeholder{color:var(--txt3);}
-.wp-del{width:22px;height:22px;border-radius:50%;border:none;background:var(--bord-m);color:var(--txt2);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.add-wp-btn{width:100%;padding:9px;border:1.5px dashed var(--bord-m);border-radius:var(--rsm);background:transparent;font-size:13px;color:var(--green-d);cursor:pointer;font-family:var(--font);margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:6px;}
-
-/* NEAR ME */
-.near-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:var(--blue-l);color:var(--blue-d);border-radius:var(--rfull);font-size:12px;font-weight:500;cursor:pointer;border:1px solid rgba(55,138,221,.2);}
-.near-badge.active{background:var(--green-l);color:var(--green-d);border-color:rgba(29,158,117,.3);}
-.dist-badge{font-size:10px;padding:2px 6px;background:var(--green-l);color:var(--green-d);border-radius:var(--rfull);font-weight:500;}
 </style>
 </head>
 <body>
@@ -404,9 +355,11 @@ body{font-family:var(--font);color:var(--txt);}
       <button class="tt" id="tt-offri" onclick="setType('offri')">Offri passaggio</button>
     </div>
     <div class="scard">
-      <div class="srow"><div class="sdot sdot-f"></div><input class="sinput" id="home-from" placeholder="Partenza (es. Caserta)"></div>
+      <div class="srow"><div class="sdot sdot-f"></div><input class="sinput" id="home-from" placeholder="Partenza (es. Caserta)" oninput="acSuggest('home-from','ac-home-from')" onfocus="acSuggest('home-from','ac-home-from')" onblur="setTimeout(()=>document.getElementById('ac-home-from').style.display='none',200)" autocomplete="off"></div>
+      <div id="ac-home-from" class="ac-drop" style="display:none;margin:0 12px;"></div>
       <div class="sdiv"></div>
-      <div class="srow"><div class="sdot sdot-t"></div><input class="sinput" id="home-to" placeholder="Destinazione (es. Napoli)"></div>
+      <div class="srow"><div class="sdot sdot-t"></div><input class="sinput" id="home-to" placeholder="Destinazione (es. Napoli)" oninput="acSuggest('home-to','ac-home-to')" onfocus="acSuggest('home-to','ac-home-to')" onblur="setTimeout(()=>document.getElementById('ac-home-to').style.display='none',200)" autocomplete="off"></div>
+      <div id="ac-home-to" class="ac-drop" style="display:none;margin:0 12px;"></div>
       <div class="sdiv"></div>
       <div class="srow" style="gap:8px;padding:6px 12px;"><span style="font-size:18px;">📅</span><input class="sinput" id="home-date" type="date" style="flex:1;color:var(--txt1);"></div>
     </div>
@@ -462,6 +415,7 @@ body{font-family:var(--font);color:var(--txt);}
     <button class="sort-btn active" id="sb0" onclick="setSrt('time',this)">⏱ Durata</button>
     <button class="sort-btn" id="sb1" onclick="setSrt('cambi',this)">🔄 Cambi</button>
     <button class="sort-btn" id="sb2" onclick="setSrt('price',this)">€ Prezzo</button>
+    <button class="sort-btn" id="sb3" onclick="setSrt('dep',this)">🕐 Partenza</button>
   </div>
   <div class="scroll" id="s-results"></div>
   <nav class="nav">
@@ -488,16 +442,16 @@ body{font-family:var(--font);color:var(--txt);}
   <div class="scroll" style="padding:0 16px;">
     <label class="form-lbl">Da dove parti?</label>
     <div class="ac-wrap">
-      <input class="form-inp" id="o-from" placeholder="Es. Caserta Centro, Via Roma" autocomplete="off" oninput="acSearch(this,'ac-from')">
-      <div class="ac-list" id="ac-from"></div>
+      <input class="form-inp" id="o-from" placeholder="Es. Caserta Centro, Via Roma" autocomplete="off" oninput="acSearch(this,'ac-o-from')">
+      <div class="ac-list" id="ac-o-from"></div>
     </div>
     <label class="form-lbl">Fermate intermedie (opzionale)</label>
     <div class="wp-list" id="wp-list"></div>
     <button class="add-wp-btn" onclick="addWaypoint()">+ Aggiungi fermata intermedia</button>
     <label class="form-lbl">Dove vai?</label>
     <div class="ac-wrap">
-      <input class="form-inp" id="o-to" placeholder="Es. Napoli Monte Sant'Angelo" autocomplete="off" oninput="acSearch(this,'ac-to')">
-      <div class="ac-list" id="ac-to"></div>
+      <input class="form-inp" id="o-to" placeholder="Es. Napoli Monte Sant'Angelo" autocomplete="off" oninput="acSearch(this,'ac-o-to')">
+      <div class="ac-list" id="ac-o-to"></div>
     </div>
     <label class="form-lbl">Tocca la mappa — 1° tocco = partenza, 2° = arrivo</label>
     <div id="map-picker"></div>
@@ -567,35 +521,6 @@ body{font-family:var(--font);color:var(--txt);}
     <div class="ni active" onclick="goTo('sc-transit',3)"><div class="ni-icon">🚌</div><div class="ni-lbl">Orari</div><div class="ni-pip"></div></div>
     <div class="ni" onclick="goTo('sc-profile',4)"><div class="ni-icon">👤</div><div class="ni-lbl">Profilo</div><div class="ni-pip"></div></div>
   </nav>
-</div>
-
-<!-- ══ CHAT LIST ══ -->
-<div class="screen" id="sc-chat">
-  <div class="ph"><h1>Messaggi</h1><p id="chat-subtitle">Le tue conversazioni</p></div>
-  <div class="scroll" id="chat-list-body">
-    <div class="empty"><div class="empty-icon">💬</div><div class="empty-title">Nessun messaggio ancora</div><div class="empty-sub">Quando prenoti un passaggio o qualcuno ti contatta, la chat apparirà qui.</div></div>
-  </div>
-  <nav class="nav">
-    <div class="ni" onclick="goTo('sc-home',0)"><div class="ni-icon">🏠</div><div class="ni-lbl">Home</div><div class="ni-pip"></div></div>
-    <div class="ni" onclick="goTo('sc-search',1)"><div class="ni-icon">🔍</div><div class="ni-lbl">Cerca</div><div class="ni-pip"></div></div>
-    <div class="ni" onclick="goTo('sc-offer',2)"><div class="ni-icon">🚗</div><div class="ni-lbl">Offri</div><div class="ni-pip"></div></div>
-    <div class="ni active" onclick="goTo('sc-transit',3)"><div class="ni-icon">🚌</div><div class="ni-lbl">Orari</div><div class="ni-pip"></div></div>
-    <div class="ni" onclick="goTo('sc-profile',4)"><div class="ni-icon">👤</div><div class="ni-lbl">Profilo</div><div class="ni-pip"></div></div>
-  </nav>
-</div>
-
-<!-- ══ CHAT DETAIL ══ -->
-<div class="screen" id="sc-chat-detail">
-  <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--bord);flex-shrink:0;">
-    <button onclick="goTo('sc-chat',3)" style="width:34px;height:34px;border-radius:50%;background:var(--surf2);border:1px solid var(--bord);font-size:16px;cursor:pointer;flex-shrink:0;">←</button>
-    <div class="av av-sm av-g" id="chat-detail-av">?</div>
-    <div style="flex:1;"><div style="font-size:15px;font-weight:500;" id="chat-detail-name">—</div><div style="font-size:12px;color:var(--green);" id="chat-detail-status">Online</div></div>
-  </div>
-  <div class="scroll" id="chat-messages" style="padding:12px 14px;display:flex;flex-direction:column;"></div>
-  <div class="chat-input-row">
-    <input class="chat-inp" id="chat-inp" placeholder="Scrivi un messaggio..." onkeydown="if(event.key==='Enter')sendMsg()">
-    <button class="send-btn" onclick="sendMsg()">↑</button>
-  </div>
 </div>
 
 <!-- ══ PROFILE ══ -->
@@ -751,7 +676,7 @@ var _pendingCalls = [];
  'openChatDetail','openChatWith','sendMsg','publishRide','addWaypoint','removeWaypoint',
  'acSelect','acSearch','linkSocial','reportLine','setRegion','setFC','setFW','setSrt',
  'doLogout','triggerPhotoUpload','uploadPhoto','handleOcrFile','handleOcrDrop',
- 'updatePickerMap','safeStr','planJourney'
+ 'updatePickerMap','safeStr','planJourney','acSuggest'
 ].forEach(function(fn) {
   window[fn] = function() {
     var args = arguments;
@@ -1321,57 +1246,6 @@ function renderProfileBadges(profile) {
   if(profile.social_university) { const el=document.getElementById('uni-email'); if(el)el.value=profile.social_university; document.getElementById('uni-status').className='verify-status '+(profile.social_university_verified?'vs-done':'vs-pend'); document.getElementById('uni-status').textContent=profile.social_university_verified?'✓ Verificata':'⏳ In attesa'; }
 }
 
-// ── chat ──────────────────────────────────────────────────────────────────────
-let currentChatId = null;
-let chatUnsub = null;
-
-// ── GTFS Campania — dati demo + info feed reali ───────────────────────────────
-function renderTransit() {
-  const lines = [
-    // ANM Napoli — GTFS ufficiale
-    {num:'R2',name:'ANM R2 · Napoli C.le → Fuorigrotta',op:'ANM Napoli',bg:'#E6F1FB',fg:'#185FA5',src:'GTFS ANM',
-     deps:[{t:'07:45',s:'Napoli Centrale',n:'gone'},{t:'08:00',s:'Napoli Centrale',n:'now'},{t:'08:30',s:'Napoli Centrale',n:'soon'},{t:'09:00',s:'Napoli Centrale',n:'later'}]},
-    {num:'1',name:'ANM Linea 1 Metro · Piscinola → Garibaldi',op:'ANM Napoli',bg:'#E6F1FB',fg:'#185FA5',src:'GTFS ANM',
-     deps:[{t:'07:52',s:'Piscinola',n:'gone'},{t:'08:04',s:'Piscinola',n:'now'},{t:'08:16',s:'Piscinola',n:'soon'}]},
-    {num:'2',name:'ANM Linea 2 Metro · Pozzuoli → Gianturco',op:'ANM Napoli',bg:'#EAF3DE',fg:'#3B6D11',src:'GTFS ANM',
-     deps:[{t:'07:56',s:'Pozzuoli',n:'gone'},{t:'08:08',s:'Pozzuoli',n:'now'},{t:'08:20',s:'Pozzuoli',n:'soon'}]},
-    // EAV
-    {num:'EAV',name:'EAV Circumvesuviana · Napoli → Sorrento',op:'EAV',bg:'#FAEEDA',fg:'#854F0B',src:'GTFS EAV',
-     deps:[{t:'07:40',s:'Napoli P.ta Nolana',n:'gone'},{t:'08:10',s:'Napoli P.ta Nolana',n:'now'},{t:'08:40',s:'Napoli P.ta Nolana',n:'soon'}]},
-    {num:'EAV',name:'EAV Circumflegrea · Napoli → Torregaveta',op:'EAV',bg:'#FAEEDA',fg:'#854F0B',src:'GTFS EAV',
-     deps:[{t:'07:55',s:'Napoli Montesanto',n:'gone'},{t:'08:25',s:'Napoli Montesanto',n:'soon'},{t:'08:55',s:'Napoli Montesanto',n:'later'}]},
-    // CTP Caserta
-    {num:'CTP',name:'CTP · Caserta → Napoli (Autobus)',op:'CTP Caserta',bg:'#FAECE7',fg:'#993C1D',src:'GTFS CTP',
-     deps:[{t:'07:00',s:'Caserta V.le Douhet',n:'gone'},{t:'07:30',s:'Caserta V.le Douhet',n:'gone'},{t:'08:00',s:'Caserta V.le Douhet',n:'now'},{t:'08:30',s:'Caserta V.le Douhet',n:'soon'}]},
-    // Comunità
-    {num:'C9',name:'C9 · S. Nicola la Strada → Napoli C.le',op:'Privato',bg:'#FAEEDA',fg:'#854F0B',src:'Comunità ✓',
-     deps:[{t:'06:45',s:'S. Nicola la Strada',n:'gone'},{t:'07:20',s:'S. Nicola la Strada',n:'now'},{t:'08:05',s:'S. Nicola la Strada',n:'later'}]},
-  ];
-  const nxt={now:'<span class="dnext dnow">→ tra ~15 min</span>',soon:'<span class="dnext dsoon">→ tra ~30 min</span>',later:'<span class="dnext dgone">→ tra ~70 min</span>',gone:'<span class="dnext dgone">→ già partito</span>'};
-  const gtfsBadge='<span class="badge bg" style="font-size:10px;">✓ GTFS</span>';
-  const commBadge='<span class="badge ba" style="font-size:10px;">Comunità</span>';
-  document.getElementById('transit-body').innerHTML =
-    `<div style="background:var(--blue-l);border-radius:var(--rsm);margin:0 16px 12px;padding:10px 12px;font-size:12px;color:var(--blue-d);">
-      ℹ️ <strong>Feed ufficiali integrati:</strong> ANM Napoli, EAV Circumvesuviana/Circumflegrea, CTP Caserta. I dati GTFS vengono aggiornati ogni notte automaticamente.
-    </div>` +
-    lines.map(l=>`
-    <div class="card mx mb">
-      <div class="lh" onclick="this.nextElementSibling.classList.toggle('open')">
-        <div class="lnum" style="background:${l.bg};color:${l.fg};font-size:11px;">${l.num}</div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.name}</div>
-          <div style="font-size:11px;color:var(--txt2);">${l.op}</div>
-        </div>
-        ${l.src.includes('GTFS')?gtfsBadge:commBadge}
-      </div>
-      <div class="deps">${l.deps.map(d=>`<div class="dep"><div class="dtime">${d.t}</div><div style="flex:1;font-size:12px;color:var(--txt2);">${d.s}</div>${nxt[d.n]||''}</div>`).join('')}
-        <div style="margin-top:8px;font-size:11px;color:var(--txt3);">Fonte: ${l.src} · aggiornato automaticamente</div>
-      </div>
-    </div>`).join('') +
-    `<div style="padding:0 16px 8px;"><button class="btn btn-s" onclick="goTo('sc-offer',2)">+ Aggiungi linea mancante</button></div>`;
-}
-
-
 // ── Journey Planner ──────────────────────────────────────────────────────────
 let filterCambi = 'any', filterWait = 'any', sortMode = 'time';
 
@@ -1457,45 +1331,89 @@ const HUBS = [
   'Bagnoli','Fuorigrotta','Torregaveta','Sorrento','Baiano','Sarno',
 ];
 
-function transitForRoute(from, to) {
+function transitForRoute(from, to, dateStr) {
   const results=[], fq=from.toLowerCase(), tq=to.toLowerCase();
-  // Usa OPERATORS dalla closure di renderTransitFull se disponibile, altrimenti skip
   const ops = window._OPERATORS;
   if(!ops) return results;
+
+  // Determina il giorno della settimana per il filtro (0=dom, 6=sab)
+  const selDate = dateStr ? new Date(dateStr+'T12:00:00') : new Date();
+  const dayOfWeek = selDate.getDay(); // 0=domenica
+
+  // Helper: trova un orario nell'oggetto times cercando per chiave parziale
+  const findTime = (times, q) => {
+    if(!times||!q) return null;
+    const keys = Object.keys(times);
+    // match diretto
+    let k = keys.find(k=>k.toLowerCase()===q);
+    if(k) return times[k];
+    // match parziale
+    k = keys.find(k=>k.toLowerCase().includes(q)||q.includes(k.toLowerCase()));
+    if(k) return times[k];
+    // match per parola
+    const words = q.split(/\s+/).filter(w=>w.length>2);
+    k = keys.find(k=>words.some(w=>k.toLowerCase().includes(w)));
+    return k ? times[k] : null;
+  };
+
   for(const op of ops) {
+    // Filtro domenica: AIR, Ferrazza, Angelino, Eredi non circolano di domenica
+    if(op.noSun && dayOfWeek === 0) continue;
     for(const line of (op.lines||[])) {
       const n=(line.name||'').toLowerCase();
       const allStops = (line.stops||[]).map(s=>s.toLowerCase());
-      // Match su nome linea O fermate intermedie
       const matchInText = (q) => {
         if(!q) return true;
-        // match diretto sul nome della linea o sulle fermate (stringa completa)
         if(n.includes(q)) return true;
         if(allStops.some(s=>s.includes(q))) return true;
-        // match per parole singole (minimo 2 caratteri)
         const words = q.split(/\s+/).filter(w=>w.length>1);
         return words.some(w=>n.includes(w)||allStops.some(s=>s.includes(w)));
       };
-      const hasF = matchInText(fq);
-      const hasT = matchInText(tq);
-      if(hasF && hasT) {
-        for(const dep of (line.deps||[])) {
-          const t = dep.t || dep.time;
-          if(t) results.push({
-            type:'transit', operator:op.name, operatorId:op.id,
-            lineName:line.name, lineNum:line.num||op.id.slice(0,4).toUpperCase(),
-            officialUrl:line.url||op.url||'',
-            color:op.color, fg:op.fg, depTime:t,
-            depStop:dep.s||dep.stop||from, icon:op.icon||'🚌'
-          });
+      if(!matchInText(fq)||!matchInText(tq)) continue;
+
+      for(const dep of (line.deps||[])) {
+        const t = dep.t || dep.time;
+        if(!t) continue;
+
+        let depTime = t;
+        let arrTime = null;
+        let segMins = line.dur || 60;
+
+        if(dep.times) {
+          // Cerca orario esatto di partenza dalla fermata richiesta
+          const ft = findTime(dep.times, fq);
+          const tt = findTime(dep.times, tq);
+          if(ft) depTime = ft;
+          if(tt) arrTime = tt;
+          if(ft && tt) {
+            const d = toMins(ft), a = toMins(tt);
+            if(d!=null && a!=null && a>d) segMins = a-d;
+          }
+        } else {
+          // fallback proporzionale
+          const totalStops = allStops.length;
+          const idxF = allStops.findIndex(s=>s.includes(fq)||fq.split(/\s+/).filter(w=>w.length>1).some(w=>s.includes(w)));
+          const idxT = allStops.findIndex(s=>s.includes(tq)||tq.split(/\s+/).filter(w=>w.length>1).some(w=>s.includes(w)));
+          if(idxF>=0 && idxT>=0 && totalStops>1)
+            segMins = Math.max(5, Math.round((line.dur||60)*Math.abs(idxT-idxF)/(totalStops-1)));
         }
+
+        results.push({
+          type:'transit', operator:op.name, operatorId:op.id,
+          lineName:line.name, lineNum:line.num||op.id.slice(0,4).toUpperCase(),
+          officialUrl:line.url||op.url||'',
+          color:op.color, fg:op.fg,
+          depTime, arrTime, icon:op.icon||'🚌',
+          depStop:dep.s||dep.stop||from,
+          segMins
+        });
       }
     }
   }
   return results;
 }
 
-function buildJourneys(from, to) {
+function buildJourneys(from, to, dateStr) {
   const journeys=[], WAIT=5;
   const fq=from.toLowerCase(), tq=to.toLowerCase();
 
@@ -1518,14 +1436,17 @@ function buildJourneys(from, to) {
   }
 
   // Direct transit
-  for(const t of transitForRoute(from,to)) {
+  for(const t of transitForRoute(from,to,dateStr)) {
+    const mins = t.segMins || 60;
+    const arr = t.arrTime || fromMins(toMins(t.depTime)+mins);
+    const timeStr = t.arrTime ? t.depTime+' → '+t.arrTime : t.depTime+' –  –';
     journeys.push({
-      id:'t_'+t.operatorId+'_'+t.depTime, cambi:0,
-      totalMins:60, totalPrice:0,
-      depTime:t.depTime, arrTime:fromMins(toMins(t.depTime)+60),
+      id:'t_'+t.operatorId+'_'+t.depTime+'_'+t.depStop, cambi:0,
+      totalMins:mins, totalPrice:0,
+      depTime:t.depTime, arrTime:arr,
       steps:[{type:'transit',icon:t.icon,bg:t.color||'var(--blue-l)',
         title:t.lineName, sub:t.operator+' · '+t.depStop,
-        time:t.depTime+' –  –', officialUrl:t.officialUrl}]
+        time:timeStr, officialUrl:t.officialUrl}]
     });
   }
 
@@ -1533,7 +1454,7 @@ function buildJourneys(from, to) {
   for(const hub of HUBS) {
     const hubQ=hub.toLowerCase();
     const ridesTo=allRides.filter(r=>rideMatches(r,from)&&rideMatches(r,hub));
-    const transitFrom=transitForRoute(hub,to);
+    const transitFrom=transitForRoute(hub,to,dateStr);
     for(const ride of ridesTo) {
       const rArr=(toMins(ride.arrTime)||(toMins(ride.depTime)||0)+45);
       for(const t of transitFrom) {
@@ -1542,11 +1463,14 @@ function buildJourneys(from, to) {
         if(wait<WAIT) continue;
         if(filterWait!=='any'&&wait>filterWait) continue;
         const dep=toMins(ride.depTime);
+        const tSeg=t.segMins||60;
+        const tArr=t.arrTime||fromMins(tDep+tSeg);
+        const tArrMins=toMins(tArr)||(tDep+tSeg);
         journeys.push({
           id:'c_'+ride.id+'_'+t.operatorId+'_'+t.depTime,
           cambi:1, transferNode:hub, transferWait:wait,
-          totalMins:(tDep+60)-(dep||0), totalPrice:parseFloat(ride.price||0),
-          depTime:ride.depTime, arrTime:fromMins(tDep+60),
+          totalMins:tArrMins-(dep||0), totalPrice:parseFloat(ride.price||0),
+          depTime:ride.depTime, arrTime:fromMins(tArrMins),
           steps:[
             {type:'ride',icon:'🚗',bg:'var(--green-l)',
               title:(ride.from||'')+' → '+hub,
@@ -1557,7 +1481,7 @@ function buildJourneys(from, to) {
             {type:'transfer',node:hub,wait},
             {type:'transit',icon:t.icon,bg:t.color||'var(--blue-l)',
               title:t.lineName, sub:t.operator+' da '+hub,
-              time:t.depTime+' –  –', officialUrl:t.officialUrl}
+              time:t.depTime+' → '+tArr, officialUrl:t.officialUrl}
           ]
         });
       }
@@ -1597,13 +1521,14 @@ window.planJourney = window.liveSearch = () => {
     renderJourneys(simple); return;
   }
 
-  let jj=buildJourneys(from,to);
+  let jj=buildJourneys(from,to,dateVal);
   if(filterCambi!=='any') jj=jj.filter(j=>j.cambi<=filterCambi);
   if(filterWait!=='any') jj=jj.filter(j=>!j.transferWait||j.transferWait<=filterWait);
   const seen=new Set(); jj=jj.filter(j=>{if(seen.has(j.id))return false;seen.add(j.id);return true;});
   if(sortMode==='time') jj.sort((a,b)=>a.totalMins-b.totalMins);
   else if(sortMode==='cambi') jj.sort((a,b)=>a.cambi-b.cambi||a.totalMins-b.totalMins);
   else if(sortMode==='price') jj.sort((a,b)=>a.totalPrice-b.totalPrice);
+  else if(sortMode==='dep') jj.sort((a,b)=>(toMins(a.depTime)||0)-(toMins(b.depTime)||0));
   if(nearMeActive&&userLat&&userLng) {
     jj=jj.map(j=>{
       const rs=j.steps.find(s=>s.rideId);
@@ -1794,10 +1719,12 @@ function renderTransitFull() {
         {name:'Circumflegrea · Napoli Montesanto → Torregaveta', url:'https://www.eavsrl.it/',
           stops:['Napoli Montesanto','Soccavo','Pianura','Quarto','Quarto Nuovo','Quarto Centro','Licola','Cuma','Torregaveta'],
           deps:[{t:'05:55',s:'Napoli Montesanto'},{t:'06:25',s:'Napoli Montesanto'},{t:'06:55',s:'Napoli Montesanto'},{t:'07:25',s:'Napoli Montesanto'},{t:'07:55',s:'Napoli Montesanto'},{t:'08:25',s:'Napoli Montesanto'},{t:'08:55',s:'Napoli Montesanto'}]},
-        {name:'MetroCampania NordEst · Napoli P.za Garibaldi → Piedimonte Matese', url:'https://www.eavsrl.it/',
+        {name:'EAV · Napoli P.za Garibaldi → Piedimonte Matese', url:'https://www.eavsrl.it/',
+          dur:165,
           stops:['Napoli P.za Garibaldi','Napoli Piazza Garibaldi','Casalnuovo','Acerra','Aversa Nord','Cancello','Arienzo','Maddaloni','Caserta','Santa Maria Capua Vetere','Santa Maria C.V.','Capua','Caiazzo','Alvignano','Dragoni','Ruviano','Alife','Piedimonte Matese'],
           deps:[{t:'06:10',s:'Napoli P.za Garibaldi'},{t:'07:10',s:'Napoli P.za Garibaldi'},{t:'08:10',s:'Napoli P.za Garibaldi'},{t:'13:10',s:'Napoli P.za Garibaldi'},{t:'17:10',s:'Napoli P.za Garibaldi'}]},
-        {name:'MetroCampania NordEst · Piedimonte Matese → Napoli P.za Garibaldi', url:'https://www.eavsrl.it/',
+        {name:'EAV · Piedimonte Matese → Napoli P.za Garibaldi', url:'https://www.eavsrl.it/',
+          dur:165,
           stops:['Piedimonte Matese','Alife','Ruviano','Dragoni','Alvignano','Caiazzo','Capua','Santa Maria Capua Vetere','Santa Maria C.V.','Caserta','Maddaloni','Arienzo','Cancello','Aversa Nord','Acerra','Casalnuovo','Napoli P.za Garibaldi','Napoli Piazza Garibaldi'],
           deps:[{t:'05:30',s:'Piedimonte Matese'},{t:'06:30',s:'Piedimonte Matese'},{t:'07:30',s:'Piedimonte Matese'},{t:'12:00',s:'Piedimonte Matese'},{t:'16:00',s:'Piedimonte Matese'}]},
         {name:'Linea 11 (Arcobaleno) · Piscinola → Aversa', url:'https://www.eavsrl.it/',
@@ -1812,7 +1739,7 @@ function renderTransitFull() {
           deps:[{t:'06:05',s:'Benevento'},{t:'07:30',s:'Benevento'},{t:'10:00',s:'Benevento'},{t:'13:11',s:'Benevento'},{t:'16:00',s:'Benevento'},{t:'18:30',s:'Benevento'}]},
       ]},
     // ── AIR CAMPANIA — BACINO DI CASERTA ──────────────────────────────────────
-    { id:'air', name:'AIR Campania — Bacino Caserta', region:'campania', badge:'GTFS', color:'#FAECE7', fg:'#993C1D', icon:'🚌', url:'https://www.aircampania.it/',
+    { id:'air', name:'AIR Campania — Bacino Caserta', region:'campania', badge:'GTFS', color:'#FAECE7', fg:'#993C1D', icon:'🚌', url:'https://www.aircampania.it/', noSun:true,
       lines:[
         // ── Linee provinciali Caserta (CE) ──
         {name:'01-CE · Capua → S.Maria C.V. → Caserta', url:'https://www.aircampania.it/',
@@ -1858,20 +1785,63 @@ function renderTransitFull() {
           stops:['Capua','Pignataro Maggiore','Calvi Risorta','Rocchetta e Croce'],
           deps:[{t:'06:30',s:'Capua'},{t:'08:00',s:'Capua'},{t:'13:00',s:'Capua'}]},
         {name:'16-CE · Caserta → Caiazzo → Alvignano → Piedimonte Matese', url:'https://www.aircampania.it/',
+          dur:75,
           stops:['Caserta','Piana di Monte Verna','Caiazzo','Alvignano','Dragoni','Piedimonte Matese'],
           deps:[{t:'06:00',s:'Caserta'},{t:'07:00',s:'Caserta'},{t:'13:30',s:'Caserta'},{t:'17:00',s:'Caserta'}]},
         {name:'17-CE · Napoli → Vairano Scalo → Prata Sannita → Letino → Capriati (e viceversa)', url:'https://www.aircampania.it/',
-          stops:['Napoli Corso Meridionale','Napoli Piazza Garibaldi','Caserta','Santa Maria Capua Vetere','Santa Maria C.V.','Capua','Teano','Caianello','Vairano Scalo','Vairano Patenora','Pietravairano','Quattroventi','Ailano','Pratella','Prata Sannita','Prata Sannita Largo Padre Pio','Fontegreca','Ciorlano','Capriati al Volturno','Capriati a Volturno','Gallo Matese','Letino','Letino Piazza Matteotti'],
-          deps:[{t:'06:00',s:'Napoli Corso Meridionale'},{t:'07:30',s:'Napoli Corso Meridionale'},{t:'10:35',s:'Napoli Corso Meridionale'},{t:'13:00',s:'Napoli Corso Meridionale'},{t:'15:00',s:'Napoli Corso Meridionale'}]},
+          stops:['Napoli Corso Meridionale','Napoli Piazza Garibaldi','Caserta','Santa Maria Capua Vetere','Santa Maria C.V.','Capua','Teano','Caianello','Vairano Scalo','Pietravairano','Quattroventi','Ailano','Pratella','Prata Sannita','Fontegreca','Ciorlano','Capriati al Volturno','Capriati a Volturno','Gallo Matese','Letino'],
+          deps:[
+            {t:'06:00',s:'Napoli Corso Meridionale',times:{'Napoli Corso Meridionale':'06:00','Caserta':'06:35','Capua':'07:00','Vairano Scalo':'07:45','Quattroventi':'08:00','Ailano':'08:10','Pratella':'08:17','Prata Sannita':'08:22','Fontegreca':'08:28','Capriati al Volturno':'08:40','Letino':'09:30'}},
+            {t:'07:30',s:'Napoli Corso Meridionale',times:{'Napoli Corso Meridionale':'07:30','Caserta':'08:05','Capua':'08:30','Vairano Scalo':'09:15','Quattroventi':'09:30','Ailano':'09:40','Pratella':'09:47','Prata Sannita':'09:52','Fontegreca':'09:58','Capriati al Volturno':'10:10','Letino':'11:00'}},
+            {t:'10:35',s:'Napoli Corso Meridionale',times:{'Napoli Corso Meridionale':'10:35','Caserta':'11:10','Capua':'11:35','Vairano Scalo':'12:20','Quattroventi':'12:35','Ailano':'12:45','Pratella':'12:52','Prata Sannita':'12:57','Fontegreca':'13:03','Capriati al Volturno':'13:15','Letino':'14:05'}},
+            {t:'13:00',s:'Napoli Corso Meridionale',times:{'Napoli Corso Meridionale':'13:00','Caserta':'13:35','Capua':'14:00','Vairano Scalo':'14:45','Quattroventi':'15:00','Ailano':'15:10','Pratella':'15:17','Prata Sannita':'15:22','Fontegreca':'15:28','Capriati al Volturno':'15:40','Letino':'16:30'}},
+            {t:'15:00',s:'Napoli Corso Meridionale',times:{'Napoli Corso Meridionale':'15:00','Caserta':'15:35','Capua':'16:00','Vairano Scalo':'16:41','Quattroventi':'16:56','Ailano':'17:06','Pratella':'17:13','Prata Sannita':'17:18','Fontegreca':'17:24','Capriati al Volturno':'17:36','Letino':'18:26'}},
+            {t:'06:25',s:'Vairano Scalo',times:{'Vairano Scalo':'06:25','Pietravairano':'06:35','Quattroventi':'06:43','Ailano':'06:53','Pratella':'07:00','Prata Sannita':'07:05','Fontegreca':'07:11','Capriati al Volturno':'07:23','Letino':'08:13'}},
+            {t:'11:18',s:'Vairano Scalo',times:{'Vairano Scalo':'11:18','Pietravairano':'11:28','Quattroventi':'11:36','Ailano':'11:46','Pratella':'11:53','Prata Sannita':'11:58','Fontegreca':'12:04','Capriati al Volturno':'12:16','Letino':'13:06'}},
+            {t:'16:00',s:'Vairano Scalo',times:{'Vairano Scalo':'16:00','Pietravairano':'16:10','Quattroventi':'16:18','Ailano':'16:28','Pratella':'16:35','Prata Sannita':'16:40','Fontegreca':'16:46','Capriati al Volturno':'16:58','Letino':'17:48'}}
+          ]},
         {name:'18-CE · Caserta → San Leucio → Caiazzo → Alvignano → Piedimonte Matese', url:'https://www.aircampania.it/',
-          stops:['Caserta','San Leucio','Caserta Viale degli Antichi Platani','Piana di Monte Verna','Caiazzo','Alvignano','Ruviano','Dragoni','Alife','Alife IPSIA','Piedimonte Matese','Piedimonte Matese Terminal'],
-          deps:[{t:'06:35',s:'Caserta'},{t:'07:45',s:'Caserta'},{t:'09:45',s:'Caserta'},{t:'13:00',s:'Caserta'},{t:'14:15',s:'Caserta'},{t:'17:00',s:'Caserta'}]},
-        {name:'19-CE · Piedimonte Matese → Liberi → Formicola → Capua → Caserta', url:'https://www.aircampania.it/',
-          stops:['Piedimonte Matese','Alife','Ruviano','Liberi','Formicola','Capua','Santa Maria Capua Vetere','Santa Maria C.V.','Caserta'],
-          deps:[{t:'05:45',s:'Piedimonte Matese'},{t:'06:45',s:'Piedimonte Matese'},{t:'07:45',s:'Piedimonte Matese'}]},
+          stops:['Caserta','San Leucio','Piana di Monte Verna','Caiazzo','Alvignano','Dragoni','Alife','Piedimonte Matese'],
+          deps:[
+            {t:'05:10',s:'Caserta',times:{'Caserta':'05:10','San Leucio':'05:15','Piana di Monte Verna':'05:25','Caiazzo':'05:30','Alvignano':'05:40','Dragoni':'05:50','Alife':'06:00','Piedimonte Matese':'06:10'}},
+            {t:'07:45',s:'Caserta',times:{'Caserta':'07:45','San Leucio':'07:50','Piana di Monte Verna':'08:00','Caiazzo':'08:06','Alvignano':'08:16','Dragoni':'08:23','Alife':'08:31','Piedimonte Matese':'08:35'}},
+            {t:'10:55',s:'Caserta',times:{'Caserta':'10:55','San Leucio':'11:00','Piana di Monte Verna':'11:10','Caiazzo':'11:16','Alvignano':'11:26','Dragoni':'11:33','Alife':'11:41','Piedimonte Matese':'11:45'}},
+            {t:'14:10',s:'Caserta',times:{'Caserta':'14:10','San Leucio':'14:15','Piana di Monte Verna':'14:25','Caiazzo':'14:31','Alvignano':'14:41','Dragoni':'14:48','Alife':'14:56','Piedimonte Matese':'15:00'}},
+            {t:'17:00',s:'Caserta',times:{'Caserta':'17:00','San Leucio':'17:05','Piana di Monte Verna':'17:15','Caiazzo':'17:21','Alvignano':'17:31','Dragoni':'17:38','Alife':'17:46','Piedimonte Matese':'17:50'}},
+            {t:'06:35',s:'Piedimonte Matese',times:{'Piedimonte Matese':'06:35','Alife':'06:39','Dragoni':'06:47','Alvignano':'06:57','Caiazzo':'07:07','Piana di Monte Verna':'07:10','San Leucio':'07:20','Caserta':'07:25'}},
+            {t:'09:50',s:'Piedimonte Matese',times:{'Piedimonte Matese':'09:50','Alife':'09:54','Dragoni':'10:02','Alvignano':'10:12','Caiazzo':'10:22','Piana di Monte Verna':'10:25','San Leucio':'10:35','Caserta':'10:40'}},
+            {t:'12:50',s:'Piedimonte Matese',times:{'Piedimonte Matese':'12:50','Alife':'12:54','Dragoni':'13:02','Alvignano':'13:12','Caiazzo':'13:22','Piana di Monte Verna':'13:25','San Leucio':'13:35','Caserta':'13:40'}},
+            {t:'16:05',s:'Piedimonte Matese',times:{'Piedimonte Matese':'16:05','Alife':'16:09','Dragoni':'16:17','Alvignano':'16:27','Caiazzo':'16:37','Piana di Monte Verna':'16:40','San Leucio':'16:50','Caserta':'16:55'}},
+            {t:'18:50',s:'Piedimonte Matese',times:{'Piedimonte Matese':'18:50','Alife':'18:54','Dragoni':'19:02','Alvignano':'19:12','Caiazzo':'19:22','Piana di Monte Verna':'19:25','San Leucio':'19:35','Caserta':'19:40'}}
+          ]},
+        {name:'19-CE · Piedimonte Matese → Formicola → Capua → Caserta', url:'https://www.aircampania.it/',
+          stops:['Piedimonte Matese','Alife','Dragoni','Liberi','Formicola','Capua','Santa Maria Capua Vetere','Caserta'],
+          deps:[
+            {t:'05:15',s:'Piedimonte Matese',times:{'Piedimonte Matese':'05:15','Alife':'05:27','Dragoni':'05:40','Liberi':'05:56','Formicola':'06:12','Capua':'06:36','Santa Maria Capua Vetere':'06:50','Caserta':'07:50'}},
+            {t:'05:40',s:'Piedimonte Matese',times:{'Piedimonte Matese':'05:40','Alife':'05:52','Dragoni':'06:07','Liberi':'06:24','Formicola':'06:41','Capua':'07:15','Santa Maria Capua Vetere':'07:36','Caserta':'08:10'}},
+            {t:'06:15',s:'Piedimonte Matese',times:{'Piedimonte Matese':'06:15','Alife':'06:24','Dragoni':'06:41','Liberi':'06:45','Formicola':'06:55','Capua':'07:28','Santa Maria Capua Vetere':'07:45','Caserta':'08:30'}},
+            {t:'08:50',s:'Piedimonte Matese',times:{'Piedimonte Matese':'08:50','Alife':'08:56','Dragoni':'09:10','Liberi':'09:26','Formicola':'09:44','Capua':'10:12','Santa Maria Capua Vetere':'10:24','Caserta':'10:55'}},
+            {t:'11:55',s:'Piedimonte Matese',times:{'Piedimonte Matese':'11:55','Alife':'12:06','Dragoni':'12:20','Liberi':'12:36','Formicola':'12:54','Capua':'13:20','Santa Maria Capua Vetere':'13:35','Caserta':'13:50'}},
+            {t:'14:25',s:'Piedimonte Matese',times:{'Piedimonte Matese':'14:25','Alife':'14:34','Dragoni':'14:50','Liberi':'15:08','Formicola':'15:27','Capua':'15:55','Santa Maria Capua Vetere':'16:05','Caserta':'16:25'}},
+            {t:'05:35',s:'Caserta',times:{'Caserta':'05:35','Santa Maria Capua Vetere':'05:45','Capua':'06:00','Formicola':'06:23','Liberi':'06:38','Dragoni':'07:41','Alife':'07:55','Piedimonte Matese':'08:05'}},
+            {t:'05:40',s:'Caserta',times:{'Caserta':'05:40','Santa Maria Capua Vetere':'05:50','Capua':'06:05','Formicola':'06:28','Liberi':'06:43','Dragoni':'07:48','Alife':'08:02','Piedimonte Matese':'08:10'}},
+            {t:'08:05',s:'Caserta',times:{'Caserta':'08:05','Santa Maria Capua Vetere':'08:15','Capua':'08:30','Formicola':'08:55','Liberi':'09:10','Dragoni':'09:38','Alife':'09:48','Piedimonte Matese':'10:00'}},
+            {t:'11:50',s:'Caserta',times:{'Caserta':'11:50','Santa Maria Capua Vetere':'12:00','Capua':'12:15','Formicola':'12:38','Liberi':'12:53','Dragoni':'13:21','Alife':'13:31','Piedimonte Matese':'13:45'}},
+            {t:'13:35',s:'Caserta',times:{'Caserta':'13:35','Santa Maria Capua Vetere':'13:45','Capua':'14:00','Formicola':'14:23','Liberi':'14:38','Dragoni':'15:08','Alife':'15:18','Piedimonte Matese':'15:30'}},
+            {t:'17:00',s:'Caserta',times:{'Caserta':'17:00','Santa Maria Capua Vetere':'17:10','Capua':'17:25','Formicola':'17:48','Liberi':'18:03','Dragoni':'18:32','Alife':'18:42','Piedimonte Matese':'18:55'}}
+          ]},
         {name:'20-CE · Piedimonte Matese → Gioia Sannitica → Benevento', url:'https://www.aircampania.it/',
-          stops:['Piedimonte Matese','Alife','Gioia Sannitica','Telese Terme','Benevento'],
-          deps:[{t:'06:00',s:'Piedimonte Matese'},{t:'07:00',s:'Piedimonte Matese'},{t:'14:00',s:'Piedimonte Matese'}]},
+          stops:['Piedimonte Matese','San Potito Sannitico','Gioia Sannitica','Benevento'],
+          deps:[
+            {t:'06:55',s:'Piedimonte Matese',times:{'Piedimonte Matese':'06:55','San Potito Sannitico':'07:04','Gioia Sannitica':'07:13','Benevento':'08:10'}},
+            {t:'10:15',s:'Piedimonte Matese',times:{'Piedimonte Matese':'10:15','San Potito Sannitico':'10:24','Gioia Sannitica':'10:33','Benevento':'11:30'}},
+            {t:'12:40',s:'Piedimonte Matese',times:{'Piedimonte Matese':'12:40','San Potito Sannitico':'12:49','Gioia Sannitica':'12:58','Benevento':'13:55'}},
+            {t:'16:35',s:'Piedimonte Matese',times:{'Piedimonte Matese':'16:35','San Potito Sannitico':'16:44','Gioia Sannitica':'16:53','Benevento':'17:55'}},
+            {t:'08:25',s:'Benevento',times:{'Benevento':'08:25','Gioia Sannitica':'09:27','San Potito Sannitico':'09:36','Piedimonte Matese':'09:45'}},
+            {t:'11:50',s:'Benevento',times:{'Benevento':'11:50','Gioia Sannitica':'12:52','San Potito Sannitico':'13:01','Piedimonte Matese':'13:10'}},
+            {t:'14:10',s:'Benevento',times:{'Benevento':'14:10','Gioia Sannitica':'15:12','San Potito Sannitico':'15:21','Piedimonte Matese':'15:30'}},
+            {t:'18:35',s:'Benevento',times:{'Benevento':'18:35','Gioia Sannitica':'19:32','San Potito Sannitico':'19:41','Piedimonte Matese':'19:50'}}
+          ]},
         {name:'21-CE · Mondragone → Aversa → Napoli → Caserta', url:'https://www.aircampania.it/',
           stops:['Mondragone','Cellole','Sessa Aurunca','Castel Volturno','Villa Literno','Aversa','Napoli Piazza Garibaldi','Caserta'],
           deps:[{t:'05:30',s:'Mondragone'},{t:'06:30',s:'Mondragone'},{t:'14:00',s:'Mondragone'}]},
@@ -1885,11 +1855,34 @@ function renderTransitFull() {
           stops:['Vairano Scalo','Piccilli','Tora e Piccilli','Tuoro','Conca della Campania','Vairano Scalo'],
           deps:[{t:'06:30',s:'Vairano Scalo'},{t:'13:00',s:'Vairano Scalo'}]},
         {name:'29-CE · Piedimonte Matese → Mastrati → Venafro → Vairano Scalo', url:'https://www.aircampania.it/',
-          stops:['Piedimonte Matese','Alife','Mastrati','Ailano','Pratella','Prata Sannita','Fontegreca','Ciorlano','Capriati al Volturno','Capriati a Volturno','Venafro','Vairano Scalo'],
-          deps:[{t:'05:40',s:'Piedimonte Matese'},{t:'06:45',s:'Piedimonte Matese'},{t:'13:00',s:'Piedimonte Matese'}]},
-        {name:'30-CE · Piedimonte Matese → Alife → Letino → Capriati → Venafro', url:'https://www.aircampania.it/',
-          stops:['Piedimonte Matese','Piedimonte Matese Deposito','Piedimonte Matese Piazza Battisti','Piedimonte Matese Via Don Bosco','Alife','Alife IPSIA','Alife Municipio','Quattroventi','Ailano','Ailano I Bivio','Ailano II Bivio','Valle Agricola','Pratella','Prata Sannita','Prata Sannita Largo Padre Pio','Fontegreca','Gallo Matese','Letino','Letino Piazza Matteotti','Ciorlano','Capriati al Volturno','Capriati a Volturno','Vairano Scalo','Vairano Patenora','Pietravairano','Venafro','Pozzilli'],
-          deps:[{t:'05:06',s:'Piedimonte Matese'},{t:'05:46',s:'Piedimonte Matese'},{t:'05:57',s:'Piedimonte Matese'},{t:'06:22',s:'Piedimonte Matese'},{t:'08:42',s:'Piedimonte Matese'},{t:'10:42',s:'Piedimonte Matese'},{t:'12:26',s:'Piedimonte Matese'},{t:'13:17',s:'Piedimonte Matese'},{t:'13:26',s:'Piedimonte Matese'},{t:'14:31',s:'Piedimonte Matese'},{t:'15:32',s:'Piedimonte Matese'},{t:'17:27',s:'Piedimonte Matese'},{t:'18:01',s:'Piedimonte Matese'},{t:'19:56',s:'Piedimonte Matese'}]},
+          stops:['Piedimonte Matese','Alife','Raviscanina','Ailano','Pratella','Mastrati','Ciorlano','Venafro','Pozzilli','Vairano Scalo'],
+          deps:[
+            {t:'05:30',s:'Piedimonte Matese',times:{'Piedimonte Matese':'05:30','Alife':'05:41','Raviscanina':'05:55','Ailano':'06:07','Pratella':'06:38','Mastrati':'06:50','Ciorlano':'07:44','Venafro':'07:56','Pozzilli':'08:00','Vairano Scalo':'08:10'}},
+            {t:'06:00',s:'Piedimonte Matese',times:{'Piedimonte Matese':'06:00','Alife':'06:12','Raviscanina':'06:28','Ailano':'07:07','Pratella':'07:14','Mastrati':'07:33','Ciorlano':'07:44','Venafro':'07:56','Pozzilli':'08:00','Vairano Scalo':'08:10'}},
+            {t:'12:45',s:'Piedimonte Matese',times:{'Piedimonte Matese':'12:45','Alife':'12:57','Raviscanina':'13:16','Ailano':'13:26','Pratella':'13:35','Mastrati':'13:51','Ciorlano':'14:01','Venafro':'14:12','Pozzilli':'14:19','Vairano Scalo':'14:25'}},
+            {t:'14:25',s:'Piedimonte Matese',times:{'Piedimonte Matese':'14:25','Alife':'14:37','Raviscanina':'14:53','Ailano':'15:03','Pratella':'15:11','Mastrati':'15:31','Ciorlano':'15:42','Venafro':'15:52','Vairano Scalo':'15:55'}},
+            {t:'06:05',s:'Vairano Scalo',times:{'Vairano Scalo':'06:05','Pietravairano':'06:11','Raviscanina':'06:20','Mastrati':'06:45','Pratella':'07:01','Ailano':'07:23','Raviscanina':'07:33','Alife':'07:51','Piedimonte Matese':'08:00'}},
+            {t:'08:25',s:'Venafro',times:{'Venafro':'08:25','Ciorlano':'08:39','Mastrati':'08:51','Pratella':'08:58','Ailano':'09:20','Raviscanina':'09:31','Alife':'09:47','Piedimonte Matese':'09:55'}},
+            {t:'14:25',s:'Venafro',times:{'Venafro':'14:25','Ciorlano':'14:38','Mastrati':'14:49','Pratella':'14:55','Ailano':'15:15','Raviscanina':'15:25','Alife':'15:38','Piedimonte Matese':'15:45'}},
+            {t:'15:55',s:'Venafro',times:{'Venafro':'15:55','Ciorlano':'16:07','Mastrati':'16:16','Pratella':'16:27','Ailano':'16:43','Raviscanina':'16:43','Alife':'16:56','Piedimonte Matese':'17:05'}}
+          ]},
+        {name:'30-CE · Piedimonte Matese → Alife → Prata Sannita → Fontegreca → Capriati → Venafro', url:'https://www.aircampania.it/',
+          stops:['Piedimonte Matese','Alife','Quattroventi','Ailano','Pratella','Prata Sannita','Fontegreca','Ciorlano','Capriati al Volturno','Capriati a Volturno','Gallo Matese','Letino','Venafro','Pozzilli'],
+          deps:[
+            {t:'05:05',s:'Piedimonte Matese',times:{'Piedimonte Matese':'05:05','Alife':'05:15','Quattroventi':'05:30','Ailano':'05:36','Pratella':'05:41','Prata Sannita':'05:46','Fontegreca':'05:53','Capriati al Volturno':'06:00','Venafro':'06:22','Pozzilli':'06:25'}},
+            {t:'05:45',s:'Piedimonte Matese',times:{'Piedimonte Matese':'05:45','Alife':'05:55','Quattroventi':'06:10','Ailano':'06:16','Pratella':'06:21','Prata Sannita':'06:27','Fontegreca':'06:34','Capriati al Volturno':'06:40','Venafro':'07:00'}},
+            {t:'05:55',s:'Piedimonte Matese',times:{'Piedimonte Matese':'05:55','Alife':'06:05','Quattroventi':'06:26','Ailano':'06:37','Valle Agricola':'06:58','Pratella':'07:01','Prata Sannita':'07:07','Fontegreca':'07:16','Capriati al Volturno':'07:25','Venafro':'07:53'}},
+            {t:'06:20',s:'Piedimonte Matese',times:{'Piedimonte Matese':'06:20','Alife':'06:35','Quattroventi':'06:51','Ailano':'06:56','Pratella':'07:01','Prata Sannita':'07:06','Fontegreca':'07:14','Capriati al Volturno':'07:25','Venafro':'07:56'}},
+            {t:'08:35',s:'Piedimonte Matese',times:{'Piedimonte Matese':'08:35','Alife':'08:50','Quattroventi':'09:06','Ailano':'09:17','Pratella':'09:22','Prata Sannita':'09:27','Fontegreca':'09:34','Capriati al Volturno':'09:39','Venafro':'10:03','Pozzilli':'10:10'}},
+            {t:'10:40',s:'Piedimonte Matese',times:{'Piedimonte Matese':'10:40','Alife':'10:52','Quattroventi':'11:09','Ailano':'11:14','Pratella':'11:19','Prata Sannita':'11:25','Fontegreca':'11:39','Gallo Matese':'11:58','Letino':'12:02','Capriati al Volturno':'12:30','Venafro':'13:00','Pozzilli':'14:00'}},
+            {t:'12:20',s:'Piedimonte Matese',times:{'Piedimonte Matese':'12:20','Alife':'12:36','Quattroventi':'12:56','Ailano':'13:00','Pratella':'13:07','Prata Sannita':'13:10','Fontegreca':'13:18','Capriati al Volturno':'13:25','Venafro':'13:51'}},
+            {t:'14:30',s:'Piedimonte Matese',times:{'Piedimonte Matese':'14:30','Alife':'14:40','Quattroventi':'14:57','Ailano':'15:02','Pratella':'15:08','Prata Sannita':'15:14','Fontegreca':'15:19','Capriati al Volturno':'15:30','Venafro':'15:50'}},
+            {t:'17:25',s:'Piedimonte Matese',times:{'Piedimonte Matese':'17:25','Alife':'17:40','Quattroventi':'17:56','Ailano':'18:00','Pratella':'18:07','Prata Sannita':'18:10','Fontegreca':'18:18','Capriati al Volturno':'18:25','Venafro':'18:51'}},
+            {t:'08:35',s:'Pozzilli',times:{'Pozzilli':'08:35','Venafro':'08:44','Capriati al Volturno':'09:10','Ciorlano':'09:14','Fontegreca':'09:21','Prata Sannita':'09:28','Pratella':'09:35','Ailano':'09:38','Quattroventi':'09:45','Alife':'10:00','Piedimonte Matese':'10:15'}},
+            {t:'10:30',s:'Pozzilli',times:{'Pozzilli':'10:30','Venafro':'10:39','Capriati al Volturno':'11:02','Ciorlano':'11:06','Fontegreca':'11:13','Gallo Matese':'12:05','Letino':'12:09','Prata Sannita':'12:53','Pratella':'13:00','Ailano':'13:07','Quattroventi':'13:17','Alife':'13:32','Piedimonte Matese':'13:40'}},
+            {t:'14:15',s:'Pozzilli',times:{'Pozzilli':'14:15','Venafro':'14:24','Capriati al Volturno':'14:50','Ciorlano':'14:54','Fontegreca':'15:02','Prata Sannita':'15:09','Pratella':'15:15','Ailano':'15:18','Quattroventi':'15:25','Alife':'15:40','Piedimonte Matese':'15:55'}},
+            {t:'19:30',s:'Pozzilli',times:{'Pozzilli':'19:30','Venafro':'19:39','Capriati al Volturno':'20:05','Ciorlano':'20:09','Fontegreca':'20:17','Prata Sannita':'20:24','Pratella':'20:30','Ailano':'20:33','Quattroventi':'20:40','Alife':'20:55','Piedimonte Matese':'21:10'}}
+          ]},
         // ── Linee NA (Napoli e bacino) ──
         {name:'01-NA · Mondragone → Aversa → Napoli (P.le Tecchio)', url:'https://www.aircampania.it/',
           stops:['Mondragone','Cellole','Villa Literno','Aversa','Napoli Piazza Garibaldi','Piazzale Tecchio'],
@@ -1926,7 +1919,7 @@ function renderTransitFull() {
           deps:[{t:'06:00',s:'Caserta'},{t:'14:00',s:'Caserta'}]},
       ]},
     // ── AIR CAMPANIA — BACINO DI BENEVENTO ───────────────────────────────────
-    { id:'air_bn', name:'AIR Campania — Bacino Benevento', region:'campania', badge:'Web', color:'#FEF3E2', fg:'#92400E', icon:'🚌', url:'https://www.aircampania.it/',
+    { id:'air_bn', name:'AIR Campania — Bacino Benevento', region:'campania', badge:'Web', color:'#FEF3E2', fg:'#92400E', icon:'🚌', url:'https://www.aircampania.it/', noSun:true,
       lines:[
         {name:'EBN001 · Benevento → Napoli', url:'https://www.aircampania.it/',
           stops:['Benevento','Montesarchio','Sant\'Agata dei Goti','Maddaloni','Caserta','Aversa','Napoli Piazza Garibaldi'],
@@ -1963,7 +1956,7 @@ function renderTransitFull() {
           deps:[{t:'06:00',s:'Melizzano'},{t:'07:00',s:'Melizzano'},{t:'13:00',s:'Melizzano'}]},
       ]},
     // ── AIR CAMPANIA — BACINO DI AVELLINO ────────────────────────────────────
-    { id:'air_av', name:'AIR Campania — Bacino Avellino', region:'campania', badge:'Web', color:'#EDE9FE', fg:'#5B21B6', icon:'🚌', url:'https://www.aircampania.it/',
+    { id:'air_av', name:'AIR Campania — Bacino Avellino', region:'campania', badge:'Web', color:'#EDE9FE', fg:'#5B21B6', icon:'🚌', url:'https://www.aircampania.it/', noSun:true,
       lines:[
         {name:'AV-NA · Avellino → Napoli', url:'https://www.aircampania.it/',
           stops:['Avellino','Mercogliano','Nola','Pomigliano d\'Arco','Afragola','Napoli Piazza Garibaldi'],
@@ -2021,37 +2014,94 @@ function renderTransitFull() {
     // ── TRENITALIA REGIONALE ──────────────────────────────────────────────────
     { id:'trenitalia', name:'Trenitalia Regionale', region:'campania', badge:'GTFS', color:'#EEEDFE', fg:'#3C3489', icon:'🚂', url:'https://www.trenitalia.com/',
       lines:[
-        {name:'Regionale · Caserta → Napoli Centrale', url:'https://www.trenitalia.com/',
+        {name:'Regionale · Caserta → Napoli Centrale', url:'https://www.trenitalia.com/', dur:35,
           stops:['Caserta','Caserta Miano','Casalnuovo di Napoli','Napoli Gianturco','Napoli Centrale'],
-          deps:[{t:'05:52',s:'Caserta'},{t:'06:22',s:'Caserta'},{t:'06:52',s:'Caserta'},{t:'07:22',s:'Caserta'},{t:'07:52',s:'Caserta'},{t:'08:22',s:'Caserta'},{t:'08:52',s:'Caserta'}]},
-        {name:'Regionale · Napoli Centrale → Caserta', url:'https://www.trenitalia.com/',
+          deps:[
+            {t:'05:52',s:'Caserta',times:{'Caserta':'05:52','Casalnuovo di Napoli':'06:10','Napoli Gianturco':'06:20','Napoli Centrale':'06:27'}},
+            {t:'06:22',s:'Caserta',times:{'Caserta':'06:22','Casalnuovo di Napoli':'06:40','Napoli Gianturco':'06:50','Napoli Centrale':'06:57'}},
+            {t:'06:52',s:'Caserta',times:{'Caserta':'06:52','Casalnuovo di Napoli':'07:10','Napoli Gianturco':'07:20','Napoli Centrale':'07:27'}},
+            {t:'07:22',s:'Caserta',times:{'Caserta':'07:22','Casalnuovo di Napoli':'07:40','Napoli Gianturco':'07:50','Napoli Centrale':'07:57'}},
+            {t:'07:52',s:'Caserta',times:{'Caserta':'07:52','Casalnuovo di Napoli':'08:10','Napoli Gianturco':'08:20','Napoli Centrale':'08:27'}},
+            {t:'08:22',s:'Caserta',times:{'Caserta':'08:22','Casalnuovo di Napoli':'08:40','Napoli Gianturco':'08:50','Napoli Centrale':'08:57'}},
+            {t:'08:52',s:'Caserta',times:{'Caserta':'08:52','Casalnuovo di Napoli':'09:10','Napoli Gianturco':'09:20','Napoli Centrale':'09:27'}}
+          ]},
+        {name:'Regionale · Napoli Centrale → Caserta', url:'https://www.trenitalia.com/', dur:35,
           stops:['Napoli Centrale','Napoli Gianturco','Casalnuovo di Napoli','Caserta Miano','Caserta'],
-          deps:[{t:'06:10',s:'Napoli Centrale'},{t:'06:40',s:'Napoli Centrale'},{t:'07:10',s:'Napoli Centrale'},{t:'07:40',s:'Napoli Centrale'},{t:'08:10',s:'Napoli Centrale'},{t:'08:40',s:'Napoli Centrale'}]},
-        {name:'Regionale · Caserta → Roma Termini', url:'https://www.trenitalia.com/',
+          deps:[
+            {t:'06:10',s:'Napoli Centrale',times:{'Napoli Centrale':'06:10','Napoli Gianturco':'06:15','Casalnuovo di Napoli':'06:25','Caserta':'06:45'}},
+            {t:'06:40',s:'Napoli Centrale',times:{'Napoli Centrale':'06:40','Napoli Gianturco':'06:45','Casalnuovo di Napoli':'06:55','Caserta':'07:15'}},
+            {t:'07:10',s:'Napoli Centrale',times:{'Napoli Centrale':'07:10','Napoli Gianturco':'07:15','Casalnuovo di Napoli':'07:25','Caserta':'07:45'}},
+            {t:'07:40',s:'Napoli Centrale',times:{'Napoli Centrale':'07:40','Napoli Gianturco':'07:45','Casalnuovo di Napoli':'07:55','Caserta':'08:15'}},
+            {t:'08:10',s:'Napoli Centrale',times:{'Napoli Centrale':'08:10','Napoli Gianturco':'08:15','Casalnuovo di Napoli':'08:25','Caserta':'08:45'}},
+            {t:'08:40',s:'Napoli Centrale',times:{'Napoli Centrale':'08:40','Napoli Gianturco':'08:45','Casalnuovo di Napoli':'08:55','Caserta':'09:15'}}
+          ]},
+        {name:'Regionale · Caserta → Roma Termini', url:'https://www.trenitalia.com/', dur:140,
           stops:['Caserta','Capua','Sparanise','Cassino','Frosinone','Anagni-Fiuggi','Colleferro','Roma Termini'],
-          deps:[{t:'05:10',s:'Caserta'},{t:'06:05',s:'Caserta'},{t:'06:50',s:'Caserta'},{t:'07:20',s:'Caserta'},{t:'08:05',s:'Caserta'}]},
-        {name:'Regionale · Roma Termini → Napoli Centrale', url:'https://www.trenitalia.com/',
+          deps:[
+            {t:'05:10',s:'Caserta',times:{'Caserta':'05:10','Capua':'05:22','Sparanise':'05:36','Cassino':'06:10','Frosinone':'06:42','Colleferro':'07:08','Roma Termini':'07:30'}},
+            {t:'06:05',s:'Caserta',times:{'Caserta':'06:05','Capua':'06:17','Sparanise':'06:31','Cassino':'07:05','Frosinone':'07:37','Colleferro':'08:03','Roma Termini':'08:25'}},
+            {t:'06:50',s:'Caserta',times:{'Caserta':'06:50','Capua':'07:02','Sparanise':'07:16','Cassino':'07:50','Frosinone':'08:22','Colleferro':'08:48','Roma Termini':'09:10'}},
+            {t:'07:20',s:'Caserta',times:{'Caserta':'07:20','Capua':'07:32','Sparanise':'07:46','Cassino':'08:20','Frosinone':'08:52','Colleferro':'09:18','Roma Termini':'09:40'}},
+            {t:'08:05',s:'Caserta',times:{'Caserta':'08:05','Capua':'08:17','Sparanise':'08:31','Cassino':'09:05','Frosinone':'09:37','Colleferro':'10:03','Roma Termini':'10:25'}}
+          ]},
+        {name:'Regionale · Roma Termini → Napoli Centrale', url:'https://www.trenitalia.com/', dur:155,
           stops:['Roma Termini','Frosinone','Cassino','Capua','Caserta','Napoli Centrale'],
-          deps:[{t:'05:35',s:'Roma Termini'},{t:'07:05',s:'Roma Termini'},{t:'08:05',s:'Roma Termini'},{t:'09:05',s:'Roma Termini'},{t:'10:05',s:'Roma Termini'}]},
-        {name:'Regionale · Cassino → Roma Termini', url:'https://www.trenitalia.com/',
+          deps:[
+            {t:'05:35',s:'Roma Termini',times:{'Roma Termini':'05:35','Frosinone':'06:20','Cassino':'06:55','Capua':'07:28','Caserta':'07:40','Napoli Centrale':'08:10'}},
+            {t:'07:05',s:'Roma Termini',times:{'Roma Termini':'07:05','Frosinone':'07:50','Cassino':'08:25','Capua':'08:58','Caserta':'09:10','Napoli Centrale':'09:40'}},
+            {t:'08:05',s:'Roma Termini',times:{'Roma Termini':'08:05','Frosinone':'08:50','Cassino':'09:25','Capua':'09:58','Caserta':'10:10','Napoli Centrale':'10:40'}},
+            {t:'09:05',s:'Roma Termini',times:{'Roma Termini':'09:05','Frosinone':'09:50','Cassino':'10:25','Capua':'10:58','Caserta':'11:10','Napoli Centrale':'11:40'}},
+            {t:'10:05',s:'Roma Termini',times:{'Roma Termini':'10:05','Frosinone':'10:50','Cassino':'11:25','Capua':'11:58','Caserta':'12:10','Napoli Centrale':'12:40'}}
+          ]},
+        {name:'Regionale · Cassino → Roma Termini', url:'https://www.trenitalia.com/', dur:100,
           stops:['Cassino','Aquino','Ceprano','Frosinone','Anagni-Fiuggi','Colleferro','Roma Termini'],
-          deps:[{t:'05:30',s:'Cassino'},{t:'06:28',s:'Cassino'},{t:'06:48',s:'Cassino'},{t:'07:28',s:'Cassino'},{t:'07:48',s:'Cassino'},{t:'08:28',s:'Cassino'}]},
-        {name:'Regionale · Benevento → Caserta → Napoli Centrale', url:'https://www.trenitalia.com/',
+          deps:[
+            {t:'05:30',s:'Cassino',times:{'Cassino':'05:30','Ceprano':'05:48','Frosinone':'06:05','Colleferro':'06:30','Roma Termini':'07:10'}},
+            {t:'06:28',s:'Cassino',times:{'Cassino':'06:28','Ceprano':'06:46','Frosinone':'07:03','Colleferro':'07:28','Roma Termini':'08:08'}},
+            {t:'06:48',s:'Cassino',times:{'Cassino':'06:48','Ceprano':'07:06','Frosinone':'07:23','Colleferro':'07:48','Roma Termini':'08:28'}},
+            {t:'07:28',s:'Cassino',times:{'Cassino':'07:28','Ceprano':'07:46','Frosinone':'08:03','Colleferro':'08:28','Roma Termini':'09:08'}},
+            {t:'07:48',s:'Cassino',times:{'Cassino':'07:48','Ceprano':'08:06','Frosinone':'08:23','Colleferro':'08:48','Roma Termini':'09:28'}},
+            {t:'08:28',s:'Cassino',times:{'Cassino':'08:28','Ceprano':'08:46','Frosinone':'09:03','Colleferro':'09:28','Roma Termini':'10:08'}}
+          ]},
+        {name:'Regionale · Benevento → Caserta → Napoli Centrale', url:'https://www.trenitalia.com/', dur:90,
           stops:['Benevento','Montesarchio','Arienzo','Cancello','Caserta','Napoli Centrale'],
-          deps:[{t:'05:40',s:'Benevento'},{t:'06:30',s:'Benevento'},{t:'07:20',s:'Benevento'},{t:'08:10',s:'Benevento'}]},
-        {name:'Regionale · Napoli Centrale → Salerno', url:'https://www.trenitalia.com/',
+          deps:[
+            {t:'05:40',s:'Benevento',times:{'Benevento':'05:40','Montesarchio':'06:02','Arienzo':'06:18','Cancello':'06:25','Caserta':'06:40','Napoli Centrale':'07:10'}},
+            {t:'06:30',s:'Benevento',times:{'Benevento':'06:30','Montesarchio':'06:52','Arienzo':'07:08','Cancello':'07:15','Caserta':'07:30','Napoli Centrale':'08:00'}},
+            {t:'07:20',s:'Benevento',times:{'Benevento':'07:20','Montesarchio':'07:42','Arienzo':'07:58','Cancello':'08:05','Caserta':'08:20','Napoli Centrale':'08:50'}},
+            {t:'08:10',s:'Benevento',times:{'Benevento':'08:10','Montesarchio':'08:32','Arienzo':'08:48','Cancello':'08:55','Caserta':'09:10','Napoli Centrale':'09:40'}}
+          ]},
+        {name:'Regionale · Napoli Centrale → Salerno', url:'https://www.trenitalia.com/', dur:50,
           stops:['Napoli Centrale','Napoli Porta Nolana','Torre Annunziata','Castellammare di Stabia','Vico Equense','Meta-Piano','Seiano','Vietri sul Mare','Salerno'],
-          deps:[{t:'05:40',s:'Napoli Centrale'},{t:'06:10',s:'Napoli Centrale'},{t:'06:40',s:'Napoli Centrale'},{t:'07:10',s:'Napoli Centrale'},{t:'07:40',s:'Napoli Centrale'},{t:'08:10',s:'Napoli Centrale'}]},
-        {name:'Regionale · Napoli Centrale → Bari (via Foggia)', url:'https://www.trenitalia.com/',
+          deps:[
+            {t:'05:40',s:'Napoli Centrale',times:{'Napoli Centrale':'05:40','Torre Annunziata':'06:02','Castellammare di Stabia':'06:12','Vico Equense':'06:18','Salerno':'06:30'}},
+            {t:'06:10',s:'Napoli Centrale',times:{'Napoli Centrale':'06:10','Torre Annunziata':'06:32','Castellammare di Stabia':'06:42','Vico Equense':'06:48','Salerno':'07:00'}},
+            {t:'06:40',s:'Napoli Centrale',times:{'Napoli Centrale':'06:40','Torre Annunziata':'07:02','Castellammare di Stabia':'07:12','Vico Equense':'07:18','Salerno':'07:30'}},
+            {t:'07:10',s:'Napoli Centrale',times:{'Napoli Centrale':'07:10','Torre Annunziata':'07:32','Castellammare di Stabia':'07:42','Vico Equense':'07:48','Salerno':'08:00'}},
+            {t:'07:40',s:'Napoli Centrale',times:{'Napoli Centrale':'07:40','Torre Annunziata':'08:02','Castellammare di Stabia':'08:12','Vico Equense':'08:18','Salerno':'08:30'}},
+            {t:'08:10',s:'Napoli Centrale',times:{'Napoli Centrale':'08:10','Torre Annunziata':'08:32','Castellammare di Stabia':'08:42','Vico Equense':'08:48','Salerno':'09:00'}}
+          ]},
+        {name:'Regionale · Napoli Centrale → Bari (via Foggia)', url:'https://www.trenitalia.com/', dur:240,
           stops:['Napoli Centrale','Caserta','Benevento','Foggia','Bari Centrale'],
-          deps:[{t:'06:00',s:'Napoli Centrale'},{t:'07:30',s:'Napoli Centrale'},{t:'09:00',s:'Napoli Centrale'},{t:'11:00',s:'Napoli Centrale'}]},
-        {name:'Regionale · Napoli Centrale → Aversa → Villa Literno', url:'https://www.trenitalia.com/',
+          deps:[
+            {t:'06:00',s:'Napoli Centrale',times:{'Napoli Centrale':'06:00','Caserta':'06:35','Benevento':'07:15','Foggia':'08:30','Bari Centrale':'10:00'}},
+            {t:'07:30',s:'Napoli Centrale',times:{'Napoli Centrale':'07:30','Caserta':'08:05','Benevento':'08:45','Foggia':'10:00','Bari Centrale':'11:30'}},
+            {t:'09:00',s:'Napoli Centrale',times:{'Napoli Centrale':'09:00','Caserta':'09:35','Benevento':'10:15','Foggia':'11:30','Bari Centrale':'13:00'}},
+            {t:'11:00',s:'Napoli Centrale',times:{'Napoli Centrale':'11:00','Caserta':'11:35','Benevento':'12:15','Foggia':'13:30','Bari Centrale':'15:00'}}
+          ]},
+        {name:'Regionale · Napoli Centrale → Aversa → Villa Literno', url:'https://www.trenitalia.com/', dur:30,
           stops:['Napoli Centrale','Napoli Cancello','Aversa','Teverola','Villa Literno'],
-          deps:[{t:'06:00',s:'Napoli Centrale'},{t:'06:30',s:'Napoli Centrale'},{t:'07:00',s:'Napoli Centrale'},{t:'07:30',s:'Napoli Centrale'},{t:'08:00',s:'Napoli Centrale'}]},
+          deps:[
+            {t:'06:00',s:'Napoli Centrale',times:{'Napoli Centrale':'06:00','Aversa':'06:15','Teverola':'06:22','Villa Literno':'06:30'}},
+            {t:'06:30',s:'Napoli Centrale',times:{'Napoli Centrale':'06:30','Aversa':'06:45','Teverola':'06:52','Villa Literno':'07:00'}},
+            {t:'07:00',s:'Napoli Centrale',times:{'Napoli Centrale':'07:00','Aversa':'07:15','Teverola':'07:22','Villa Literno':'07:30'}},
+            {t:'07:30',s:'Napoli Centrale',times:{'Napoli Centrale':'07:30','Aversa':'07:45','Teverola':'07:52','Villa Literno':'08:00'}},
+            {t:'08:00',s:'Napoli Centrale',times:{'Napoli Centrale':'08:00','Aversa':'08:15','Teverola':'08:22','Villa Literno':'08:30'}}
+          ]},
       ]},
     // ── ANGELINO TRASPORTI ────────────────────────────────────────────────────
     // Fonte: angelinobus.it/pdf/orari/napoli_caserta.pdf — solo feriale (no domenica/festivi)
-    { id:'angelino', name:'Angelino Trasporti', region:'campania', badge:'Web', color:'#FBEAF0', fg:'#72243E', icon:'\uD83D\uDE8C', url:'https://www.angelinobus.it/?section=orari',
+    { id:'angelino', name:'Angelino Trasporti', region:'campania', badge:'Web', color:'#FBEAF0', fg:'#72243E', icon:'\uD83D\uDE8C', url:'https://www.angelinobus.it/?section=orari', noSun:true,
       note:'Solo feriale. No domenica e festivi.',
       lines:[
         {name:'ANG \u00B7 Napoli Corso Garibaldi \u2192 Caserta FS', url:'https://www.angelinobus.it/?section=orari',
@@ -2084,70 +2134,155 @@ function renderTransitFull() {
       ]},
     // ── AUTOLINEE FERRAZZA ────────────────────────────────────────────────────
     // Fonte: ferrazza.it/orari/ — solo feriale (no domenica/festivi)
-    { id:'ferrazza', name:'Autolinee Ferrazza', region:'inter', badge:'Web', color:'#E1F5EE', fg:'#0F6E56', icon:'\uD83D\uDE8C', url:'https://ferrazza.it/orari/',
+    { id:'ferrazza', name:'Autolinee Ferrazza', region:'inter', badge:'Web', color:'#E1F5EE', fg:'#0F6E56', icon:'🚌', url:'https://ferrazza.it/orari/', noSun:true,
       note:'Solo feriale. No domenica e festivi.',
       lines:[
-        {name:'AF \u00B7 Piedimonte Matese \u2192 Alvignano \u2192 Caiazzo \u2192 Caserta \u2192 Napoli', url:'https://ferrazza.it/orari/piedimonte-matese-alvignano-caiazzo-santa-maria-capua-vetere-caserta-napoli/',
-          stops:['Piedimonte Matese','Alife','Ruviano','Dragoni','Alvignano','Caiazzo','Piana di Monte Verna','Santa Maria Capua Vetere','Santa Maria C.V.','San Angelo in Formis','Capua','Caserta','Napoli Piazza Trieste e Trento','Napoli'],
-          deps:[{t:'06:10',s:'Piedimonte Matese'},{t:'06:12',s:'Piedimonte Matese'},{t:'08:17',s:'Piedimonte Matese'}]},
-        {name:'AF \u00B7 Napoli \u2192 Caserta \u2192 Caiazzo \u2192 Alvignano \u2192 Piedimonte Matese', url:'https://ferrazza.it/orari/piedimonte-matese-alvignano-caiazzo-santa-maria-capua-vetere-caserta-napoli/',
-          stops:['Napoli Piazza Trieste e Trento','Napoli','Caserta','Santa Maria Capua Vetere','Santa Maria C.V.','Capua','Piana di Monte Verna','Caiazzo','Alvignano','Dragoni','Ruviano','Alife','Piedimonte Matese'],
-          deps:[{t:'13:20',s:'Napoli Piazza Trieste e Trento'},{t:'15:00',s:'Napoli Piazza Trieste e Trento'},{t:'17:10',s:'Napoli Piazza Trieste e Trento'}]},
-        {name:'AF \u00B7 Gioia Sannitica \u2192 Piedimonte \u2192 Alife \u2192 Capriati \u2192 Venafro \u2192 Cassino', url:'https://ferrazza.it/orari/gioia-sannitica-cassino/',
-          stops:['Gioia Sannitica','San Potito Sannitico','Piedimonte Matese','Alife','Capriati al Volturno','Ciorlano','Venafro','Cassino'],
-          deps:[{t:'06:25',s:'Gioia Sannitica'},{t:'08:05',s:'Gioia Sannitica'},{t:'14:30',s:'Gioia Sannitica'}]},
-        {name:'AF \u00B7 Cassino \u2192 Venafro \u2192 Capriati \u2192 Alife \u2192 Piedimonte \u2192 Gioia Sannitica', url:'https://ferrazza.it/orari/gioia-sannitica-cassino/',
-          stops:['Cassino','Venafro','Ciorlano','Capriati al Volturno','Alife','Piedimonte Matese','San Potito Sannitico','Gioia Sannitica'],
-          deps:[{t:'11:50',s:'Cassino'},{t:'13:30',s:'Cassino'},{t:'17:00',s:'Cassino'}]},
-        {name:'AF \u00B7 Piedimonte Matese \u2192 S.Potito \u2192 Gioia Sannitica \u2192 Telese Terme', url:'https://ferrazza.it/orari/',
-          stops:['Piedimonte Matese','San Potito Sannitico','Gioia Sannitica','Faicchio','Cerreto Sannita','Telese Terme'],
-          deps:[{t:'07:25',s:'Piedimonte Matese'},{t:'12:35',s:'Piedimonte Matese'},{t:'13:35',s:'Piedimonte Matese'},{t:'14:25',s:'Piedimonte Matese'}]},
-        {name:'AF \u00B7 Telese Terme \u2192 Gioia Sannitica \u2192 Piedimonte Matese', url:'https://ferrazza.it/orari/',
-          stops:['Telese Terme','Faicchio','Gioia Sannitica','San Potito Sannitico','Piedimonte Matese'],
-          deps:[{t:'08:05',s:'Telese Terme'},{t:'13:10',s:'Telese Terme'},{t:'14:15',s:'Telese Terme'}]},
-        {name:'AF \u00B7 Cerreto Sannita \u2192 San Salvatore \u2192 Telese Terme', url:'https://ferrazza.it/orari/',
+        {name:'AF · Piedimonte Matese → Alvignano → Caiazzo → Caserta → Napoli', url:'https://ferrazza.it/orari/piedimonte-matese-alvignano-caiazzo-santa-maria-capua-vetere-caserta-napoli/',
+          stops:['Piedimonte Matese','Alife','Dragoni','Alvignano','Caiazzo','Piana di Monte Verna','San Leucio','Caserta','San Nicola la Strada','Napoli Piazza Garibaldi','Napoli Piazza Trieste e Trento'],
+          deps:[
+            {t:'06:10',s:'Piedimonte Matese',times:{'Piedimonte Matese':'06:10','Alife':'06:17','Dragoni':'06:26','Alvignano':'06:31','Caiazzo':'06:43','Piana di Monte Verna':'06:49','San Leucio':'06:57','Caserta':'07:15','San Nicola la Strada':'07:24','Napoli Piazza Garibaldi':'07:56','Napoli Piazza Trieste e Trento':'08:08'}},
+            {t:'06:15',s:'Piedimonte Matese',times:{'Piedimonte Matese':'06:15','Alife':'06:20','Dragoni':'06:29','Alvignano':'06:34','Caiazzo':'06:46','Piana di Monte Verna':'06:51','Caserta':'07:30','San Nicola la Strada':'07:42','Napoli Piazza Garibaldi':'08:12','Napoli Piazza Trieste e Trento':'08:24'}},
+            {t:'08:17',s:'Piedimonte Matese',times:{'Piedimonte Matese':'08:17','Alife':'08:25','Dragoni':'08:40','Alvignano':'08:44','Caiazzo':'08:55','Piana di Monte Verna':'09:00','San Leucio':'09:13','Caserta':'09:30','San Nicola la Strada':'09:39','Napoli Piazza Garibaldi':'10:09','Napoli Piazza Trieste e Trento':'10:19'}}
+          ]},
+        {name:'AF · Napoli → Caserta → Caiazzo → Alvignano → Piedimonte Matese', url:'https://ferrazza.it/orari/piedimonte-matese-alvignano-caiazzo-santa-maria-capua-vetere-caserta-napoli/',
+          stops:['Napoli Piazza Trieste e Trento','Napoli Piazza Garibaldi','Caserta','San Leucio','Piana di Monte Verna','Caiazzo','Alvignano','Dragoni','Alife','Piedimonte Matese'],
+          deps:[
+            {t:'13:20',s:'Napoli Piazza Trieste e Trento',times:{'Napoli Piazza Trieste e Trento':'13:20','Napoli Piazza Garibaldi':'13:30','Caserta':'14:15','Piana di Monte Verna':'14:49','Caiazzo':'14:53','Alvignano':'14:57','Dragoni':'15:08','Alife':'15:16','Piedimonte Matese':'15:22'}},
+            {t:'15:00',s:'Napoli Piazza Trieste e Trento',times:{'Napoli Piazza Trieste e Trento':'15:00','Napoli Piazza Garibaldi':'15:10','Caserta':'16:00','Piana di Monte Verna':'16:34','Caiazzo':'16:38','Alvignano':'16:42','Dragoni':'16:53','Alife':'17:04','Piedimonte Matese':'17:10'}},
+            {t:'17:10',s:'Napoli Piazza Trieste e Trento',times:{'Napoli Piazza Trieste e Trento':'17:10','Napoli Piazza Garibaldi':'17:19','Caserta':'18:00','San Leucio':'18:09','Piana di Monte Verna':'18:21','Caiazzo':'18:25','Alvignano':'18:30','Dragoni':'18:43','Alife':'18:51','Piedimonte Matese':'19:00'}}
+          ]},
+        {name:'AF · Gioia Sannitica → Piedimonte → Alife → Capriati → Venafro → Cassino', url:'https://ferrazza.it/orari/gioia-sannitica-cassino/',
+          stops:['Gioia Sannitica','San Potito Sannitico','Piedimonte Matese','Alife','Quattroventi','Pratella','Prata Sannita','Capriati al Volturno','Venafro','Cassino'],
+          deps:[
+            {t:'06:25',s:'Gioia Sannitica',times:{'Gioia Sannitica':'06:25','San Potito Sannitico':'06:35','Piedimonte Matese':'06:40','Alife':'06:45','Quattroventi':'07:00','Pratella':'07:07','Prata Sannita':'07:15','Capriati al Volturno':'07:25','Venafro':'07:50','Cassino':'08:30'}},
+            {t:'08:05',s:'Gioia Sannitica',times:{'Gioia Sannitica':'08:05','San Potito Sannitico':'08:15','Piedimonte Matese':'08:20','Alife':'08:37','Quattroventi':'08:50','Pratella':'09:00','Prata Sannita':'09:05','Capriati al Volturno':'09:10','Venafro':'09:25','Cassino':'10:00'}}
+          ]},
+        {name:'AF · Cassino → Venafro → Capriati → Alife → Piedimonte → Gioia Sannitica', url:'https://ferrazza.it/orari/gioia-sannitica-cassino/',
+          stops:['Cassino','Venafro','Capriati al Volturno','Prata Sannita','Pratella','Quattroventi','Alife','Piedimonte Matese','San Potito Sannitico','Gioia Sannitica'],
+          deps:[
+            {t:'11:50',s:'Cassino',times:{'Cassino':'11:50','Venafro':'12:23','Capriati al Volturno':'12:40','Prata Sannita':'12:45','Pratella':'12:50','Quattroventi':'13:00','Alife':'13:10','Piedimonte Matese':'13:20','San Potito Sannitico':'13:35','Gioia Sannitica':'13:45'}},
+            {t:'13:30',s:'Cassino',times:{'Cassino':'13:30','Venafro':'14:15','Capriati al Volturno':'14:30','Prata Sannita':'14:40','Pratella':'14:45','Quattroventi':'14:55','Alife':'15:05','Piedimonte Matese':'15:15','San Potito Sannitico':'15:23','Gioia Sannitica':'15:32'}}
+          ]},
+        {name:'AF · Piedimonte Matese → S.Potito → Gioia Sannitica → Faicchio → Telese Terme', url:'https://ferrazza.it/orari/',
+          stops:['Piedimonte Matese','San Potito Sannitico','Gioia Sannitica','Faicchio','San Salvatore Telesino','Telese Terme'],
+          deps:[
+            {t:'07:25',s:'Piedimonte Matese',times:{'Piedimonte Matese':'07:25','San Potito Sannitico':'07:30','Gioia Sannitica':'07:45','Faicchio':'07:50','San Salvatore Telesino':'07:55','Telese Terme':'08:05'}},
+            {t:'12:35',s:'Piedimonte Matese',times:{'Piedimonte Matese':'12:35','San Potito Sannitico':'12:40','Gioia Sannitica':'12:55','Faicchio':'13:00','San Salvatore Telesino':'13:05','Telese Terme':'13:10'}},
+            {t:'13:35',s:'Piedimonte Matese',times:{'Piedimonte Matese':'13:35','San Potito Sannitico':'13:40','Gioia Sannitica':'13:55','Faicchio':'14:00','San Salvatore Telesino':'14:05','Telese Terme':'14:15'}},
+            {t:'14:25',s:'Piedimonte Matese',times:{'Piedimonte Matese':'14:25','San Potito Sannitico':'14:30','Gioia Sannitica':'14:45','Faicchio':'14:50','San Salvatore Telesino':'14:55','Telese Terme':'15:00'}}
+          ]},
+        {name:'AF · Telese Terme → Faicchio → Gioia Sannitica → Piedimonte Matese', url:'https://ferrazza.it/orari/',
+          stops:['Telese Terme','San Salvatore Telesino','Faicchio','Gioia Sannitica','San Potito Sannitico','Piedimonte Matese'],
+          deps:[
+            {t:'08:05',s:'Telese Terme',times:{'Telese Terme':'08:05','San Salvatore Telesino':'08:10','Faicchio':'08:15','Gioia Sannitica':'08:20','San Potito Sannitico':'08:35','Piedimonte Matese':'08:40'}},
+            {t:'13:10',s:'Telese Terme',times:{'Telese Terme':'13:10','San Salvatore Telesino':'13:15','Faicchio':'13:20','Gioia Sannitica':'13:25','San Potito Sannitico':'13:40','Piedimonte Matese':'13:45'}},
+            {t:'14:15',s:'Telese Terme',times:{'Telese Terme':'14:15','San Salvatore Telesino':'14:20','Faicchio':'14:25','Gioia Sannitica':'14:30','San Potito Sannitico':'14:45','Piedimonte Matese':'14:50'}}
+          ]},
+        {name:'AF · Cerreto Sannita → San Salvatore → Telese Terme', url:'https://ferrazza.it/orari/',
           stops:['Cerreto Sannita','San Salvatore Telesino','Telese Terme'],
-          deps:[{t:'07:20',s:'Cerreto Sannita'},{t:'08:15',s:'Cerreto Sannita'},{t:'13:25',s:'Cerreto Sannita'},{t:'14:30',s:'Cerreto Sannita'}]},
-        {name:'AF \u00B7 Alvignano \u2192 Scauri (litorale, stagionale)', url:'https://ferrazza.it/orari/alvignano-scauri/',
+          deps:[
+            {t:'07:20',s:'Cerreto Sannita',times:{'Cerreto Sannita':'07:20','San Salvatore Telesino':'07:25','Telese Terme':'07:30'}},
+            {t:'08:15',s:'Cerreto Sannita',times:{'Cerreto Sannita':'08:15','San Salvatore Telesino':'08:20','Telese Terme':'08:25'}},
+            {t:'13:25',s:'Cerreto Sannita',times:{'Cerreto Sannita':'13:25','San Salvatore Telesino':'13:30','Telese Terme':'13:35'}},
+            {t:'14:30',s:'Cerreto Sannita',times:{'Cerreto Sannita':'14:30','San Salvatore Telesino':'14:35','Telese Terme':'14:40'}}
+          ]},
+        {name:'AF · Alvignano → Scauri (litorale, stagionale)', url:'https://ferrazza.it/orari/alvignano-scauri/',
           stops:['Alvignano','Caiazzo','Capua','Sessa Aurunca','Mondragone','Minturno','Scauri'],
           deps:[]},
       ]},
     // ── EREDI ROBERTO FERRAZZA ────────────────────────────────────────────────
     // Fonte: PDF orari-dal-01_10_2025--1.pdf — anno scolastico 2025/2026
     // F=feriale(lun-sab), Sc=scolastico, L=solo lunedi. NO domenica/festivi
-    { id:'eredi', name:'Eredi Roberto Ferrazza', region:'campania', badge:'PDF', color:'#EAF3DE', fg:'#3B6D11', icon:'\uD83D\uDE8C', url:'https://eredirobertoferrazza.it/',
+    { id:'eredi', name:'Eredi Roberto Ferrazza', region:'campania', badge:'PDF', color:'#EAF3DE', fg:'#3B6D11', icon:'🚌', url:'https://eredirobertoferrazza.it/', noSun:true,
       note:'Anno scolastico 2025/2026. Solo feriale/scolastico.',
       lines:[
-        {name:'ERF \u00B7 Piedimonte Matese \u2192 Alife \u2192 Alvignano \u2192 Caiazzo \u2192 S.Leucio \u2192 Caserta', url:'https://eredirobertoferrazza.it/',
-          stops:['Piedimonte Matese','Alife','Alife Istituto Professionale','Dragoni','Alvignano','Caiazzo','Piana di Monte Verna','Fagianeria','San Leucio','Caserta Sala','Caserta Ospedale','Caserta FF.SS.'],
-          deps:[{t:'05:55',s:'Piedimonte Matese'},{t:'06:30',s:'Piedimonte Matese'},{t:'06:35',s:'Piedimonte Matese'},{t:'11:50',s:'Piedimonte Matese'},{t:'13:30',s:'Piedimonte Matese'},{t:'14:35',s:'Piedimonte Matese'}]},
-        {name:'ERF \u00B7 Caserta \u2192 S.Leucio \u2192 Caiazzo \u2192 Alvignano \u2192 Alife \u2192 Piedimonte Matese', url:'https://eredirobertoferrazza.it/',
-          stops:['Caserta FF.SS.','Caserta Ospedale','San Leucio','Fagianeria','Piana di Monte Verna','Caiazzo','Alvignano','Dragoni','Alife','Alife Istituto Professionale','Piedimonte Matese'],
-          deps:[{t:'06:30',s:'Caserta FF.SS.'},{t:'08:10',s:'Caserta FF.SS.'},{t:'09:00',s:'Caserta FF.SS.'},{t:'13:10',s:'Caserta FF.SS.'},{t:'14:35',s:'Caserta FF.SS.'}]},
-        {name:'ERF \u00B7 Piedimonte Matese \u2192 Alife \u2192 Raviscanina \u2192 Quattroventi \u2192 Vairano Scalo', url:'https://eredirobertoferrazza.it/',
+        {name:'ERF · Piedimonte Matese → Alife → Alvignano → Caiazzo → S.Leucio → Caserta', url:'https://eredirobertoferrazza.it/',
+          stops:['Piedimonte Matese','Alife','Dragoni','Alvignano','Caiazzo','Piana di Monte Verna','Fagianeria','San Leucio','Caserta'],
+          deps:[
+            {t:'05:55',s:'Piedimonte Matese',times:{'Piedimonte Matese':'05:55','Alife':'06:00','Dragoni':'06:10','Alvignano':'06:15','Caiazzo':'06:25','Piana di Monte Verna':'07:10','Fagianeria':'07:15','San Leucio':'07:20','Caserta':'07:50'}},
+            {t:'06:30',s:'Piedimonte Matese',times:{'Piedimonte Matese':'06:30','Alife':'06:35','Dragoni':'06:50','Alvignano':'06:55','Caiazzo':'07:05','Piana di Monte Verna':'07:10','Fagianeria':'07:15','San Leucio':'07:20','Caserta':'07:55'}},
+            {t:'06:35',s:'Piedimonte Matese',times:{'Piedimonte Matese':'06:35','Alife':'06:45','Dragoni':'06:55','Alvignano':'07:00','Caiazzo':'07:10','Piana di Monte Verna':'07:15','Fagianeria':'07:20','San Leucio':'07:25','Caserta':'07:55'}},
+            {t:'11:50',s:'Piedimonte Matese',times:{'Piedimonte Matese':'11:50','Alife':'11:55','Dragoni':'12:05','Alvignano':'12:10','Caiazzo':'12:25','Piana di Monte Verna':'12:30','Fagianeria':'12:35','San Leucio':'12:40','Caserta':'13:10'}},
+            {t:'13:30',s:'Piedimonte Matese',times:{'Piedimonte Matese':'13:30','Alife':'13:35','Dragoni':'13:50','Alvignano':'13:55','Caiazzo':'14:05','Piana di Monte Verna':'14:10','Fagianeria':'14:15','San Leucio':'14:20','Caserta':'14:35'}},
+            {t:'14:35',s:'Piedimonte Matese',times:{'Piedimonte Matese':'14:35','Alife':'14:45','Dragoni':'14:55','Alvignano':'15:00','Caiazzo':'15:10','Piana di Monte Verna':'15:15','San Leucio':'15:20','Caserta':'15:50'}}
+          ]},
+        {name:'ERF · Caserta → S.Leucio → Caiazzo → Alvignano → Alife → Piedimonte Matese', url:'https://eredirobertoferrazza.it/',
+          stops:['Caserta','San Leucio','Fagianeria','Piana di Monte Verna','Caiazzo','Alvignano','Dragoni','Alife','Piedimonte Matese'],
+          deps:[
+            {t:'06:30',s:'Caserta',times:{'Caserta':'06:30','Piana di Monte Verna':'07:00','Caiazzo':'07:05','Alvignano':'07:15','Dragoni':'07:20','Alife':'07:30','Piedimonte Matese':'07:40'}},
+            {t:'08:10',s:'Caserta',times:{'Caserta':'08:10','San Leucio':'08:45','Piana di Monte Verna':'08:45','Caiazzo':'08:50','Alvignano':'09:00','Dragoni':'09:05','Alife':'09:15','Piedimonte Matese':'09:25'}},
+            {t:'09:00',s:'Caserta',times:{'Caserta':'09:00','San Leucio':'09:30','Fagianeria':'09:32','Piana di Monte Verna':'09:35','Caiazzo':'09:40','Alvignano':'09:50','Dragoni':'09:55','Alife':'10:05','Piedimonte Matese':'10:15'}},
+            {t:'13:10',s:'Caserta',times:{'Caserta':'13:10','San Leucio':'13:40','Fagianeria':'13:45','Piana di Monte Verna':'13:50','Caiazzo':'13:55','Alvignano':'14:05','Dragoni':'14:10','Alife':'14:20','Piedimonte Matese':'14:30'}},
+            {t:'14:35',s:'Caserta',times:{'Caserta':'14:35','San Leucio':'14:50','Fagianeria':'14:55','Piana di Monte Verna':'15:00','Caiazzo':'15:05','Alvignano':'15:15','Dragoni':'15:20','Alife':'15:25','Piedimonte Matese':'15:40'}}
+          ]},
+        {name:'ERF · Piedimonte Matese → Alife → Raviscanina → Quattroventi → Vairano Scalo', url:'https://eredirobertoferrazza.it/',
           stops:['Piedimonte Matese','Alife','S.Angelo Brognaturo','Raviscanina','Quattroventi','Pietravairano','Vairano Scalo'],
-          deps:[{t:'05:40',s:'Piedimonte Matese'},{t:'06:05',s:'Piedimonte Matese'},{t:'07:45',s:'Piedimonte Matese'}]},
-        {name:'ERF \u00B7 Vairano Scalo \u2192 Quattroventi \u2192 Raviscanina \u2192 Alife \u2192 Piedimonte Matese', url:'https://eredirobertoferrazza.it/',
+          deps:[
+            {t:'05:40',s:'Piedimonte Matese',times:{'Piedimonte Matese':'05:40','Alife':'05:50','S.Angelo Brognaturo':'05:55','Raviscanina':'06:05','Quattroventi':'06:10','Pietravairano':'06:15','Vairano Scalo':'06:25'}},
+            {t:'06:05',s:'Piedimonte Matese',times:{'Piedimonte Matese':'06:05','Alife':'06:10','S.Angelo Brognaturo':'06:15','Raviscanina':'06:25','Quattroventi':'06:30','Vairano Scalo':'06:40'}},
+            {t:'07:45',s:'Piedimonte Matese',times:{'Piedimonte Matese':'07:45','Alife':'07:55','S.Angelo Brognaturo':'08:00','Raviscanina':'08:10','Quattroventi':'08:15','Pietravairano':'08:20','Vairano Scalo':'08:30'}}
+          ]},
+        {name:'ERF · Vairano Scalo → Quattroventi → Raviscanina → Alife → Piedimonte Matese', url:'https://eredirobertoferrazza.it/',
           stops:['Vairano Scalo','Pietravairano','Quattroventi','Raviscanina','S.Angelo Brognaturo','Alife','Piedimonte Matese'],
-          deps:[{t:'06:45',s:'Vairano Scalo'},{t:'07:10',s:'Vairano Scalo'},{t:'08:30',s:'Vairano Scalo'}]},
-        {name:'ERF \u00B7 Piedimonte Matese \u2192 S.Potito Sannitico \u2192 Gioia Sannitica', url:'https://eredirobertoferrazza.it/',
+          deps:[
+            {t:'06:45',s:'Vairano Scalo',times:{'Vairano Scalo':'06:45','Pietravairano':'07:00','Quattroventi':'07:05','Raviscanina':'07:15','S.Angelo Brognaturo':'07:25','Alife':'07:30','Piedimonte Matese':'07:45'}},
+            {t:'07:10',s:'Vairano Scalo',times:{'Vairano Scalo':'07:10','Pietravairano':'07:20','Quattroventi':'07:25','Raviscanina':'07:35','S.Angelo Brognaturo':'07:40','Alife':'07:45','Piedimonte Matese':'07:50'}},
+            {t:'08:30',s:'Vairano Scalo',times:{'Vairano Scalo':'08:30','Quattroventi':'08:45','Raviscanina':'08:50','S.Angelo Brognaturo':'09:00','Alife':'09:05','Piedimonte Matese':'09:15'}}
+          ]},
+        {name:'ERF · Piedimonte Matese → S.Potito Sannitico → Gioia Sannitica', url:'https://eredirobertoferrazza.it/',
           stops:['Piedimonte Matese','Alife','S.Potito Sannitico','Calvisi','Carattano','Totari','Gioia Sannitica'],
-          deps:[{t:'06:30',s:'Piedimonte Matese'},{t:'06:40',s:'Piedimonte Matese'},{t:'10:00',s:'Piedimonte Matese'},{t:'13:30',s:'Piedimonte Matese'},{t:'13:55',s:'Piedimonte Matese'},{t:'14:35',s:'Piedimonte Matese'}]},
-        {name:'ERF \u00B7 Gioia Sannitica \u2192 S.Potito Sannitico \u2192 Piedimonte Matese', url:'https://eredirobertoferrazza.it/',
+          deps:[
+            {t:'06:30',s:'Piedimonte Matese',times:{'Piedimonte Matese':'06:30','S.Potito Sannitico':'06:35','Calvisi':'06:40','Carattano':'06:45','Gioia Sannitica':'07:00'}},
+            {t:'06:40',s:'Piedimonte Matese',times:{'Piedimonte Matese':'06:40','Alife':'06:45','S.Potito Sannitico':'06:55','Carattano':'06:55','Gioia Sannitica':'07:20'}},
+            {t:'10:00',s:'Piedimonte Matese',times:{'Piedimonte Matese':'10:00','S.Potito Sannitico':'10:05','Calvisi':'10:10','Carattano':'10:15','Gioia Sannitica':'10:25'}},
+            {t:'13:30',s:'Piedimonte Matese',times:{'Piedimonte Matese':'13:30','S.Potito Sannitico':'13:35','Calvisi':'13:40','Totari':'13:40','Carattano':'13:45','Gioia Sannitica':'14:05'}},
+            {t:'13:55',s:'Piedimonte Matese',times:{'Piedimonte Matese':'13:55','S.Potito Sannitico':'14:00','Calvisi':'14:05','Gioia Sannitica':'14:25'}},
+            {t:'14:35',s:'Piedimonte Matese',times:{'Piedimonte Matese':'14:35','S.Potito Sannitico':'14:40','Calvisi':'14:45','Totari':'14:45','Carattano':'14:45','Gioia Sannitica':'15:00'}}
+          ]},
+        {name:'ERF · Gioia Sannitica → S.Potito Sannitico → Piedimonte Matese', url:'https://eredirobertoferrazza.it/',
           stops:['Gioia Sannitica','Totari','Carattano','Calvisi','S.Potito Sannitico','Alife','Piedimonte Matese'],
-          deps:[{t:'07:00',s:'Gioia Sannitica'},{t:'07:20',s:'Gioia Sannitica'},{t:'10:25',s:'Gioia Sannitica'},{t:'14:05',s:'Gioia Sannitica'},{t:'15:00',s:'Gioia Sannitica'}]},
-        {name:'ERF \u00B7 Piedimonte Matese \u2192 Gioia \u2192 Faicchio \u2192 S.Salvatore \u2192 Telese FS', url:'https://eredirobertoferrazza.it/',
-          stops:['Piedimonte Matese','Alife','S.Potito Sannitico','Calvisi','Auduni','Gioia Sannitica','Faicchio','San Salvatore Telesino','Telese Terme','Telese FS','Puglianello','Amorosi','Castel Campagnano','Alvignanello','Ruviano','Caiazzo'],
-          deps:[{t:'07:25',s:'Piedimonte Matese'},{t:'12:35',s:'Piedimonte Matese'},{t:'13:35',s:'Piedimonte Matese'},{t:'14:35',s:'Piedimonte Matese'}]},
-        {name:'ERF \u00B7 Telese FS \u2192 Faicchio \u2192 Gioia \u2192 S.Potito \u2192 Piedimonte Matese', url:'https://eredirobertoferrazza.it/',
+          deps:[
+            {t:'07:00',s:'Gioia Sannitica',times:{'Gioia Sannitica':'07:00','Calvisi':'07:10','S.Potito Sannitico':'07:20','Piedimonte Matese':'07:25'}},
+            {t:'07:20',s:'Gioia Sannitica',times:{'Gioia Sannitica':'07:20','Auduni':'07:25','Calvisi':'07:30','S.Potito Sannitico':'07:35','Piedimonte Matese':'07:40','Alife':'07:50'}},
+            {t:'10:25',s:'Gioia Sannitica',times:{'Gioia Sannitica':'10:25','Calvisi':'10:35','S.Potito Sannitico':'10:40','Piedimonte Matese':'10:45'}},
+            {t:'14:05',s:'Gioia Sannitica',times:{'Gioia Sannitica':'14:05','Calvisi':'14:15','S.Potito Sannitico':'14:20','Piedimonte Matese':'14:25'}},
+            {t:'15:00',s:'Gioia Sannitica',times:{'Gioia Sannitica':'15:00','Calvisi':'15:00','Totari':'15:05','Carattano':'15:10','S.Potito Sannitico':'15:15','Piedimonte Matese':'15:20','Alife':'15:25'}}
+          ]},
+        {name:'ERF · Piedimonte Matese → Gioia → Faicchio → S.Salvatore → Telese FS', url:'https://eredirobertoferrazza.it/',
+          stops:['Piedimonte Matese','S.Potito Sannitico','Auduni','Gioia Sannitica','Faicchio','San Salvatore Telesino','Telese Terme','Telese FS','Puglianello','Amorosi','Castel Campagnano','Alvignanello','Ruviano','Caiazzo'],
+          deps:[
+            {t:'07:25',s:'Piedimonte Matese',times:{'Piedimonte Matese':'07:25','S.Potito Sannitico':'07:30','Gioia Sannitica':'07:45','Faicchio':'07:50','San Salvatore Telesino':'07:55','Telese Terme':'08:00','Telese FS':'08:05'}},
+            {t:'12:35',s:'Piedimonte Matese',times:{'Piedimonte Matese':'12:35','S.Potito Sannitico':'12:40','Gioia Sannitica':'12:55','Faicchio':'13:00','San Salvatore Telesino':'13:05','Telese FS':'13:10'}},
+            {t:'13:35',s:'Piedimonte Matese',times:{'Piedimonte Matese':'13:35','S.Potito Sannitico':'13:40','Gioia Sannitica':'13:55','Faicchio':'14:00','San Salvatore Telesino':'14:05','Telese FS':'14:15'}},
+            {t:'14:35',s:'Piedimonte Matese',times:{'Piedimonte Matese':'14:35','S.Potito Sannitico':'14:40','Auduni':'14:40','Gioia Sannitica':'14:45','Faicchio':'14:50','San Salvatore Telesino':'14:55','Telese Terme':'15:00','Telese FS':'15:00','Puglianello':'15:10','Amorosi':'15:15','Castel Campagnano':'15:20','Alvignanello':'15:30','Ruviano':'15:35','Caiazzo':'15:45'}}
+          ]},
+        {name:'ERF · Telese FS → Faicchio → Gioia → S.Potito → Piedimonte Matese', url:'https://eredirobertoferrazza.it/',
           stops:['Caiazzo','Ruviano','Alvignanello','Castel Campagnano','Amorosi','Puglianello','Telese FS','Telese Terme','San Salvatore Telesino','Faicchio','Gioia Sannitica','Auduni','Calvisi','S.Potito Sannitico','Alife','Piedimonte Matese'],
-          deps:[{t:'08:05',s:'Telese FS'},{t:'13:10',s:'Telese FS'},{t:'14:15',s:'Telese FS'}]},
-        {name:'ERF \u00B7 S.Gregorio Matese \u2192 Letino \u2192 Piedimonte Matese', url:'https://eredirobertoferrazza.it/',
+          deps:[
+            {t:'06:25',s:'Caiazzo',times:{'Caiazzo':'06:25','Ruviano':'06:35','Alvignanello':'06:40','Castel Campagnano':'06:50','Amorosi':'06:55','Puglianello':'07:00','Telese FS':'07:15','San Salvatore Telesino':'07:20','Faicchio':'07:25','Gioia Sannitica':'07:30','Auduni':'07:35','Calvisi':'07:40','S.Potito Sannitico':'07:45','Piedimonte Matese':'07:50','Alife':'08:00'}},
+            {t:'08:05',s:'Telese FS',times:{'Telese FS':'08:05','San Salvatore Telesino':'08:10','Faicchio':'08:15','Gioia Sannitica':'08:20','Auduni':'08:25','Calvisi':'08:30','S.Potito Sannitico':'08:35','Piedimonte Matese':'08:40'}},
+            {t:'13:10',s:'Telese FS',times:{'Telese FS':'13:10','San Salvatore Telesino':'13:15','Faicchio':'13:20','Gioia Sannitica':'13:25','Auduni':'13:30','Calvisi':'13:35','S.Potito Sannitico':'13:40','Piedimonte Matese':'13:45'}},
+            {t:'14:15',s:'Telese FS',times:{'Telese FS':'14:15','San Salvatore Telesino':'14:20','Faicchio':'14:25','Gioia Sannitica':'14:30','Auduni':'14:35','Calvisi':'14:40','S.Potito Sannitico':'14:45','Piedimonte Matese':'14:50'}}
+          ]},
+        {name:'ERF · S.Gregorio Matese → Castello Matese → Piedimonte Matese', url:'https://eredirobertoferrazza.it/',
           stops:['San Gregorio Matese','Castello Matese','Miralago','Letino','Piedimonte Matese'],
-          deps:[{t:'06:05',s:'San Gregorio Matese'},{t:'07:15',s:'San Gregorio Matese'},{t:'08:15',s:'San Gregorio Matese'},{t:'14:00',s:'San Gregorio Matese'}]},
-        {name:'ERF \u00B7 Piedimonte Matese \u2192 Letino \u2192 S.Gregorio Matese', url:'https://eredirobertoferrazza.it/',
-          stops:['Piedimonte Matese','Letino','Miralago','Castello Matese','San Gregorio Matese'],
-          deps:[{t:'05:40',s:'Piedimonte Matese'},{t:'06:50',s:'Piedimonte Matese'},{t:'07:50',s:'Piedimonte Matese'},{t:'13:35',s:'Piedimonte Matese'},{t:'14:35',s:'Piedimonte Matese'}]},
+          deps:[
+            {t:'06:05',s:'San Gregorio Matese',times:{'San Gregorio Matese':'06:05','Castello Matese':'06:20','Piedimonte Matese':'06:30'}},
+            {t:'07:15',s:'San Gregorio Matese',times:{'San Gregorio Matese':'07:15','Castello Matese':'07:30','Piedimonte Matese':'07:45'}},
+            {t:'07:20',s:'San Gregorio Matese',times:{'San Gregorio Matese':'07:20','Castello Matese':'07:35','Piedimonte Matese':'07:45'}},
+            {t:'08:15',s:'San Gregorio Matese',times:{'San Gregorio Matese':'08:15','Castello Matese':'08:30','Piedimonte Matese':'08:40'}},
+            {t:'14:00',s:'San Gregorio Matese',times:{'San Gregorio Matese':'14:00','Castello Matese':'14:15','Piedimonte Matese':'14:25'}}
+          ]},
+        {name:'ERF · Piedimonte Matese → Castello Matese → S.Gregorio Matese', url:'https://eredirobertoferrazza.it/',
+          stops:['Piedimonte Matese','Castello Matese','Miralago','Letino','San Gregorio Matese'],
+          deps:[
+            {t:'05:40',s:'Piedimonte Matese',times:{'Piedimonte Matese':'05:40','Castello Matese':'05:50','San Gregorio Matese':'06:05'}},
+            {t:'06:50',s:'Piedimonte Matese',times:{'Piedimonte Matese':'06:50','Castello Matese':'07:00','San Gregorio Matese':'07:15'}},
+            {t:'07:50',s:'Piedimonte Matese',times:{'Piedimonte Matese':'07:50','Castello Matese':'08:00','San Gregorio Matese':'08:15'}},
+            {t:'11:00',s:'Piedimonte Matese',times:{'Piedimonte Matese':'11:00','Castello Matese':'11:10','San Gregorio Matese':'11:25'}},
+            {t:'13:35',s:'Piedimonte Matese',times:{'Piedimonte Matese':'13:35','Castello Matese':'13:45','San Gregorio Matese':'14:00'}},
+            {t:'14:35',s:'Piedimonte Matese',times:{'Piedimonte Matese':'14:35','Castello Matese':'14:45','Letino':'15:35','Miralago':'15:55','San Gregorio Matese':'16:10'}}
+          ]},
       ]},
     // ── LINEE COMUNITÀ ────────────────────────────────────────────────────────
     { id:'community', name:'Linee comunità', region:'campania', badge:'Comunità', color:'#FAEEDA', fg:'#854F0B', icon:'👥', url:'',
@@ -2182,9 +2317,13 @@ function renderTransitFull() {
   const el = document.getElementById('transit-body');
   if(!el) return;
 
-  el.innerHTML = '<div style="background:var(--blue-l);border-radius:var(--rsm);margin:0 16px 10px;padding:10px 12px;font-size:12px;color:var(--blue-d);">ℹ️ <strong>Feed attivi:</strong> ANM, EAV, AIR/CTP, COTRAL Lazio, Trenitalia — aggiornati ogni notte. <strong>Web:</strong> Angelino, Ferrazza con orari completi.</div>'
+  const isSunday = now.getDay() === 0;
+
+  el.innerHTML = (isSunday ? '<div style="background:var(--coral-l);border-radius:var(--rsm);margin:0 16px 10px;padding:10px 12px;font-size:12px;color:var(--coral-d);">⚠️ <strong>Oggi è domenica.</strong> AIR, Angelino, Ferrazza ed Eredi Ferrazza non circolano. Solo ANM, EAV e Trenitalia hanno corse domenicali.</div>' : '')
+    + '<div style="background:var(--blue-l);border-radius:var(--rsm);margin:0 16px 10px;padding:10px 12px;font-size:12px;color:var(--blue-d);">ℹ️ <strong>Feed attivi:</strong> ANM, EAV, AIR/CTP, COTRAL Lazio, Trenitalia — aggiornati ogni notte. <strong>Web:</strong> Angelino, Ferrazza con orari completi.</div>'
     + filtered.map(op => {
       const badge = '<span style="font-size:10px;padding:2px 7px;background:'+op.color+';color:'+op.fg+';border-radius:var(--rfull);font-weight:500;">'+op.badge+'</span>';
+      const sunBadge = (isSunday && op.noSun) ? '<span style="font-size:10px;padding:2px 7px;background:var(--coral-l);color:var(--coral-d);border-radius:var(--rfull);font-weight:500;">Non circola oggi</span>' : '';
       const linesH = op.lines.map(l => {
         const depsH = l.deps && l.deps.length
           ? l.deps.slice(0,5).map(d=>'<div class="dep"><div class="dtime">'+d.t+'</div><div style="flex:1;font-size:12px;color:var(--txt2);">'+d.s+'</div>'+nxtL[dSt(d.t)]+'</div>').join('')
@@ -2205,7 +2344,7 @@ function renderTransitFull() {
         +'<div class="op-logo" style="background:'+op.color+';color:'+op.fg+';">'+op.icon+'</div>'
         +'<div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:500;">'+op.name+'</div>'
         +'<div style="font-size:11px;color:var(--txt2);">'+op.lines.length+' linee'+(op.note?' · '+op.note:'')+'</div></div>'
-        +badge+'</div>'
+        +sunBadge+' '+badge+'</div>'
         +'<div class="op-panel">'+linesH+'</div>'
         +'</div>';
     }).join('')
