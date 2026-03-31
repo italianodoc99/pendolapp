@@ -3529,8 +3529,8 @@
             if (n.includes(q)) return true;
             if (allStopsN.some(s => s === nq2 || s.includes(nq2) || nq2.includes(s))) return true;
             if (allStops.some(s => s.includes(q))) return true;
-            const words = nq2.split(/\s+/).filter(w => w.length > 1);
-            return words.some(w => n.includes(w) || allStopsN.some(s => s.includes(w)) || allStops.some(s => s.includes(w)));
+            const words = nq2.split(/\s+/).filter(w => w.length > 5);
+            return words.length > 0 && words.some(w => n.includes(w) || allStopsN.some(s => s.includes(w)) || allStops.some(s => s.includes(w)));
           };
           if (!matchInText(fq) || !matchInText(tq)) continue;
 
