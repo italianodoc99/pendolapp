@@ -91,7 +91,7 @@ Definisce tutte le linee di trasporto pubblico. **Struttura di un operatore:**
 
 | Funzione | Riga | Descrizione |
 |----------|------|-------------|
-| `transitForRoute(from, to, dateStr)` | 3489 | Filtra OPERATORS per tratta e data; applica `noSun`/`onlySun` |
+| `transitForRoute(from, to, dateStr)` | 3489 | Filtra OPERATORS per tratta e data; applica `noSun`/`onlySun`. Interno: `matchInText` usa 3 step (exact → substring → word-split). Il word-split usa soglia `> 5` caratteri per evitare falsi positivi (es. "monte" in "Piedimonte") |
 | `buildJourneys(from, to, dateStr)` | 3611 | Combina passaggi carpooling + transiti in Journey objects |
 | `planJourney()` | 3697 | Entry point planner: legge input, chiama buildJourneys, renderizza |
 | `renderJourneys(jj, from, to)` | 3750 | Genera HTML lista risultati planner |
