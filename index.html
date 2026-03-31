@@ -3739,15 +3739,31 @@
             },
             {
               name: 'EAV · Napoli P.za Garibaldi → Piedimonte Matese', url: 'https://www.eavsrl.it/',
+              note: '⚠️ Servizio ferroviario attivo solo LUN–SAB (FER). La domenica e nei giorni festivi è effettuato il bus sostitutivo D\'Agostino (vedi sotto).',
               dur: 165,
               stops: ['Napoli P.za Garibaldi', 'Napoli Piazza Garibaldi', 'Casalnuovo', 'Acerra', 'Aversa Nord', 'Cancello', 'Arienzo', 'Maddaloni', 'Caserta', 'Santa Maria Capua Vetere', 'Santa Maria C.V.', 'Capua', 'Caiazzo', 'Alvignano', 'Dragoni', 'Ruviano', 'Alife', 'Piedimonte Matese'],
               deps: [{ t: '06:10', s: 'Napoli P.za Garibaldi' }, { t: '07:10', s: 'Napoli P.za Garibaldi' }, { t: '08:10', s: 'Napoli P.za Garibaldi' }, { t: '13:10', s: 'Napoli P.za Garibaldi' }, { t: '17:10', s: 'Napoli P.za Garibaldi' }]
             },
             {
               name: 'EAV · Piedimonte Matese → Napoli P.za Garibaldi', url: 'https://www.eavsrl.it/',
+              note: '⚠️ Servizio ferroviario attivo solo LUN–SAB (FER). La domenica e nei giorni festivi è effettuato il bus sostitutivo D\'Agostino (vedi sotto).',
               dur: 165,
               stops: ['Piedimonte Matese', 'Alife', 'Ruviano', 'Dragoni', 'Alvignano', 'Caiazzo', 'Capua', 'Santa Maria Capua Vetere', 'Santa Maria C.V.', 'Caserta', 'Maddaloni', 'Arienzo', 'Cancello', 'Aversa Nord', 'Acerra', 'Casalnuovo', 'Napoli P.za Garibaldi', 'Napoli Piazza Garibaldi'],
               deps: [{ t: '05:30', s: 'Piedimonte Matese' }, { t: '06:30', s: 'Piedimonte Matese' }, { t: '07:30', s: 'Piedimonte Matese' }, { t: '12:00', s: 'Piedimonte Matese' }, { t: '16:00', s: 'Piedimonte Matese' }]
+            },
+            {
+              name: 'EAV Bus D\'Agostino · Napoli → Piedimonte Matese (DOM/FES)', url: 'https://www.eavsrl.it/',
+              note: 'Servizio automobilistico domenicale e festivo effettuato da D\'Agostino per conto EAV. Fermata Napoli: Via G. Ferraris (di fronte Hotel Ramada). Da Caserta prosegue via Autostrada.',
+              dur: 111,
+              stops: ['Napoli Centrale', 'Caserta', 'Santa Maria Capua Vetere', 'Anfiteatro', 'Sant\'Angelo in Formis', 'Triflisco', 'Pontelatone', 'Piana di Monte Verna', 'Caiazzo', 'Villa Ortensia', 'Alvignano', 'San Marco', 'Dragoni', 'Alife', 'Piedimonte Matese'],
+              deps: [{ t: '08:37', s: 'Napoli Centrale' }, { t: '12:28', s: 'Napoli Centrale' }, { t: '19:30', s: 'Napoli Centrale' }, { t: '21:00', s: 'Napoli Centrale' }]
+            },
+            {
+              name: 'EAV Bus D\'Agostino · Piedimonte Matese → Napoli (DOM/FES)', url: 'https://www.eavsrl.it/',
+              note: 'Servizio automobilistico domenicale e festivo effettuato da D\'Agostino per conto EAV. Fermata Napoli: Via G. Ferraris (di fronte Hotel Ramada). Da Caserta prosegue via Autostrada.',
+              dur: 103,
+              stops: ['Piedimonte Matese', 'Alife', 'Dragoni', 'San Marco', 'Alvignano', 'Villa Ortensia', 'Caiazzo', 'Piana di Monte Verna', 'Pontelatone', 'Triflisco', 'Sant\'Angelo in Formis', 'Anfiteatro', 'Santa Maria Capua Vetere', 'Caserta', 'Napoli Centrale'],
+              deps: [{ t: '06:37', s: 'Piedimonte Matese' }, { t: '08:28', s: 'Piedimonte Matese' }, { t: '17:00', s: 'Piedimonte Matese' }, { t: '19:00', s: 'Piedimonte Matese' }]
             },
             {
               name: 'Linea 11 (Arcobaleno) · Piscinola → Aversa', url: 'https://www.eavsrl.it/',
@@ -4577,10 +4593,11 @@
               : '<div style="padding:8px 0;font-size:12px;color:var(--txt2);">Vedi orari ufficiali</div>';
             const lUrl = l.url || op.url || '#';
             const safeName = (l.name || '').replace(/'/g, ' ').replace(/"/g, ' ').substring(0, 50);
+            const noteH = l.note ? '<div style="font-size:11px;color:var(--amber-d);background:var(--amber-l);border-radius:var(--rsm);padding:6px 8px;margin-bottom:6px;">' + l.note + '</div>' : '';
             return '<div class="line-row">'
               + '<div style="flex:1;min-width:0;">'
               + '<div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'block\'?\'none\':\'block\'">' + l.name + '</div>'
-              + '<div style="display:none;padding:6px 0;">' + depsH + '<div style="font-size:11px;color:var(--txt3);margin-top:6px;">' + op.badge + '</div></div>'
+              + '<div style="display:none;padding:6px 0;">' + noteH + depsH + '<div style="font-size:11px;color:var(--txt3);margin-top:6px;">' + op.badge + '</div></div>'
               + '</div>'
               + '<a class="ext-link" href="' + lUrl + '" target="_blank">↗ Orari</a>'
               + '<button class="rep-btn" onclick="reportLine(\'' + op.id + '\',\'' + safeName + '\')">⚠</button>'
