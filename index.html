@@ -2160,6 +2160,41 @@
       </nav>
     </div>
 
+    <!-- ══ LE MIE PRENOTAZIONI ══ -->
+    <div class="screen" id="sc-bookings">
+      <div class="ph">
+        <div class="map-back" onclick="goTo('sc-profile',4)"
+          style="position:relative;top:auto;left:auto;display:inline-block;margin-bottom:8px;">← Indietro</div>
+        <h1>Le mie prenotazioni</h1>
+        <p id="bookings-ph-sub">Le tue richieste di passaggio</p>
+      </div>
+      <div class="scroll" style="padding:16px;" id="bookings-list"></div>
+      <nav class="nav">
+        <div class="ni" onclick="goTo('sc-home',0)"><div class="ni-icon">🏠</div><div class="ni-lbl">Home</div><div class="ni-pip"></div></div>
+        <div class="ni" onclick="goTo('sc-search',1)"><div class="ni-icon">🔍</div><div class="ni-lbl">Cerca</div><div class="ni-pip"></div></div>
+        <div class="ni" onclick="goTo('sc-offer',2)"><div class="ni-icon">🚗</div><div class="ni-lbl">Offri</div><div class="ni-pip"></div></div>
+        <div class="ni" onclick="goTo('sc-transit',3)"><div class="ni-icon">🚌</div><div class="ni-lbl">Orari</div><div class="ni-pip"></div></div>
+        <div class="ni active" onclick="goTo('sc-profile',4)"><div class="ni-icon">👤</div><div class="ni-lbl">Profilo</div><div class="ni-pip"></div></div>
+      </nav>
+    </div>
+
+    <!-- ══ REVIEW MODAL ══ -->
+    <div id="review-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center;">
+      <div style="background:var(--card);border-radius:var(--r);padding:24px;margin:16px;max-width:340px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2);">
+        <div style="font-size:18px;font-weight:600;margin-bottom:4px;">Lascia una recensione</div>
+        <div id="rev-driver-name" style="font-size:14px;color:var(--txt2);margin-bottom:16px;"></div>
+        <div style="display:flex;gap:6px;justify-content:center;margin-bottom:16px;" id="rev-stars">
+          <span class="rev-star" data-v="1" onclick="pickStar(1)" style="font-size:36px;cursor:pointer;transition:color .15s;">★</span>
+          <span class="rev-star" data-v="2" onclick="pickStar(2)" style="font-size:36px;cursor:pointer;transition:color .15s;">★</span>
+          <span class="rev-star" data-v="3" onclick="pickStar(3)" style="font-size:36px;cursor:pointer;transition:color .15s;">★</span>
+          <span class="rev-star" data-v="4" onclick="pickStar(4)" style="font-size:36px;cursor:pointer;transition:color .15s;">★</span>
+          <span class="rev-star" data-v="5" onclick="pickStar(5)" style="font-size:36px;cursor:pointer;transition:color .15s;">★</span>
+        </div>
+        <button class="btn btn-p" style="margin-bottom:8px;" id="rev-submit-btn" onclick="submitReview()">Invia recensione</button>
+        <button class="btn btn-o" onclick="document.getElementById('review-modal').style.display='none'">Annulla</button>
+      </div>
+    </div>
+
     <!-- ══ TRANSIT ══ -->
     <div class="screen" id="sc-transit">
       <div class="ph">
@@ -2291,6 +2326,11 @@
           <div class="menu-i" onclick="showMyRides()">
             <div class="mic" style="background:var(--blue-l);">📋</div>
             <div style="flex:1;font-size:14px;">I miei passaggi</div><span id="my-rides-count"
+              style="font-size:12px;color:var(--txt2);"></span>
+          </div>
+          <div class="menu-i" onclick="showMyBookings()">
+            <div class="mic" style="background:var(--amber-l);">🎫</div>
+            <div style="flex:1;font-size:14px;">Le mie prenotazioni</div><span id="my-bookings-count"
               style="font-size:12px;color:var(--txt2);"></span>
           </div>
         </div>
@@ -2731,7 +2771,7 @@
     </div>
     <div style="font-size:13px;color:var(--txt2);margin-bottom:14px;"><strong>Da:</strong> ${r.from || '—'}<br><strong>A:</strong> ${r.to || '—'}${r.transit ? `<br><strong>Connessione:</strong> ${r.transit}` : ''}</div>
     ${r.driverId !== currentUser?.uid ? `
-    <button class="btn btn-p" style="margin-bottom:10px;" onclick="openChatWith('${r.driverId}','${r.driverName || 'Guidatore'}','${r.id}');showOv('booking','${r.driverName || 'il guidatore'}')">Prenota · €${parseFloat(r.price || 0).toFixed(2)}</button>
+    <button class="btn btn-p" style="margin-bottom:10px;" onclick="bookRide('${r.id}','${r.driverId}','${safeStr(r.driverName || 'Guidatore')}')">Prenota · €${parseFloat(r.price || 0).toFixed(2)}</button>
     <button class="btn btn-o" onclick="openChatWith('${r.driverId}','${r.driverName || 'Guidatore'}','${r.id}')">Scrivi a ${(r.driverName || '').split(' ')[0] || 'lui'} prima</button>
     `: `<div style="text-align:center;font-size:13px;color:var(--green-d);padding:12px;">✓ Questo è il tuo passaggio</div>`}
   `;
@@ -2952,17 +2992,48 @@
     };
 
     // ── i miei passaggi ────────────────────────────────────────────────────────────
-    window.showMyRides = () => {
+    window.showMyRides = async () => {
       if (!currentUser) return;
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('sc-my-rides').classList.add('active');
+
       const mine = (allRides || []).filter(r => r.driverId === currentUser.uid);
       const list = document.getElementById('my-rides-list');
       const sub = document.getElementById('my-rides-ph-sub');
       if (sub) sub.textContent = mine.length ? `${mine.length} passagg${mine.length === 1 ? 'io' : 'i'} pubblicati` : 'Nessun passaggio pubblicato';
       if (!list) return;
+
+      // ── fetch pending booking requests for this driver ──────────────────────
+      let pendingHtml = '';
+      try {
+        const { collection: _col, query: _q, where: _w, getDocs: _gd } = window._fb;
+        const bSnap = await _gd(_q(_col(db, 'bookings'), _w('driverId', '==', currentUser.uid), _w('status', '==', 'pending')));
+        const pending = bSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        if (pending.length) {
+          pendingHtml = `<div style="margin-bottom:20px;">
+            <div style="font-size:13px;font-weight:600;color:var(--txt2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;">Richieste in attesa (${pending.length})</div>
+            ${pending.map(b => {
+              const ride = mine.find(r => r.id === b.rideId);
+              const routeLabel = ride ? `${ride.from} → ${ride.to}` : (b.rideId || '');
+              return `<div style="background:var(--card);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);border-left:3px solid var(--blue);">
+                <div style="font-weight:600;font-size:14px;margin-bottom:2px;">${b.riderName || 'Passeggero'}</div>
+                <div style="font-size:13px;color:var(--txt2);margin-bottom:10px;">${routeLabel}</div>
+                <div style="display:flex;gap:8px;">
+                  <button onclick="confirmBooking('${b.id}')" style="flex:1;padding:9px;background:var(--green-l,#e6f9f0);color:var(--green,#18a058);border:none;border-radius:var(--rsm);font-size:14px;font-weight:500;font-family:var(--font);cursor:pointer;">✓ Conferma</button>
+                  <button onclick="cancelBooking('${b.id}')" style="flex:1;padding:9px;background:var(--red-l);color:var(--red);border:none;border-radius:var(--rsm);font-size:14px;font-weight:500;font-family:var(--font);cursor:pointer;">✕ Rifiuta</button>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>`;
+        }
+      } catch (e) { console.warn('booking fetch error', e); }
+
+      // ── my rides list ───────────────────────────────────────────────────────
+      let ridesHtml = '';
       if (!mine.length) {
-        list.innerHTML = '<div style="text-align:center;padding:40px 0;color:var(--txt3);">Nessun passaggio pubblicato.<br><br><button class="btn btn-p" onclick="goTo(\'sc-offer\',2)">Pubblica il primo</button></div>';
+        ridesHtml = '<div style="text-align:center;padding:40px 0;color:var(--txt3);">Nessun passaggio pubblicato.<br><br><button class="btn btn-p" onclick="goTo(\'sc-offer\',2)">Pubblica il primo</button></div>';
       } else {
-        list.innerHTML = mine.map(r => {
+        ridesHtml = mine.map(r => {
           const date = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' }) : '';
           return `<div style="background:var(--card);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);">
             <div style="font-weight:600;font-size:15px;margin-bottom:2px;">${r.from} → ${r.to}</div>
@@ -2974,8 +3045,8 @@
           </div>`;
         }).join('');
       }
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById('sc-my-rides').classList.add('active');
+
+      list.innerHTML = pendingHtml + ridesHtml;
     };
 
     window.deleteRide = async (id) => {
@@ -3029,6 +3100,129 @@
         btn.disabled = false; btn.textContent = 'Salva modifiche';
         alert('Errore: ' + e.message);
       }
+    };
+
+    // ── prenotazioni ─────────────────────────────────────────────────────────────
+    window.bookRide = async (rideId, driverId, driverName) => {
+      if (!currentUser || !window._fb) return;
+      const { addDoc, collection: fc, serverTimestamp: fts, getDoc, doc: fd } = window._fb;
+      const ride = allRides.find(r => r.id === rideId);
+      if (!ride) return;
+      try {
+        const snap = await getDoc(fd(db, 'users', currentUser.uid));
+        const p = snap.exists() ? snap.data() : {};
+        await addDoc(fc(db, 'bookings'), {
+          riderId: currentUser.uid,
+          riderName: p.name || currentUser.displayName || 'Anonimo',
+          driverId, driverName,
+          rideId,
+          rideFrom: ride.from || '', rideTo: ride.to || '',
+          rideDate: ride.date || '', rideDepTime: ride.depTime || '',
+          price: parseFloat(ride.price || 0),
+          status: 'pending', reviewed: false,
+          createdAt: fts()
+        });
+      } catch (e) { console.log('bookRide err:', e.message); }
+      openChatWith(driverId, driverName, rideId);
+      showOv('booking', driverName);
+    };
+
+    window.showMyBookings = async () => {
+      if (!currentUser || !window._fb) return;
+      const { query: fq, collection: fc, where: fw, getDocs } = window._fb;
+      const list = document.getElementById('bookings-list');
+      const sub = document.getElementById('bookings-ph-sub');
+      list.innerHTML = '<div style="text-align:center;padding:32px 0;color:var(--txt3);">Caricamento...</div>';
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('sc-bookings').classList.add('active');
+      try {
+        const q = fq(fc(db, 'bookings'), fw('riderId', '==', currentUser.uid));
+        const snap = await getDocs(q);
+        const bookings = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        if (sub) sub.textContent = bookings.length ? `${bookings.length} prenotazion${bookings.length === 1 ? 'e' : 'i'}` : 'Nessuna prenotazione';
+        document.getElementById('my-bookings-count').textContent = bookings.length ? bookings.length + ' richieste' : '';
+        if (!bookings.length) {
+          list.innerHTML = '<div style="text-align:center;padding:40px 0;color:var(--txt3);">Nessuna prenotazione ancora.<br><br><button class="btn btn-p" onclick="goTo(\'sc-search\',1)">Cerca passaggi</button></div>';
+          return;
+        }
+        const statusColor = { pending: 'var(--amber-d)', confirmed: 'var(--green-d)', cancelled: 'var(--red)' };
+        const statusBg = { pending: 'var(--amber-l)', confirmed: 'var(--green-l)', cancelled: 'var(--red-l)' };
+        const statusLabel = { pending: '⏳ In attesa', confirmed: '✅ Confermato', cancelled: '❌ Annullato' };
+        list.innerHTML = bookings.map(b => `
+          <div style="background:var(--card);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+              <div style="font-weight:600;font-size:15px;">${b.rideFrom || '—'} → ${b.rideTo || '—'}</div>
+              <span style="font-size:11px;padding:2px 8px;background:${statusBg[b.status] || 'var(--surf2)'};color:${statusColor[b.status] || 'var(--txt2)'};border-radius:var(--rfull);white-space:nowrap;">${statusLabel[b.status] || b.status}</span>
+            </div>
+            <div style="font-size:13px;color:var(--txt2);margin-bottom:10px;">Con ${b.driverName || '—'} · ${b.rideDepTime || ''} · €${(b.price || 0).toFixed(2)}</div>
+            ${b.status === 'confirmed' && !b.reviewed ? `<button class="btn btn-o" style="font-size:13px;padding:8px;" onclick="openReviewModal('${b.id}','${b.driverId}','${safeStr(b.driverName || '')}')">⭐ Lascia recensione</button>` : ''}
+            ${b.status === 'pending' ? `<button onclick="cancelBooking('${b.id}')" style="padding:8px 12px;background:var(--red-l);color:var(--red);border:none;border-radius:var(--rsm);font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;">Annulla richiesta</button>` : ''}
+          </div>`).join('');
+      } catch (e) { list.innerHTML = '<div style="text-align:center;padding:32px;color:var(--txt3);">Errore nel caricamento.</div>'; }
+    };
+
+    window.confirmBooking = async (bookingId) => {
+      if (!window._fb) return;
+      const { updateDoc, doc: fd } = window._fb;
+      try {
+        await updateDoc(fd(db, 'bookings', bookingId), { status: 'confirmed' });
+        showMyRides(); // refresh driver view
+      } catch (e) { alert('Errore: ' + e.message); }
+    };
+
+    window.cancelBooking = async (bookingId) => {
+      if (!confirm('Annullare questa prenotazione?')) return;
+      if (!window._fb) return;
+      const { updateDoc, doc: fd } = window._fb;
+      try {
+        await updateDoc(fd(db, 'bookings', bookingId), { status: 'cancelled' });
+        const driverScreen = document.getElementById('sc-my-rides');
+        if (driverScreen && driverScreen.classList.contains('active')) {
+          showMyRides();
+        } else {
+          showMyBookings();
+        }
+      } catch (e) { alert('Errore: ' + e.message); }
+    };
+
+    // ── recensioni ────────────────────────────────────────────────────────────────
+    let _revBookingId = null, _revDriverId = null, _revRating = 0;
+
+    window.openReviewModal = (bookingId, driverId, driverName) => {
+      _revBookingId = bookingId; _revDriverId = driverId; _revRating = 0;
+      document.getElementById('rev-driver-name').textContent = 'Guidatore: ' + driverName;
+      document.querySelectorAll('.rev-star').forEach(s => s.style.color = 'var(--txt3)');
+      document.getElementById('rev-submit-btn').disabled = true;
+      const modal = document.getElementById('review-modal');
+      modal.style.display = 'flex';
+    };
+
+    window.pickStar = (n) => {
+      _revRating = n;
+      document.querySelectorAll('.rev-star').forEach(s => {
+        s.style.color = parseInt(s.dataset.v) <= n ? 'var(--amber-d)' : 'var(--txt3)';
+      });
+      document.getElementById('rev-submit-btn').disabled = false;
+    };
+
+    window.submitReview = async () => {
+      if (!_revRating || !_revBookingId || !window._fb || !currentUser) return;
+      const { addDoc, collection: fc, updateDoc, doc: fd, serverTimestamp: fts, getDocs, query: fq, where: fw } = window._fb;
+      const btn = document.getElementById('rev-submit-btn');
+      btn.disabled = true; btn.textContent = 'Invio...';
+      try {
+        await addDoc(fc(db, 'reviews'), { fromUid: currentUser.uid, toUid: _revDriverId, bookingId: _revBookingId, rating: _revRating, createdAt: fts() });
+        await updateDoc(fd(db, 'bookings', _revBookingId), { reviewed: true });
+        // ricalcola rating medio del guidatore
+        const q = fq(fc(db, 'reviews'), fw('toUid', '==', _revDriverId));
+        const snap = await getDocs(q);
+        const reviews = snap.docs.map(d => d.data());
+        const avg = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+        await updateDoc(fd(db, 'users', _revDriverId), { rating: Math.round(avg * 10) / 10 });
+        document.getElementById('review-modal').style.display = 'none';
+        alert('Recensione inviata! Grazie.');
+        showMyBookings();
+      } catch (e) { btn.disabled = false; btn.textContent = 'Invia recensione'; alert('Errore: ' + e.message); }
     };
 
     // ── overlay ───────────────────────────────────────────────────────────────────
@@ -3160,8 +3354,11 @@
       'San Nicola la Strada', 'San Marco Evangelista', 'Recale', 'Capodrise', 'Orta di Atella', 'Aversa', 'Teverola',
       'Giugliano', 'Villaricca', 'Marano', 'Quarto', 'Pozzuoli', 'Soccavo', 'Pianura',
       // EAV MetroCampania
-      'Acerra', 'Cancello', 'Arienzo', 'Casalnuovo', 'Aversa Nord',
-      'Caiazzo', 'Alvignano', 'Dragoni', 'Ruviano', 'Alife', 'Piedimonte Matese',
+      'Acerra', 'Cancello', 'Casalnuovo', 'Aversa', 'Maddaloni Inferiore',
+      'Caiazzo', 'Alvignano', 'Dragoni', 'Alife', 'Piedimonte Matese',
+      'Villa Ortensia', 'S.Marco', 'Pontelatone', 'Triflisco',
+      'S.Angelo in Formis', 'Anfiteatro', 'Piana di Monte Verna',
+      'Monte Sant\'Angelo Università',
       // Benevento e Sannio
       'Benevento', 'Montesarchio', 'Sant\'Agata dei Goti', 'Telese Terme', 'Cerreto Sannita', 'Guardia Sanframondi', 'Gioia Sannitica',
       // AIR Caserta linee interne
@@ -3251,6 +3448,17 @@
       'teano': ['teano stazione', 'teano fs'],
       'sparanise': ['sparanise stazione', 'sparanise fs'],
       'napoli afragola': ['afragola av', 'napoli av', 'napoli afragola av'],
+      // Nuove fermate EAV MetroCampania
+      's.angelo in formis': ['sant\'angelo in formis', 'santangelo in formis', 's. angelo in formis', 'sant angelo in formis'],
+      'anfiteatro': ['anfiteatro capua vetere', 'anfiteatro smcv'],
+      'piana di monte verna': ['piana monte verna', 'piana m.verna', 'piana mv'],
+      's.marco': ['s. marco', 'san marco', 'san marco eav'],
+      'villa ortensia': ['villa ortensia eav'],
+      'pontelatone': ['pontelatone eav'],
+      'triflisco': ['triflisco eav'],
+      'maddaloni inferiore': ['maddaloni inf', 'maddaloni inf rfi', 'maddaloni inferiore rfi'],
+      'monte sant\'angelo università': ['monte sant angelo università', 'monte santangelo università', 'unisannio', 'università del sannio'],
+      'napoli centrale': ['napoli c.le', 'napoli centrale rfi', 'na centrale rfi'],
     };
     // Reverse map: alias → canonica (costruito al caricamento)
     const _ALIAS_MAP = {};
@@ -3309,6 +3517,9 @@
         // Filtro domenica: AIR, Ferrazza, Angelino, Eredi non circolano di domenica
         if (op.noSun && dayOfWeek === 0) continue;
         for (const line of (op.lines || [])) {
+          // Filtro a livello di linea: solo feriale o solo domenicale
+          if (line.noSun && dayOfWeek === 0) continue;
+          if (line.onlySun && dayOfWeek !== 0) continue;
           const n = (line.name || '').toLowerCase();
           const allStops = (line.stops || []).map(s => s.toLowerCase());
           const allStopsN = allStops.map(s => normalizeStop(s));
@@ -3603,7 +3814,10 @@
       'Orta di Atella', 'Aversa', 'Teverola', 'Gricignano', 'Cancello', 'Arienzo',
       'Aversa Nord', 'Caivano', 'Frattamaggiore', 'Crispano',
       // Valle del Volturno / Matese
-      'Caiazzo', 'Alvignano', 'Dragoni', 'Ruviano', 'Alife', 'Piedimonte Matese',
+      'Caiazzo', 'Alvignano', 'Dragoni', 'Alife', 'Piedimonte Matese',
+      'Villa Ortensia', 'S.Marco', 'Pontelatone', 'Triflisco',
+      'S.Angelo in Formis', 'Anfiteatro', 'Piana di Monte Verna',
+      'Monte Sant\'Angelo Università',
       'Formicola', 'Gioia Sannitica', 'Telese Terme', 'Cerreto Sannita', 'Guardia Sanframondi',
       'Ailano', 'Pratella', 'Conca della Campania',
       // Vairano / Cassino
@@ -3737,33 +3951,94 @@
               stops: ['Napoli Montesanto', 'Soccavo', 'Pianura', 'Quarto', 'Quarto Nuovo', 'Quarto Centro', 'Licola', 'Cuma', 'Torregaveta'],
               deps: [{ t: '05:55', s: 'Napoli Montesanto' }, { t: '06:25', s: 'Napoli Montesanto' }, { t: '06:55', s: 'Napoli Montesanto' }, { t: '07:25', s: 'Napoli Montesanto' }, { t: '07:55', s: 'Napoli Montesanto' }, { t: '08:25', s: 'Napoli Montesanto' }, { t: '08:55', s: 'Napoli Montesanto' }]
             },
+            // ── EAV MetroCampania · Napoli → Piedimonte Matese (FER, LUN-SAB) ──
             {
-              name: 'EAV · Napoli P.za Garibaldi → Piedimonte Matese', url: 'https://www.eavsrl.it/',
-              note: '⚠️ Servizio ferroviario attivo solo LUN–SAB (FER). La domenica e nei giorni festivi è effettuato il bus sostitutivo D\'Agostino (vedi sotto).',
-              dur: 165,
-              stops: ['Napoli P.za Garibaldi', 'Napoli Piazza Garibaldi', 'Casalnuovo', 'Acerra', 'Aversa Nord', 'Cancello', 'Arienzo', 'Maddaloni', 'Caserta', 'Santa Maria Capua Vetere', 'Santa Maria C.V.', 'Capua', 'Caiazzo', 'Alvignano', 'Dragoni', 'Ruviano', 'Alife', 'Piedimonte Matese'],
-              deps: [{ t: '06:10', s: 'Napoli P.za Garibaldi' }, { t: '07:10', s: 'Napoli P.za Garibaldi' }, { t: '08:10', s: 'Napoli P.za Garibaldi' }, { t: '13:10', s: 'Napoli P.za Garibaldi' }, { t: '17:10', s: 'Napoli P.za Garibaldi' }]
+              name: 'EAV MetroCampania · Napoli → Piedimonte Matese', url: 'https://www.eavsrl.it/',
+              note: '⚠️ Servizio ferroviario LUN–SAB (FER). Dom/festivi: bus sostitutivo D\'Agostino.',
+              noSun: true, dur: 125,
+              stops: ['Napoli Centrale', 'Casalnuovo', 'Acerra', 'Aversa', 'Cancello', 'Maddaloni Inferiore',
+                'Caserta', 'Santa Maria Capua Vetere', 'S.Angelo in Formis', 'Triflisco',
+                'Pontelatone', 'Piana di Monte Verna', 'Caiazzo', 'Villa Ortensia', 'Alvignano',
+                'S.Marco', 'Dragoni', 'Alife', 'Piedimonte Matese'],
+              deps: [
+                // Treno 7858 – parte da Cancello (non da Napoli)
+                { t: '06:03', s: 'Cancello', times: { 'Cancello': '06:03', 'Caserta': '06:16', 'Santa Maria Capua Vetere': '06:27', 'S.Angelo in Formis': '06:40', 'Triflisco': '06:44', 'Pontelatone': '06:48', 'Piana di Monte Verna': '06:58', 'Caiazzo': '07:08', 'Villa Ortensia': '07:17', 'Alvignano': '07:25', 'S.Marco': '07:29', 'Dragoni': '07:33', 'Alife': '07:43', 'Piedimonte Matese': '07:48' } },
+                // Treno 7860 – G (garantito in sciopero)
+                { t: '07:50', s: 'Napoli Centrale', times: { 'Napoli Centrale': '07:50', 'Cancello': '08:16', 'Maddaloni Inferiore': '08:22', 'Caserta': '08:31', 'Santa Maria Capua Vetere': '08:41', 'S.Angelo in Formis': '08:50', 'Pontelatone': '08:56', 'Piana di Monte Verna': '09:04', 'Caiazzo': '09:12', 'Villa Ortensia': '09:21', 'Alvignano': '09:29', 'S.Marco': '09:34', 'Dragoni': '09:37', 'Alife': '09:46', 'Piedimonte Matese': '09:51' } },
+                // Treno 7862
+                { t: '08:30', s: 'Napoli Centrale', times: { 'Napoli Centrale': '08:30', 'Cancello': '08:56', 'Maddaloni Inferiore': '09:04', 'Caserta': '09:12', 'Santa Maria Capua Vetere': '09:22', 'S.Angelo in Formis': '09:31', 'Pontelatone': '09:37', 'Piana di Monte Verna': '09:46', 'Caiazzo': '09:52', 'Villa Ortensia': '10:01', 'Alvignano': '10:06', 'S.Marco': '10:10', 'Dragoni': '10:12', 'Alife': '10:22', 'Piedimonte Matese': '10:27' } },
+                // Treno 7864 – G, via Aversa diretta (non ferma a Cancello)
+                { t: '11:38', s: 'Napoli Centrale', times: { 'Napoli Centrale': '11:38', 'Aversa': '11:59', 'Caserta': '12:25', 'Santa Maria Capua Vetere': '12:38', 'S.Angelo in Formis': '12:48', 'Pontelatone': '12:54', 'Piana di Monte Verna': '13:02', 'Caiazzo': '13:07', 'Villa Ortensia': '13:17', 'Alvignano': '13:22', 'Dragoni': '13:30', 'Alife': '13:40', 'Piedimonte Matese': '13:45' } },
+                // Treno 7866
+                { t: '12:56', s: 'Napoli Centrale', times: { 'Napoli Centrale': '12:56', 'Cancello': '13:22', 'Maddaloni Inferiore': '13:29', 'Caserta': '13:40', 'Santa Maria Capua Vetere': '13:56', 'S.Angelo in Formis': '14:08', 'Pontelatone': '14:14', 'Piana di Monte Verna': '14:23', 'Caiazzo': '14:28', 'Villa Ortensia': '14:38', 'Alvignano': '14:42', 'Dragoni': '14:49', 'Alife': '14:58', 'Piedimonte Matese': '15:04' } },
+                // Treno 7868 – G
+                { t: '15:53', s: 'Napoli Centrale', times: { 'Napoli Centrale': '15:53', 'Cancello': '16:19', 'Maddaloni Inferiore': '16:26', 'Caserta': '16:33', 'Santa Maria Capua Vetere': '16:42', 'S.Angelo in Formis': '16:58', 'Pontelatone': '17:03', 'Piana di Monte Verna': '17:11', 'Caiazzo': '17:17', 'Villa Ortensia': '17:27', 'Alvignano': '17:32', 'S.Marco': '17:36', 'Dragoni': '17:38', 'Alife': '17:48', 'Piedimonte Matese': '17:54' } },
+                // Treno 7870 – non effettuato 24 e 31 dicembre
+                { t: '17:25', s: 'Napoli Centrale', times: { 'Napoli Centrale': '17:25', 'Cancello': '17:51', 'Maddaloni Inferiore': '17:58', 'Caserta': '18:08', 'Santa Maria Capua Vetere': '18:18', 'S.Angelo in Formis': '18:28', 'Pontelatone': '18:34', 'Piana di Monte Verna': '18:42', 'Caiazzo': '18:48', 'Villa Ortensia': '18:58', 'Alvignano': '19:03', 'Dragoni': '19:09', 'Alife': '19:18', 'Piedimonte Matese': '19:24' } },
+                // Treno 7872 – non effettuato 24 e 31 dicembre
+                { t: '19:05', s: 'Napoli Centrale', times: { 'Napoli Centrale': '19:05', 'Cancello': '19:31', 'Maddaloni Inferiore': '19:39', 'Caserta': '19:46', 'Santa Maria Capua Vetere': '20:00', 'S.Angelo in Formis': '20:10', 'Triflisco': '20:13', 'Piana di Monte Verna': '20:24', 'Caiazzo': '20:30', 'Villa Ortensia': '20:39', 'Alvignano': '20:44', 'Dragoni': '20:49', 'Alife': '20:59', 'Piedimonte Matese': '21:04' } },
+                // Treno 7876 – parte da Caserta
+                { t: '20:30', s: 'Caserta', times: { 'Caserta': '20:30', 'Santa Maria Capua Vetere': '20:40', 'S.Angelo in Formis': '20:50', 'Pontelatone': '20:55', 'Piana di Monte Verna': '21:03', 'Caiazzo': '21:09', 'Villa Ortensia': '21:19', 'Alvignano': '21:23', 'Dragoni': '21:28', 'Alife': '21:38', 'Piedimonte Matese': '21:43' } },
+                // Treno 7878
+                { t: '20:30', s: 'Napoli Centrale', times: { 'Napoli Centrale': '20:30', 'Cancello': '20:54', 'Maddaloni Inferiore': '21:02', 'Caserta': '21:13', 'Santa Maria Capua Vetere': '21:21', 'S.Angelo in Formis': '21:31', 'Pontelatone': '21:37', 'Piana di Monte Verna': '21:46', 'Caiazzo': '21:53', 'Villa Ortensia': '22:02', 'Alvignano': '22:06', 'Dragoni': '22:12', 'Alife': '22:21', 'Piedimonte Matese': '22:27' } },
+              ]
+            },
+            // ── EAV MetroCampania · Piedimonte Matese → Napoli (FER, LUN-SAB) ──
+            {
+              name: 'EAV MetroCampania · Piedimonte Matese → Napoli', url: 'https://www.eavsrl.it/',
+              note: '⚠️ Servizio ferroviario LUN–SAB (FER). Dom/festivi: bus sostitutivo D\'Agostino.',
+              noSun: true, dur: 130,
+              stops: ['Piedimonte Matese', 'Alife', 'Dragoni', 'S.Marco', 'Alvignano', 'Villa Ortensia',
+                'Caiazzo', 'Piana di Monte Verna', 'Pontelatone', 'Triflisco', 'S.Angelo in Formis',
+                'Santa Maria Capua Vetere', 'Caserta', 'Maddaloni Inferiore', 'Cancello',
+                'Aversa', 'Acerra', 'Casalnuovo', 'Napoli Centrale'],
+              deps: [
+                // Treno 7857
+                { t: '04:23', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '04:23', 'Alife': '04:29', 'Dragoni': '04:38', 'Alvignano': '04:47', 'Caiazzo': '05:04', 'Piana di Monte Verna': '05:10', 'S.Angelo in Formis': '05:23', 'Santa Maria Capua Vetere': '05:32', 'Caserta': '05:48' } },
+                // Treno 7859
+                { t: '05:10', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '05:10', 'Alife': '05:16', 'Dragoni': '05:25', 'Alvignano': '05:34', 'Villa Ortensia': '05:38', 'Caiazzo': '05:52', 'Piana di Monte Verna': '05:58', 'S.Angelo in Formis': '06:12', 'Santa Maria Capua Vetere': '06:18', 'Caserta': '06:37' } },
+                // Treno 7861
+                { t: '06:21', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '06:21', 'Alife': '06:27', 'Dragoni': '06:38', 'Alvignano': '06:47', 'Villa Ortensia': '06:51', 'Caiazzo': '07:06', 'Piana di Monte Verna': '07:11', 'S.Angelo in Formis': '07:24', 'Santa Maria Capua Vetere': '07:30', 'Caserta': '07:49' } },
+                // Treno 7863
+                { t: '08:27', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '08:27', 'Alife': '08:34', 'Dragoni': '08:43', 'S.Marco': '08:46', 'Alvignano': '08:52', 'Villa Ortensia': '08:56', 'Caiazzo': '09:11', 'Piana di Monte Verna': '09:16', 'S.Angelo in Formis': '09:29', 'Santa Maria Capua Vetere': '09:35', 'Caserta': '09:54' } },
+                // Treno 7865
+                { t: '10:56', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '10:56', 'Alife': '11:02', 'Dragoni': '11:12', 'Alvignano': '11:17', 'Villa Ortensia': '11:22', 'Caiazzo': '11:31', 'Piana di Monte Verna': '11:37', 'S.Angelo in Formis': '11:50', 'Santa Maria Capua Vetere': '11:56', 'Caserta': '12:15' } },
+                // Treno 7867
+                { t: '13:13', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '13:13', 'Alife': '13:19', 'Dragoni': '13:29', 'S.Marco': '13:31', 'Alvignano': '13:34', 'Villa Ortensia': '13:39', 'Caiazzo': '13:48', 'Piana di Monte Verna': '13:54', 'S.Angelo in Formis': '14:08', 'Santa Maria Capua Vetere': '14:14', 'Caserta': '14:33' } },
+                // Treno 7869
+                { t: '14:31', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '14:31', 'Alife': '14:37', 'Dragoni': '14:50', 'S.Marco': '14:53', 'Alvignano': '14:58', 'Villa Ortensia': '15:03', 'Caiazzo': '15:13', 'Piana di Monte Verna': '15:19', 'S.Angelo in Formis': '15:35', 'Santa Maria Capua Vetere': '15:42', 'Caserta': '16:00' } },
+                // Treno 7871
+                { t: '15:55', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '15:55', 'Alife': '16:01', 'Dragoni': '16:10', 'S.Marco': '16:13', 'Alvignano': '16:19', 'Villa Ortensia': '16:23', 'Caiazzo': '16:37', 'Piana di Monte Verna': '16:43', 'S.Angelo in Formis': '16:57', 'Santa Maria Capua Vetere': '17:04', 'Caserta': '17:23' } },
+                // Treno 7873
+                { t: '17:21', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '17:21', 'Alife': '17:27', 'Dragoni': '17:39', 'S.Marco': '17:41', 'Alvignano': '17:45', 'Villa Ortensia': '17:49', 'Caiazzo': '17:59', 'Piana di Monte Verna': '18:05', 'S.Angelo in Formis': '18:16', 'Santa Maria Capua Vetere': '18:29', 'Caserta': '18:48' } },
+                // Treno 7875
+                { t: '18:50', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '18:50', 'Alife': '18:56', 'Dragoni': '19:10', 'S.Marco': '19:12', 'Alvignano': '19:15', 'Villa Ortensia': '19:20', 'Caiazzo': '19:30', 'Piana di Monte Verna': '19:36', 'S.Angelo in Formis': '19:50', 'Santa Maria Capua Vetere': '19:56', 'Caserta': '20:15' } },
+              ]
+            },
+            // ── Bus D'Agostino · SOLO domenica e festivi ──
+            {
+              name: 'Bus D\'Agostino · Napoli → Piedimonte Matese (DOM/FES)', url: 'https://www.eavsrl.it/',
+              note: 'Bus sostitutivo domenicale e festivo (D\'Agostino per EAV). Napoli: Via G. Ferraris (di fronte Hotel Ramada). Da Caserta prosegue via Autostrada.',
+              onlySun: true, dur: 111,
+              stops: ['Napoli Centrale', 'Caserta', 'Santa Maria Capua Vetere', 'Anfiteatro', 'S.Angelo in Formis', 'Triflisco', 'Pontelatone', 'Piana di Monte Verna', 'Caiazzo', 'Villa Ortensia', 'Alvignano', 'S.Marco', 'Dragoni', 'Alife', 'Piedimonte Matese'],
+              deps: [
+                { t: '08:37', s: 'Napoli Centrale', times: { 'Napoli Centrale': '08:37', 'Caserta': '09:13', 'Santa Maria Capua Vetere': '09:27', 'S.Angelo in Formis': '09:37', 'Pontelatone': '09:45', 'Piana di Monte Verna': '09:52', 'Caiazzo': '10:00', 'Villa Ortensia': '10:06', 'Alvignano': '10:10', 'S.Marco': '10:14', 'Dragoni': '10:16', 'Alife': '10:23', 'Piedimonte Matese': '10:28' } },
+                { t: '12:28', s: 'Napoli Centrale', times: { 'Napoli Centrale': '12:28', 'Caserta': '13:02', 'Santa Maria Capua Vetere': '13:11', 'S.Angelo in Formis': '13:20', 'Pontelatone': '13:27', 'Piana di Monte Verna': '13:34', 'Caiazzo': '13:40', 'Villa Ortensia': '13:46', 'Alvignano': '13:50', 'S.Marco': '13:53', 'Dragoni': '13:56', 'Alife': '14:03', 'Piedimonte Matese': '14:08' } },
+                { t: '19:30', s: 'Napoli Centrale', times: { 'Napoli Centrale': '19:30', 'Caserta': '20:06', 'Santa Maria Capua Vetere': '20:20', 'S.Angelo in Formis': '20:30', 'Pontelatone': '20:38', 'Piana di Monte Verna': '20:45', 'Caiazzo': '20:53', 'Villa Ortensia': '20:59', 'Alvignano': '21:03', 'S.Marco': '21:07', 'Dragoni': '21:09', 'Alife': '21:16', 'Piedimonte Matese': '21:21' } },
+                { t: '21:00', s: 'Napoli Centrale', times: { 'Napoli Centrale': '21:00', 'Caserta': '21:34', 'Santa Maria Capua Vetere': '21:43', 'S.Angelo in Formis': '21:52', 'Pontelatone': '21:59', 'Piana di Monte Verna': '22:06', 'Caiazzo': '22:12', 'Villa Ortensia': '22:18', 'Alvignano': '22:22', 'S.Marco': '22:25', 'Dragoni': '22:28', 'Alife': '22:35', 'Piedimonte Matese': '22:40' } },
+              ]
             },
             {
-              name: 'EAV · Piedimonte Matese → Napoli P.za Garibaldi', url: 'https://www.eavsrl.it/',
-              note: '⚠️ Servizio ferroviario attivo solo LUN–SAB (FER). La domenica e nei giorni festivi è effettuato il bus sostitutivo D\'Agostino (vedi sotto).',
-              dur: 165,
-              stops: ['Piedimonte Matese', 'Alife', 'Ruviano', 'Dragoni', 'Alvignano', 'Caiazzo', 'Capua', 'Santa Maria Capua Vetere', 'Santa Maria C.V.', 'Caserta', 'Maddaloni', 'Arienzo', 'Cancello', 'Aversa Nord', 'Acerra', 'Casalnuovo', 'Napoli P.za Garibaldi', 'Napoli Piazza Garibaldi'],
-              deps: [{ t: '05:30', s: 'Piedimonte Matese' }, { t: '06:30', s: 'Piedimonte Matese' }, { t: '07:30', s: 'Piedimonte Matese' }, { t: '12:00', s: 'Piedimonte Matese' }, { t: '16:00', s: 'Piedimonte Matese' }]
-            },
-            {
-              name: 'EAV Bus D\'Agostino · Napoli → Piedimonte Matese (DOM/FES)', url: 'https://www.eavsrl.it/',
-              note: 'Servizio automobilistico domenicale e festivo effettuato da D\'Agostino per conto EAV. Fermata Napoli: Via G. Ferraris (di fronte Hotel Ramada). Da Caserta prosegue via Autostrada.',
-              dur: 111,
-              stops: ['Napoli Centrale', 'Caserta', 'Santa Maria Capua Vetere', 'Anfiteatro', 'Sant\'Angelo in Formis', 'Triflisco', 'Pontelatone', 'Piana di Monte Verna', 'Caiazzo', 'Villa Ortensia', 'Alvignano', 'San Marco', 'Dragoni', 'Alife', 'Piedimonte Matese'],
-              deps: [{ t: '08:37', s: 'Napoli Centrale' }, { t: '12:28', s: 'Napoli Centrale' }, { t: '19:30', s: 'Napoli Centrale' }, { t: '21:00', s: 'Napoli Centrale' }]
-            },
-            {
-              name: 'EAV Bus D\'Agostino · Piedimonte Matese → Napoli (DOM/FES)', url: 'https://www.eavsrl.it/',
-              note: 'Servizio automobilistico domenicale e festivo effettuato da D\'Agostino per conto EAV. Fermata Napoli: Via G. Ferraris (di fronte Hotel Ramada). Da Caserta prosegue via Autostrada.',
-              dur: 103,
-              stops: ['Piedimonte Matese', 'Alife', 'Dragoni', 'San Marco', 'Alvignano', 'Villa Ortensia', 'Caiazzo', 'Piana di Monte Verna', 'Pontelatone', 'Triflisco', 'Sant\'Angelo in Formis', 'Anfiteatro', 'Santa Maria Capua Vetere', 'Caserta', 'Napoli Centrale'],
-              deps: [{ t: '06:37', s: 'Piedimonte Matese' }, { t: '08:28', s: 'Piedimonte Matese' }, { t: '17:00', s: 'Piedimonte Matese' }, { t: '19:00', s: 'Piedimonte Matese' }]
+              name: 'Bus D\'Agostino · Piedimonte Matese → Napoli (DOM/FES)', url: 'https://www.eavsrl.it/',
+              note: 'Bus sostitutivo domenicale e festivo (D\'Agostino per EAV). Napoli: Via G. Ferraris (di fronte Hotel Ramada). Da Caserta prosegue via Autostrada.',
+              onlySun: true, dur: 103,
+              stops: ['Piedimonte Matese', 'Alife', 'Dragoni', 'S.Marco', 'Alvignano', 'Villa Ortensia', 'Caiazzo', 'Piana di Monte Verna', 'Pontelatone', 'Triflisco', 'S.Angelo in Formis', 'Anfiteatro', 'Santa Maria Capua Vetere', 'Caserta', 'Napoli Centrale'],
+              deps: [
+                { t: '06:37', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '06:37', 'Alife': '06:41', 'Dragoni': '06:48', 'S.Marco': '06:50', 'Alvignano': '06:54', 'Villa Ortensia': '06:57', 'Caiazzo': '07:05', 'Piana di Monte Verna': '07:09', 'Pontelatone': '07:15', 'S.Angelo in Formis': '07:21', 'Santa Maria Capua Vetere': '07:30', 'Caserta': '07:39', 'Napoli Centrale': '08:20' } },
+                { t: '08:28', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '08:28', 'Alife': '08:33', 'Dragoni': '08:40', 'S.Marco': '08:42', 'Alvignano': '08:46', 'Villa Ortensia': '08:50', 'Caiazzo': '08:58', 'Piana di Monte Verna': '09:03', 'Pontelatone': '09:09', 'S.Angelo in Formis': '09:16', 'Santa Maria Capua Vetere': '09:26', 'Caserta': '09:34', 'Napoli Centrale': '10:10' } },
+                { t: '17:00', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '17:00', 'Alife': '17:04', 'Dragoni': '17:11', 'S.Marco': '17:13', 'Alvignano': '17:17', 'Villa Ortensia': '17:20', 'Caiazzo': '17:28', 'Piana di Monte Verna': '17:32', 'Pontelatone': '17:38', 'S.Angelo in Formis': '17:44', 'Santa Maria Capua Vetere': '17:53', 'Caserta': '18:02', 'Napoli Centrale': '18:43' } },
+                { t: '19:00', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '19:00', 'Alife': '19:05', 'Dragoni': '19:12', 'S.Marco': '19:14', 'Alvignano': '19:18', 'Villa Ortensia': '19:22', 'Caiazzo': '19:30', 'Piana di Monte Verna': '19:35', 'Pontelatone': '19:41', 'S.Angelo in Formis': '19:48', 'Santa Maria Capua Vetere': '19:58', 'Caserta': '20:06', 'Napoli Centrale': '20:42' } },
+              ]
             },
             {
               name: 'Linea 11 (Arcobaleno) · Piscinola → Aversa', url: 'https://www.eavsrl.it/',
@@ -4582,12 +4857,14 @@
 
       const isSunday = now.getDay() === 0;
 
-      el.innerHTML = (isSunday ? '<div style="background:var(--coral-l);border-radius:var(--rsm);margin:0 16px 10px;padding:10px 12px;font-size:12px;color:var(--coral-d);">⚠️ <strong>Oggi è domenica.</strong> AIR, Angelino, Ferrazza ed Eredi Ferrazza non circolano. Solo ANM, EAV e Trenitalia hanno corse domenicali.</div>' : '')
+      el.innerHTML = (isSunday ? '<div style="background:var(--coral-l);border-radius:var(--rsm);margin:0 16px 10px;padding:10px 12px;font-size:12px;color:var(--coral-d);">⚠️ <strong>Oggi è domenica.</strong> AIR, Angelino, Ferrazza ed Eredi Ferrazza non circolano. Il treno EAV Napoli–Piedimonte <strong>non circola</strong>: è attivo il <strong>bus sostitutivo D\'Agostino</strong>.</div>' : '')
         + '<div style="background:var(--blue-l);border-radius:var(--rsm);margin:0 16px 10px;padding:10px 12px;font-size:12px;color:var(--blue-d);">ℹ️ <strong>Feed attivi:</strong> ANM, EAV, AIR/CTP, COTRAL Lazio, Trenitalia — aggiornati ogni notte. <strong>Web:</strong> Angelino, Ferrazza con orari completi.</div>'
         + filtered.map(op => {
           const badge = '<span style="font-size:10px;padding:2px 7px;background:' + op.color + ';color:' + op.fg + ';border-radius:var(--rfull);font-weight:500;">' + op.badge + '</span>';
           const sunBadge = (isSunday && op.noSun) ? '<span style="font-size:10px;padding:2px 7px;background:var(--coral-l);color:var(--coral-d);border-radius:var(--rfull);font-weight:500;">Non circola oggi</span>' : '';
           const linesH = op.lines.map(l => {
+            const lineNoSunBadge = (isSunday && l.noSun) ? '<span style="font-size:10px;padding:1px 5px;background:var(--coral-l);color:var(--coral-d);border-radius:var(--rfull);">Solo FER</span> ' : '';
+            const lineOnlySunBadge = (!isSunday && l.onlySun) ? '<span style="font-size:10px;padding:1px 5px;background:var(--amber-l);color:var(--amber-d);border-radius:var(--rfull);">Solo DOM/FES</span> ' : (isSunday && l.onlySun ? '<span style="font-size:10px;padding:1px 5px;background:var(--green-l);color:var(--green-d);border-radius:var(--rfull);">Attivo oggi</span> ' : '');
             const depsH = l.deps && l.deps.length
               ? l.deps.slice(0, 5).map(d => '<div class="dep"><div class="dtime">' + d.t + '</div><div style="flex:1;font-size:12px;color:var(--txt2);">' + d.s + '</div>' + nxtL[dSt(d.t)] + '</div>').join('')
               : '<div style="padding:8px 0;font-size:12px;color:var(--txt2);">Vedi orari ufficiali</div>';
@@ -4596,7 +4873,7 @@
             const noteH = l.note ? '<div style="font-size:11px;color:var(--amber-d);background:var(--amber-l);border-radius:var(--rsm);padding:6px 8px;margin-bottom:6px;">' + l.note + '</div>' : '';
             return '<div class="line-row">'
               + '<div style="flex:1;min-width:0;">'
-              + '<div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'block\'?\'none\':\'block\'">' + l.name + '</div>'
+              + '<div style="font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'block\'?\'none\':\'block\'">' + lineNoSunBadge + lineOnlySunBadge + l.name + '</div>'
               + '<div style="display:none;padding:6px 0;">' + noteH + depsH + '<div style="font-size:11px;color:var(--txt3);margin-top:6px;">' + op.badge + '</div></div>'
               + '</div>'
               + '<a class="ext-link" href="' + lUrl + '" target="_blank">↗ Orari</a>'
