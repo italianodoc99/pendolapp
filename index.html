@@ -3322,10 +3322,6 @@
             return words.some(w => n.includes(w) || allStopsN.some(s => s.includes(w)) || allStops.some(s => s.includes(w)));
           };
           if (!matchInText(fq) || !matchInText(tq)) continue;
-          // Filtro linee solo domenica/festivi (es. D'Agostino DOM/FES)
-          if (line.onlySun && dayOfWeek !== 0) continue;
-          // Filtro linee solo feriali a livello di linea (es. EAV treno LUN-SAB)
-          if (line.noSun && dayOfWeek === 0) continue;
 
           for (const dep of (line.deps || [])) {
             const t = dep.t || dep.time;
