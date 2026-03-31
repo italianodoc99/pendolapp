@@ -2122,6 +2122,44 @@
       </nav>
     </div>
 
+    <!-- ══ I MIEI PASSAGGI ══ -->
+    <div class="screen" id="sc-my-rides">
+      <div class="ph">
+        <div class="map-back" onclick="goTo('sc-profile',4)"
+          style="position:relative;top:auto;left:auto;display:inline-block;margin-bottom:8px;">← Indietro</div>
+        <h1>I miei passaggi</h1>
+        <p id="my-rides-ph-sub">I tuoi passaggi pubblicati</p>
+      </div>
+      <div class="scroll" style="padding:16px;" id="my-rides-list"></div>
+      <nav class="nav">
+        <div class="ni" onclick="goTo('sc-home',0)">
+          <div class="ni-icon">🏠</div>
+          <div class="ni-lbl">Home</div>
+          <div class="ni-pip"></div>
+        </div>
+        <div class="ni" onclick="goTo('sc-search',1)">
+          <div class="ni-icon">🔍</div>
+          <div class="ni-lbl">Cerca</div>
+          <div class="ni-pip"></div>
+        </div>
+        <div class="ni" onclick="goTo('sc-offer',2)">
+          <div class="ni-icon">🚗</div>
+          <div class="ni-lbl">Offri</div>
+          <div class="ni-pip"></div>
+        </div>
+        <div class="ni" onclick="goTo('sc-transit',3)">
+          <div class="ni-icon">🚌</div>
+          <div class="ni-lbl">Orari</div>
+          <div class="ni-pip"></div>
+        </div>
+        <div class="ni active" onclick="goTo('sc-profile',4)">
+          <div class="ni-icon">👤</div>
+          <div class="ni-lbl">Profilo</div>
+          <div class="ni-pip"></div>
+        </div>
+      </nav>
+    </div>
+
     <!-- ══ TRANSIT ══ -->
     <div class="screen" id="sc-transit">
       <div class="ph">
@@ -2250,7 +2288,7 @@
             <div class="mic" style="background:var(--green-l);">🚗</div>
             <div style="flex:1;font-size:14px;">Pubblica un passaggio</div><span>›</span>
           </div>
-          <div class="menu-i">
+          <div class="menu-i" onclick="showMyRides()">
             <div class="mic" style="background:var(--blue-l);">📋</div>
             <div style="flex:1;font-size:14px;">I miei passaggi</div><span id="my-rides-count"
               style="font-size:12px;color:var(--txt2);"></span>
@@ -2414,7 +2452,8 @@
       'openChatDetail', 'openChatWith', 'sendMsg', 'publishRide', 'addWaypoint', 'removeWaypoint',
       'acSelect', 'acSearch', 'linkSocial', 'reportLine', 'setRegion', 'setFC', 'setFW', 'setSrt',
       'doLogout', 'triggerPhotoUpload', 'uploadPhoto', 'handleOcrFile', 'handleOcrDrop',
-      'updatePickerMap', 'safeStr', 'planJourney', 'acSuggest'
+      'updatePickerMap', 'safeStr', 'planJourney', 'acSuggest',
+      'showMyRides', 'deleteRide', 'editRide', 'saveRideEdit'
     ].forEach(function (fn) {
       window[fn] = function () {
         var args = arguments;
@@ -2912,6 +2951,86 @@
       window._selSeats = parseInt(el.textContent);
     };
 
+    // ── i miei passaggi ────────────────────────────────────────────────────────────
+    window.showMyRides = () => {
+      if (!currentUser) return;
+      const mine = (allRides || []).filter(r => r.driverId === currentUser.uid);
+      const list = document.getElementById('my-rides-list');
+      const sub = document.getElementById('my-rides-ph-sub');
+      if (sub) sub.textContent = mine.length ? `${mine.length} passagg${mine.length === 1 ? 'io' : 'i'} pubblicati` : 'Nessun passaggio pubblicato';
+      if (!list) return;
+      if (!mine.length) {
+        list.innerHTML = '<div style="text-align:center;padding:40px 0;color:var(--txt3);">Nessun passaggio pubblicato.<br><br><button class="btn btn-p" onclick="goTo(\'sc-offer\',2)">Pubblica il primo</button></div>';
+      } else {
+        list.innerHTML = mine.map(r => {
+          const date = r.createdAt?.toDate ? r.createdAt.toDate().toLocaleDateString('it-IT', { day: '2-digit', month: 'short' }) : '';
+          return `<div style="background:var(--card);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);">
+            <div style="font-weight:600;font-size:15px;margin-bottom:2px;">${r.from} → ${r.to}</div>
+            <div style="font-size:13px;color:var(--txt2);margin-bottom:10px;">${r.depTime || ''} · ${r.seats || 1} posto${r.seats > 1 ? 'i' : ''} · €${(r.price || 0).toFixed(2)}${date ? ' · ' + date : ''}</div>
+            <div style="display:flex;gap:8px;">
+              <button onclick="editRide('${r.id}')" style="flex:1;padding:9px;background:var(--blue-l);color:var(--blue-d);border:none;border-radius:var(--rsm);font-size:14px;font-weight:500;font-family:var(--font);cursor:pointer;">Modifica</button>
+              <button onclick="deleteRide('${r.id}')" style="flex:1;padding:9px;background:var(--red-l);color:var(--red);border:none;border-radius:var(--rsm);font-size:14px;font-weight:500;font-family:var(--font);cursor:pointer;">Elimina</button>
+            </div>
+          </div>`;
+        }).join('');
+      }
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('sc-my-rides').classList.add('active');
+    };
+
+    window.deleteRide = async (id) => {
+      if (!confirm('Eliminare questo passaggio?')) return;
+      try {
+        const { deleteDoc: _dd, doc: _doc2 } = window._fb;
+        await _dd(_doc2(db, 'rides', id));
+        allRides = allRides.filter(r => r.id !== id);
+        showMyRides();
+      } catch (e) { alert('Errore: ' + e.message); }
+    };
+
+    window.editRide = (id) => {
+      const r = allRides.find(x => x.id === id);
+      if (!r) return;
+      // pre-compila il form offri e naviga
+      goTo('sc-offer', 2);
+      setTimeout(() => {
+        document.getElementById('o-from').value = r.from || '';
+        document.getElementById('o-to').value = r.to || '';
+        document.getElementById('o-time').value = r.depTime || '';
+        document.getElementById('o-price').value = r.price != null ? r.price : '';
+        document.getElementById('o-transit').value = r.transit || '';
+        // salva id per aggiornare invece di creare nuovo
+        window._editRideId = id;
+        const btn = document.getElementById('publish-btn');
+        btn.textContent = 'Salva modifiche';
+        btn.onclick = () => saveRideEdit(id);
+      }, 150);
+    };
+
+    window.saveRideEdit = async (id) => {
+      const from = document.getElementById('o-from').value.trim();
+      const to = document.getElementById('o-to').value.trim();
+      const time = document.getElementById('o-time').value;
+      const price = parseFloat(document.getElementById('o-price').value || '0');
+      const transit = document.getElementById('o-transit').value.trim();
+      if (!from || !to || !time) { alert('Compila almeno partenza, destinazione e orario.'); return; }
+      const btn = document.getElementById('publish-btn');
+      btn.disabled = true; btn.innerHTML = '<div class="spinner"></div>';
+      try {
+        const { updateDoc: _ud2, doc: _doc2 } = window._fb;
+        await _ud2(_doc2(db, 'rides', id), { from, to, depTime: time, price, transit });
+        const idx = allRides.findIndex(r => r.id === id);
+        if (idx !== -1) allRides[idx] = { ...allRides[idx], from, to, depTime: time, price, transit };
+        btn.disabled = false; btn.textContent = 'Pubblica passaggio';
+        btn.onclick = () => publishRide();
+        window._editRideId = null;
+        showMyRides();
+      } catch (e) {
+        btn.disabled = false; btn.textContent = 'Salva modifiche';
+        alert('Errore: ' + e.message);
+      }
+    };
+
     // ── overlay ───────────────────────────────────────────────────────────────────
     const ovs = {
       booking: n => ({ icon: '🎉', title: 'Richiesta inviata!', sub: (n + ' riceverà la tua richiesta. Vai nella chat per seguire la conversazione.'), btn: 'Vai alla chat', action: "goTo('sc-chat',3)" }),
@@ -3238,7 +3357,10 @@
                   continue; // direzione sbagliata: "from" arriva dopo "to" in questa corsa
                 }
               } else {
-                // times presenti ma match incompleto: fallback proporzionale sulle fermate
+                // dep.times presente ma manca uno dei due orari:
+                // se times è popolato (>1 fermata), questa corsa non serve quella fermata → salta
+                if (Object.keys(dep.times).length > 1) continue;
+                // times minimale (solo fermata di partenza): fallback proporzionale sulle fermate
                 const idxF = allStopsN.findIndex(s => s === fq || s.includes(fq) || fq.split(/\s+/).filter(w => w.length > 1).some(w => s.includes(w)));
                 const idxT = allStopsN.findIndex(s => s === tq || s.includes(tq) || tq.split(/\s+/).filter(w => w.length > 1).some(w => s.includes(w)));
                 if (idxF >= 0 && idxT >= 0) {
@@ -3517,6 +3639,13 @@
     // ── goTo updated to handle new screens ───────────────────────────────────────
     // Override the existing goTo
     window.goTo = (id, idx) => {
+      // reset offer form if navigating away from it
+      const current = document.querySelector('.screen.active');
+      if (current && current.id === 'sc-offer' && id !== 'sc-offer' && window._editRideId) {
+        window._editRideId = null;
+        const btn = document.getElementById('publish-btn');
+        if (btn) { btn.textContent = 'Pubblica passaggio'; btn.onclick = () => publishRide(); }
+      }
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       const sc = document.getElementById(id);
       if (sc) sc.classList.add('active');
