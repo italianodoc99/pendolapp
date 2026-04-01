@@ -2170,28 +2170,57 @@
       </div>
       <div class="scroll" style="padding:16px;" id="bookings-list"></div>
       <nav class="nav">
-        <div class="ni" onclick="goTo('sc-home',0)"><div class="ni-icon">🏠</div><div class="ni-lbl">Home</div><div class="ni-pip"></div></div>
-        <div class="ni" onclick="goTo('sc-search',1)"><div class="ni-icon">🔍</div><div class="ni-lbl">Cerca</div><div class="ni-pip"></div></div>
-        <div class="ni" onclick="goTo('sc-offer',2)"><div class="ni-icon">🚗</div><div class="ni-lbl">Offri</div><div class="ni-pip"></div></div>
-        <div class="ni" onclick="goTo('sc-transit',3)"><div class="ni-icon">🚌</div><div class="ni-lbl">Orari</div><div class="ni-pip"></div></div>
-        <div class="ni active" onclick="goTo('sc-profile',4)"><div class="ni-icon">👤</div><div class="ni-lbl">Profilo</div><div class="ni-pip"></div></div>
+        <div class="ni" onclick="goTo('sc-home',0)">
+          <div class="ni-icon">🏠</div>
+          <div class="ni-lbl">Home</div>
+          <div class="ni-pip"></div>
+        </div>
+        <div class="ni" onclick="goTo('sc-search',1)">
+          <div class="ni-icon">🔍</div>
+          <div class="ni-lbl">Cerca</div>
+          <div class="ni-pip"></div>
+        </div>
+        <div class="ni" onclick="goTo('sc-offer',2)">
+          <div class="ni-icon">🚗</div>
+          <div class="ni-lbl">Offri</div>
+          <div class="ni-pip"></div>
+        </div>
+        <div class="ni" onclick="goTo('sc-transit',3)">
+          <div class="ni-icon">🚌</div>
+          <div class="ni-lbl">Orari</div>
+          <div class="ni-pip"></div>
+        </div>
+        <div class="ni active" onclick="goTo('sc-profile',4)">
+          <div class="ni-icon">👤</div>
+          <div class="ni-lbl">Profilo</div>
+          <div class="ni-pip"></div>
+        </div>
       </nav>
     </div>
 
     <!-- ══ REVIEW MODAL ══ -->
-    <div id="review-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center;">
-      <div style="background:var(--card);border-radius:var(--r);padding:24px;margin:16px;max-width:340px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2);">
+    <div id="review-modal"
+      style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center;">
+      <div
+        style="background:var(--card);border-radius:var(--r);padding:24px;margin:16px;max-width:340px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.2);">
         <div style="font-size:18px;font-weight:600;margin-bottom:4px;">Lascia una recensione</div>
         <div id="rev-driver-name" style="font-size:14px;color:var(--txt2);margin-bottom:16px;"></div>
         <div style="display:flex;gap:6px;justify-content:center;margin-bottom:16px;" id="rev-stars">
-          <span class="rev-star" data-v="1" onclick="pickStar(1)" style="font-size:36px;cursor:pointer;transition:color .15s;">★</span>
-          <span class="rev-star" data-v="2" onclick="pickStar(2)" style="font-size:36px;cursor:pointer;transition:color .15s;">★</span>
-          <span class="rev-star" data-v="3" onclick="pickStar(3)" style="font-size:36px;cursor:pointer;transition:color .15s;">★</span>
-          <span class="rev-star" data-v="4" onclick="pickStar(4)" style="font-size:36px;cursor:pointer;transition:color .15s;">★</span>
-          <span class="rev-star" data-v="5" onclick="pickStar(5)" style="font-size:36px;cursor:pointer;transition:color .15s;">★</span>
+          <span class="rev-star" data-v="1" onclick="pickStar(1)"
+            style="font-size:36px;cursor:pointer;transition:color .15s;">★</span>
+          <span class="rev-star" data-v="2" onclick="pickStar(2)"
+            style="font-size:36px;cursor:pointer;transition:color .15s;">★</span>
+          <span class="rev-star" data-v="3" onclick="pickStar(3)"
+            style="font-size:36px;cursor:pointer;transition:color .15s;">★</span>
+          <span class="rev-star" data-v="4" onclick="pickStar(4)"
+            style="font-size:36px;cursor:pointer;transition:color .15s;">★</span>
+          <span class="rev-star" data-v="5" onclick="pickStar(5)"
+            style="font-size:36px;cursor:pointer;transition:color .15s;">★</span>
         </div>
-        <button class="btn btn-p" style="margin-bottom:8px;" id="rev-submit-btn" onclick="submitReview()">Invia recensione</button>
-        <button class="btn btn-o" onclick="document.getElementById('review-modal').style.display='none'">Annulla</button>
+        <button class="btn btn-p" style="margin-bottom:8px;" id="rev-submit-btn" onclick="submitReview()">Invia
+          recensione</button>
+        <button class="btn btn-o"
+          onclick="document.getElementById('review-modal').style.display='none'">Annulla</button>
       </div>
     </div>
 
@@ -3013,9 +3042,9 @@
           pendingHtml = `<div style="margin-bottom:20px;">
             <div style="font-size:13px;font-weight:600;color:var(--txt2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;">Richieste in attesa (${pending.length})</div>
             ${pending.map(b => {
-              const ride = mine.find(r => r.id === b.rideId);
-              const routeLabel = ride ? `${ride.from} → ${ride.to}` : (b.rideId || '');
-              return `<div style="background:var(--card);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);border-left:3px solid var(--blue);">
+            const ride = mine.find(r => r.id === b.rideId);
+            const routeLabel = ride ? `${ride.from} → ${ride.to}` : (b.rideId || '');
+            return `<div style="background:var(--card);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06);border-left:3px solid var(--blue);">
                 <div style="font-weight:600;font-size:14px;margin-bottom:2px;">${b.riderName || 'Passeggero'}</div>
                 <div style="font-size:13px;color:var(--txt2);margin-bottom:10px;">${routeLabel}</div>
                 <div style="display:flex;gap:8px;">
@@ -3023,7 +3052,7 @@
                   <button onclick="cancelBooking('${b.id}')" style="flex:1;padding:9px;background:var(--red-l);color:var(--red);border:none;border-radius:var(--rsm);font-size:14px;font-weight:500;font-family:var(--font);cursor:pointer;">✕ Rifiuta</button>
                 </div>
               </div>`;
-            }).join('')}
+          }).join('')}
           </div>`;
         }
       } catch (e) { console.warn('booking fetch error', e); }
@@ -3608,11 +3637,47 @@
       return results;
     }
 
+    // ── HUB DINAMICI ─────────────────────────────────────────────────────────────
+    // Calcola i nodi di connessione a partire dai dati reali degli operatori:
+    // una fermata diventa hub automatico se appare in 2+ linee diverse.
+    // Viene unita alla lista statica HUBS per retrocompatibilità.
+    let _dynamicHubs = null;
+    function getDynamicHubs() {
+      if (_dynamicHubs) return _dynamicHubs;
+      const ops = window._OPERATORS;
+      if (!ops || !ops.length) {
+        _dynamicHubs = [...new Set(HUBS.map(h => normalizeStop(h.toLowerCase())))];
+        return _dynamicHubs;
+      }
+      const lineCount = {};
+      for (const op of ops) {
+        for (const line of (op.lines || [])) {
+          const seen = new Set();
+          for (const stop of (line.stops || [])) {
+            const key = normalizeStop(stop.toLowerCase());
+            if (!seen.has(key)) { seen.add(key); lineCount[key] = (lineCount[key] || 0) + 1; }
+          }
+        }
+      }
+      const dynHubs = Object.keys(lineCount).filter(s => lineCount[s] >= 2);
+      _dynamicHubs = [...new Set([...HUBS.map(h => normalizeStop(h.toLowerCase())), ...dynHubs])];
+      return _dynamicHubs;
+    }
+    // Chiamare quando _OPERATORS viene aggiornato (es. dopo fetch Firebase)
+    window._invalidateDynamicHubs = () => { _dynamicHubs = null; };
+
     function buildJourneys(from, to, dateStr) {
       const journeys = [], WAIT = 5;
-      const fq = from.toLowerCase(), tq = to.toLowerCase();
 
-      // Direct rides
+      // Memoizza transitForRoute per evitare chiamate duplicate
+      const _tCache = {};
+      const cachedTransit = (f, t) => {
+        const key = f + '|' + t;
+        if (!_tCache[key]) _tCache[key] = transitForRoute(f, t, dateStr);
+        return _tCache[key];
+      };
+
+      // ── Fase 1: corse dirette ────────────────────────────────────────────────
       for (const r of allRides) {
         if (!rideMatches(r, from) || !rideMatches(r, to)) continue;
         const dep = toMins(r.depTime), arr = toMins(r.arrTime) || (dep ? dep + 60 : null);
@@ -3632,8 +3697,8 @@
         });
       }
 
-      // Direct transit
-      for (const t of transitForRoute(from, to, dateStr)) {
+      // ── Fase 2: transiti diretti ─────────────────────────────────────────────
+      for (const t of cachedTransit(from, to)) {
         const mins = t.segMins || 60;
         const arr = t.arrTime || fromMins(toMins(t.depTime) + mins);
         const timeStr = t.arrTime ? t.depTime + ' → ' + t.arrTime : t.depTime + ' –  –';
@@ -3649,11 +3714,16 @@
         });
       }
 
-      // Connections via hubs
-      for (const hub of HUBS) {
-        const hubQ = hub.toLowerCase();
-        const ridesTo = allRides.filter(r => rideMatches(r, from) && rideMatches(r, hub));
-        const transitFrom = transitForRoute(hub, to, dateStr);
+      const allHubs = getDynamicHubs();
+      // Pre-filtra le corse che partono dall'origine (usato in fase 3 e 5)
+      const ridesFromOrigin = allRides.filter(r => rideMatches(r, from));
+
+      // ── Fase 3: ride → transit via hub (1 cambio) ────────────────────────────
+      for (const hub of allHubs) {
+        const ridesTo = ridesFromOrigin.filter(r => rideMatches(r, hub));
+        if (!ridesTo.length) continue;
+        const transitFrom = cachedTransit(hub, to);
+        if (!transitFrom.length) continue;
         for (const ride of ridesTo) {
           const rArr = (toMins(ride.arrTime) || (toMins(ride.depTime) || 0) + 45);
           for (const t of transitFrom) {
@@ -3690,6 +3760,150 @@
           }
         }
       }
+
+      // ── Fase 4: transit → transit via hub (1 cambio) ─────────────────────────
+      for (const hub of allHubs) {
+        const t1List = cachedTransit(from, hub);
+        if (!t1List.length) continue;
+        const t2List = cachedTransit(hub, to);
+        if (!t2List.length) continue;
+        for (const t1 of t1List) {
+          const t1ArrMins = toMins(t1.arrTime) || (toMins(t1.depTime) + (t1.segMins || 60));
+          const t1Arr = fromMins(t1ArrMins);
+          for (const t2 of t2List) {
+            const t2Dep = toMins(t2.depTime); if (!t2Dep) continue;
+            const wait = t2Dep - t1ArrMins;
+            if (wait < WAIT) continue;
+            if (filterWait !== 'any' && wait > filterWait) continue;
+            const t2ArrMins = toMins(t2.arrTime) || (t2Dep + (t2.segMins || 60));
+            journeys.push({
+              id: 'tt_' + t1.operatorId + '_' + t1.depTime + '_' + hub + '_' + t2.operatorId + '_' + t2.depTime,
+              cambi: 1, transferNode: hub, transferWait: wait,
+              totalMins: t2ArrMins - (toMins(t1.depTime) || 0), totalPrice: 0,
+              depTime: t1.depTime, arrTime: fromMins(t2ArrMins),
+              steps: [
+                {
+                  type: 'transit', icon: t1.icon, bg: t1.color || 'var(--blue-l)',
+                  title: t1.lineName, sub: t1.operator,
+                  time: t1.depTime + ' → ' + t1Arr, officialUrl: t1.officialUrl
+                },
+                { type: 'transfer', node: hub, wait },
+                {
+                  type: 'transit', icon: t2.icon, bg: t2.color || 'var(--blue-l)',
+                  title: t2.lineName, sub: t2.operator + ' da ' + hub,
+                  time: t2.depTime + ' → ' + fromMins(t2ArrMins), officialUrl: t2.officialUrl
+                }
+              ]
+            });
+          }
+        }
+      }
+
+      // ── Fase 5: 2 cambi (ride→transit→transit e transit→transit→transit) ──────
+      // Per ogni hub1 raggiungibile dall'origine, cerca hub2 raggiungibile da hub1
+      // che abbia a sua volta un transito verso la destinazione.
+      for (const hub1 of allHubs) {
+        const ridesTo1 = ridesFromOrigin.filter(r => rideMatches(r, hub1));
+        const t1List = cachedTransit(from, hub1);
+        if (!ridesTo1.length && !t1List.length) continue;
+
+        for (const hub2 of allHubs) {
+          if (hub1 === hub2) continue;
+          const t2List = cachedTransit(hub1, hub2);
+          if (!t2List.length) continue;
+          const t3List = cachedTransit(hub2, to);
+          if (!t3List.length) continue;
+
+          // ride → transit(hub1→hub2) → transit(hub2→to)
+          for (const ride of ridesTo1) {
+            const rArr = toMins(ride.arrTime) || (toMins(ride.depTime) || 0) + 45;
+            const dep = toMins(ride.depTime);
+            for (const t2 of t2List) {
+              const t2Dep = toMins(t2.depTime); if (!t2Dep) continue;
+              const wait1 = t2Dep - rArr;
+              if (wait1 < WAIT) continue;
+              const t2ArrMins = toMins(t2.arrTime) || (t2Dep + (t2.segMins || 60));
+              for (const t3 of t3List) {
+                const t3Dep = toMins(t3.depTime); if (!t3Dep) continue;
+                const wait2 = t3Dep - t2ArrMins;
+                if (wait2 < WAIT) continue;
+                const t3ArrMins = toMins(t3.arrTime) || (t3Dep + (t3.segMins || 60));
+                journeys.push({
+                  id: 'c2_' + ride.id + '_' + hub1 + '_' + t2.depTime + '_' + hub2 + '_' + t3.depTime,
+                  cambi: 2, transferNode: hub1 + ' · ' + hub2, transferWait: Math.min(wait1, wait2),
+                  totalMins: t3ArrMins - (dep || 0), totalPrice: parseFloat(ride.price || 0),
+                  depTime: ride.depTime, arrTime: fromMins(t3ArrMins),
+                  steps: [
+                    {
+                      type: 'ride', icon: '🚗', bg: 'var(--green-l)',
+                      title: (ride.from || '') + ' → ' + hub1,
+                      sub: 'Con ' + (ride.driverName || 'guidatore'),
+                      time: ride.depTime + ' – ' + fromMins(rArr),
+                      price: parseFloat(ride.price || 0), rideId: ride.id,
+                      driverId: ride.driverId, driverName: ride.driverName
+                    },
+                    { type: 'transfer', node: hub1, wait: wait1 },
+                    {
+                      type: 'transit', icon: t2.icon, bg: t2.color || 'var(--blue-l)',
+                      title: t2.lineName, sub: t2.operator + ' da ' + hub1,
+                      time: t2.depTime + ' → ' + fromMins(t2ArrMins), officialUrl: t2.officialUrl
+                    },
+                    { type: 'transfer', node: hub2, wait: wait2 },
+                    {
+                      type: 'transit', icon: t3.icon, bg: t3.color || 'var(--blue-l)',
+                      title: t3.lineName, sub: t3.operator + ' da ' + hub2,
+                      time: t3.depTime + ' → ' + fromMins(t3ArrMins), officialUrl: t3.officialUrl
+                    }
+                  ]
+                });
+              }
+            }
+          }
+
+          // transit(from→hub1) → transit(hub1→hub2) → transit(hub2→to)
+          for (const t1 of t1List) {
+            const t1ArrMins = toMins(t1.arrTime) || (toMins(t1.depTime) + (t1.segMins || 60));
+            for (const t2 of t2List) {
+              const t2Dep = toMins(t2.depTime); if (!t2Dep) continue;
+              const wait1 = t2Dep - t1ArrMins;
+              if (wait1 < WAIT) continue;
+              const t2ArrMins = toMins(t2.arrTime) || (t2Dep + (t2.segMins || 60));
+              for (const t3 of t3List) {
+                const t3Dep = toMins(t3.depTime); if (!t3Dep) continue;
+                const wait2 = t3Dep - t2ArrMins;
+                if (wait2 < WAIT) continue;
+                const t3ArrMins = toMins(t3.arrTime) || (t3Dep + (t3.segMins || 60));
+                journeys.push({
+                  id: 'ttt_' + t1.operatorId + '_' + t1.depTime + '_' + hub1 + '_' + t2.depTime + '_' + hub2 + '_' + t3.depTime,
+                  cambi: 2, transferNode: hub1 + ' · ' + hub2, transferWait: Math.min(wait1, wait2),
+                  totalMins: t3ArrMins - (toMins(t1.depTime) || 0), totalPrice: 0,
+                  depTime: t1.depTime, arrTime: fromMins(t3ArrMins),
+                  steps: [
+                    {
+                      type: 'transit', icon: t1.icon, bg: t1.color || 'var(--blue-l)',
+                      title: t1.lineName, sub: t1.operator,
+                      time: t1.depTime + ' → ' + fromMins(t1ArrMins), officialUrl: t1.officialUrl
+                    },
+                    { type: 'transfer', node: hub1, wait: wait1 },
+                    {
+                      type: 'transit', icon: t2.icon, bg: t2.color || 'var(--blue-l)',
+                      title: t2.lineName, sub: t2.operator + ' da ' + hub1,
+                      time: t2.depTime + ' → ' + fromMins(t2ArrMins), officialUrl: t2.officialUrl
+                    },
+                    { type: 'transfer', node: hub2, wait: wait2 },
+                    {
+                      type: 'transit', icon: t3.icon, bg: t3.color || 'var(--blue-l)',
+                      title: t3.lineName, sub: t3.operator + ' da ' + hub2,
+                      time: t3.depTime + ' → ' + fromMins(t3ArrMins), officialUrl: t3.officialUrl
+                    }
+                  ]
+                });
+              }
+            }
+          }
+        }
+      }
+
       return journeys;
     }
 
@@ -3729,6 +3943,11 @@
       let jj = buildJourneys(from, to, dateVal);
       if (filterCambi !== 'any') jj = jj.filter(j => j.cambi <= filterCambi);
       if (filterWait !== 'any') jj = jj.filter(j => !j.transferWait || j.transferWait <= filterWait);
+      // Marca i percorsi a 2 cambi che impiegano più del doppio del miglior diretto
+      const bestDirectMins = Math.min(...jj.filter(j => j.cambi === 0 && j.totalMins > 0).map(j => j.totalMins), Infinity);
+      if (Number.isFinite(bestDirectMins)) {
+        jj.forEach(j => { if (j.cambi >= 2 && j.totalMins > bestDirectMins * 2) j.slowWarning = true; });
+      }
       const timeVal = (document.getElementById('s-time')?.value || '').trim();
       if (timeVal) { const tMin = toMins(timeVal); if (tMin != null) jj = jj.filter(j => (toMins(j.depTime) || 0) >= tMin); }
       const seen = new Set(); jj = jj.filter(j => { if (seen.has(j.id)) return false; seen.add(j.id); return true; });
@@ -3757,7 +3976,9 @@
       el.innerHTML = jj.map(j => {
         const cambiB = j.cambi === 0
           ? '<span class="jbadge">🚀 Diretto</span>'
-          : '<span class="jbadge warn">🔄 ' + j.cambi + ' cambio' + (j.cambi > 1 ? 'i' : '') + '</span>';
+          : j.slowWarning
+            ? '<span class="jbadge warn">🔄 ' + j.cambi + ' cambi · ⚠️ percorso lento</span>'
+            : '<span class="jbadge warn">🔄 ' + j.cambi + ' cambio' + (j.cambi > 1 ? 'i' : '') + '</span>';
         const dur = j.totalMins < 60 ? j.totalMins + 'min' : Math.floor(j.totalMins / 60) + 'h ' + (j.totalMins % 60 ? j.totalMins % 60 + 'min' : '');
         const timeB = '<span class="jbadge info">⏱ ' + dur + '</span>';
         const priceB = j.totalPrice > 0 ? '<span class="jbadge">€' + j.totalPrice.toFixed(2) + '</span>' : '<span class="jbadge" style="background:var(--surf2);color:var(--txt2);">Gratuito</span>';
