@@ -3186,16 +3186,29 @@
       const time = document.getElementById('o-time').value;
       const price = parseFloat(document.getElementById('o-price').value || '0');
       const transit = document.getElementById('o-transit').value.trim();
-      const date = document.getElementById('o-date')?.value    // ← AGGIUNTO
-        || new Date().toISOString().slice(0, 10);   // ← AGGIUNTO
+      const date = document.getElementById('o-date')?.value
+        || new Date().toISOString().slice(0, 10);
       if (!from || !to || !time) { alert('Compila almeno partenza, destinazione e orario.'); return; }
+
+      // Recupera i campi geografici dal ride originale
+      const existing = allRides.find(r => r.id === id) || {};
+      const geoFields = {
+        ...(existing.lat !== undefined && { lat: existing.lat }),
+        ...(existing.lng !== undefined && { lng: existing.lng }),
+        ...(existing.arrLat !== undefined && { arrLat: existing.arrLat }),
+        ...(existing.arrLng !== undefined && { arrLng: existing.arrLng }),
+        ...(existing.waypoints !== undefined && { waypoints: existing.waypoints }),
+        ...(existing.meetingPoint !== undefined && { meetingPoint: existing.meetingPoint }),
+        ...(existing.arrivalPoint !== undefined && { arrivalPoint: existing.arrivalPoint }),
+      };
+
       const btn = document.getElementById('publish-btn');
       btn.disabled = true; btn.innerHTML = '<div class="spinner"></div>';
       try {
         const { updateDoc: _ud2, doc: _doc2 } = window._fb;
-        await _ud2(_doc2(db, 'rides', id), { from, to, depTime: time, price, transit, date }); // ← date aggiunto
+        await _ud2(_doc2(db, 'rides', id), { from, to, depTime: time, price, transit, date, ...geoFields });
         const idx = allRides.findIndex(r => r.id === id);
-        if (idx !== -1) allRides[idx] = { ...allRides[idx], from, to, depTime: time, price, transit, date }; // ← date aggiunto
+        if (idx !== -1) allRides[idx] = { ...allRides[idx], from, to, depTime: time, price, transit, date, ...geoFields };
         btn.disabled = false; btn.textContent = 'Pubblica passaggio';
         btn.onclick = () => publishRide();
         window._editRideId = null;
@@ -3613,7 +3626,7 @@
         let k = keys.find(k => k.toLowerCase() === q || normalizeStop(k.toLowerCase()) === nq);
         if (k) return times[k];
         // match parziale (normalizzato)
-        k = keys.find(k => { const nk = normalizeStop(k.toLowerCase()); return nk.includes(nq) || nq.includes(nk) || k.toLowerCase().includes(q) || q.includes(k.toLowerCase()); });
+        k = keys.find(k => { const nk = normalizeStop(k.toLowerCase()); return nk.includes(nq) || (nk.length > 4 && nq.includes(nk)) || k.toLowerCase().includes(q) || (k.length > 4 && q.includes(k.toLowerCase())); });
         if (k) return times[k];
         // match per parola (normalizzato)
         const words = nq.split(/\s+/).filter(w => w.length > 2);
@@ -3635,10 +3648,11 @@
             if (!q) return true;
             const nq2 = normalizeStop(q);
             if (n.includes(q)) return true;
-            if (allStopsN.some(s => s === nq2 || s.includes(nq2) || nq2.includes(s))) return true;
+            if (allStopsN.some(s => s === nq2 || s.includes(nq2) || (s.length > 4 && nq2.includes(s)))) return true;
             if (allStops.some(s => s.includes(q))) return true;
-            const words = nq2.split(/\s+/).filter(w => w.length > 5);
-            return words.length > 0 && words.some(w => n.includes(w) || allStopsN.some(s => s.includes(w)) || allStops.some(s => s.includes(w)));
+            const words = nq2.split(/\s+/).filter(w => w.length > 3);
+            if (!words.length) return false;
+            return words.every(w => n.includes(w) || allStopsN.some(s => s.includes(w)) || allStops.some(s => s.includes(w)));
           };
           if (!matchInText(fq) || !matchInText(tq)) continue;
 
@@ -4098,6 +4112,7 @@
       window._curJourneys = jj;
       const el = document.getElementById('s-results');
       if (!jj.length) {
+        window._curJourneys = [];  // ← reset: evita che openJDetail usi percorsi vecchi
         el.innerHTML = '<div class="no-results"><div style="font-size:40px;">🔍</div><div style="font-size:16px;font-weight:500;">Nessun percorso trovato</div><div style="font-size:14px;color:var(--txt2);line-height:1.6;">Prova filtri diversi o cerca termini diversi.</div>' + (from && to ? '<button class="btn btn-s" style="margin-top:8px;" onclick="goTo(\'sc-offer\',2)">+ Pubblica questo percorso</button>' : '') + '</div>';
         return;
       }
@@ -5302,7 +5317,7 @@
 
     // BUG FIX 3: aggiorna i badge orari ogni 30 secondi senza ricostruire il DOM
     setInterval(() => {
-      const el = document.getElementById('transit-list');
+      const el = document.getElementById('transit-body');
       if (!el || el.children.length === 0) return;
       const nowM = new Date().getHours() * 60 + new Date().getMinutes();
       _updateTransitTimeBadges(el, nowM);
