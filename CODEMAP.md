@@ -34,7 +34,7 @@ Struttura: `<head>` CSS → `<body>` HTML screens → `<script>` JS
 
 ---
 
-## Strutture dati JS
+## Strutture dati JS (ottimizzate)
 
 ### `HUBS` — array di stringhe (riga ~3351)
 Lista **statica** di fermate/luoghi usabili come nodi di cambio nel planner.  
@@ -48,7 +48,9 @@ Normalizza input dell'utente verso il nome canonico. Chiave = nome come appare i
 Lista per l'autocomplete dei campi from/to. Separata da HUBS.
 
 ### `OPERATORS` — array di oggetti (riga ~4050, dentro `renderTransitFull`)
-Definisce tutte le linee di trasporto pubblico. **Struttura di un operatore:**
+Definisce tutte le linee di trasporto pubblico. **Ora viene inizializzato una sola volta** all’avvio e memorizzato in `window._OPERATORS`. Le successive chiamate a `renderTransitFull()` usano questa variabile globale e rigenerano solo l’HTML, senza ricostruire l’intero dataset.
+
+**Struttura di un operatore:**
 
 ```javascript
 {
@@ -76,8 +78,7 @@ Definisce tutte le linee di trasporto pubblico. **Struttura di un operatore:**
       ]
     }
   ]
-}
-```
+}`
 
 **Codici `validity`:**
 - `'FE6'` / `'A6'` → Lunedì–Sabato

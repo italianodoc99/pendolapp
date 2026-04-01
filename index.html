@@ -1878,7 +1878,7 @@
         <div class="scard">
           <div class="srow">
             <div class="sdot sdot-f"></div><input class="sinput" id="home-from" placeholder="Partenza (es. Caserta)"
-              oninput="acSuggest('home-from','ac-home-from')" onfocus="acSuggest('home-from','ac-home-from')"
+              oninput="acSuggestDebounced('home-from','ac-home-from')" onfocus="acSuggest('home-from','ac-home-from')"
               onblur="setTimeout(()=>document.getElementById('ac-home-from').style.display='none',200)"
               autocomplete="off">
           </div>
@@ -1886,7 +1886,7 @@
           <div class="sdiv"></div>
           <div class="srow">
             <div class="sdot sdot-t"></div><input class="sinput" id="home-to" placeholder="Destinazione (es. Napoli)"
-              oninput="acSuggest('home-to','ac-home-to')" onfocus="acSuggest('home-to','ac-home-to')"
+              oninput="acSuggestDebounced('home-to','ac-home-to')" onfocus="acSuggest('home-to','ac-home-to')"
               onblur="setTimeout(()=>document.getElementById('ac-home-to').style.display='none',200)"
               autocomplete="off">
           </div>
@@ -2066,6 +2066,10 @@
           <div style="flex:1;">
             <label class="form-lbl">Orario partenza</label>
             <input class="form-inp" type="time" id="o-time" value="07:15">
+          </div>
+          <div style="flex:1;">
+            <label class="form-lbl">Data</label> <!-- ← AGGIUNTO -->
+            <input class="form-inp" type="date" id="o-date"> <!-- ← AGGIUNTO -->
           </div>
           <div style="flex:1;">
             <label class="form-lbl">Prezzo (€ a persona)</label>
@@ -2594,7 +2598,9 @@
     // FIX: cache globale persistente per transitForRoute (sopravvive tra ricerche diverse)
     window._transitCache = {};
     window._transitCacheDate = null;
-
+    // ── cache percorsi calcolati (from|to|date) ──────────────────────────────────
+    window._journeyCache = null;   // risultato buildJourneys
+    window._journeyCacheKey = null;   // chiave "from|to|date"
     // FIX: flag per evitare di rieseguire renderTransitFull() a ogni login
     window._operatorsReady = false;
 
@@ -2654,6 +2660,10 @@
         listenChats();
       } else {
         currentUser = null;
+        // BUG FIX 1: dismetti i listener Firestore al logout per evitare aggiornamenti DOM e sprechi di banda
+        if (window._ridesUnsub) { window._ridesUnsub(); window._ridesUnsub = null; }
+        if (window._chatsUnsub) { window._chatsUnsub(); window._chatsUnsub = null; }
+        if (window._chatUnsub) { window._chatUnsub(); window._chatUnsub = null; }
         document.getElementById('auth-overlay').classList.remove('hidden');
       }
     });
@@ -2714,17 +2724,34 @@
     window.doLogout = () => signOut(auth);
 
     // ── rides listener (Firestore realtime) ───────────────────────────────────────
+    // ── rides listener (Firestore realtime) ───────────────────────────────────────
     function listenRides() {
-      // FIX: limite a 200 documenti — evita di scaricare tutta la collezione
-      const q = query(collection(db, 'rides'), orderBy('createdAt', 'desc'), limit(200));
-      onSnapshot(q, snap => {
+      // Filtra solo passaggi da oggi in poi
+      const todayStr = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+
+      const q = query(
+        collection(db, 'rides'),
+        where('date', '>=', todayStr),
+        orderBy('date'),
+        orderBy('depTime'),
+        limit(200)
+      );
+
+      if (window._ridesUnsub) { window._ridesUnsub(); window._ridesUnsub = null; }
+      window._ridesUnsub = onSnapshot(q, snap => {
         allRides = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        // Invalida cache journeys — i dati sono cambiati
+        window._journeyCacheKey = null;
+        window._journeyCache = null;
+
         renderRideList(allRides, 'home-rides');
         document.getElementById('home-count').textContent =
-          allRides.length ? `${allRides.length} passagg${allRides.length === 1 ? 'io' : 'i'} disponibili` : 'Nessun passaggio ancora — sii il primo!';
+          allRides.length
+            ? `${allRides.length} passagg${allRides.length === 1 ? 'io' : 'i'} disponibili`
+            : 'Nessun passaggio ancora — sii il primo!';
 
-        // FIX: debounce su liveSearch — evita ricalcoli ad ogni snapshot Firestore
-        // (ogni modifica al DB triggherava un buildJourneys completo)
+        // Debounce su liveSearch — evita ricalcoli ad ogni snapshot
         if (!window._liveSearchDebounced) {
           window._liveSearchDebounced = window._debounce(() => {
             if (typeof window.planJourney === 'function') window.planJourney();
@@ -2732,11 +2759,12 @@
         }
         window._liveSearchDebounced();
 
-        // conta i miei passaggi
+        // Conta i miei passaggi
         const mine = allRides.filter(r => r.driverId === currentUser?.uid).length;
         document.getElementById('my-rides-count').textContent = mine || '';
       });
     }
+
 
     // ── render rides ──────────────────────────────────────────────────────────────
     function rideHTML(r) {
@@ -2984,7 +3012,18 @@
         }, () => {
           nearMeActive = false;
           document.querySelectorAll('.near-badge').forEach(b => { b.classList.remove('active'); b.textContent = '📍 Vicino a me'; });
-          alert('Posizione non disponibile. Abilita i permessi di geolocalizzazione.');
+          // MIGLIORAMENTO: messaggio inline invece di alert(), con pulsante per riprovare
+          const msgId = 'geo-error-msg';
+          if (!document.getElementById(msgId)) {
+            const msg = document.createElement('div');
+            msg.id = msgId;
+            msg.style.cssText = 'margin:8px 16px;padding:10px 12px;background:var(--coral-l);color:var(--coral-d);border-radius:var(--rsm);font-size:13px;display:flex;align-items:center;gap:8px;';
+            msg.innerHTML = '📍 Posizione non disponibile. Abilita i permessi nelle impostazioni del browser.'
+              + '<button onclick="document.getElementById(\'' + msgId + '\').remove()" style="margin-left:auto;background:none;border:none;font-size:16px;cursor:pointer;color:var(--coral-d);">✕</button>';
+            const container = document.getElementById('home-rides') || document.querySelector('.screen.active');
+            if (container) container.prepend(msg);
+            setTimeout(() => { const m = document.getElementById(msgId); if (m) m.remove(); }, 5000);
+          }
         });
       } else { window.planJourney(); }
     };
@@ -3026,6 +3065,8 @@
           waypoints: wps,
           lat: pickedLat || 41.0761, lng: pickedLng || 14.3320,
           arrLat: pickedArrLat, arrLng: pickedArrLng,
+          date: document.getElementById('o-date')?.value    // ← AGGIUNTO
+            || new Date().toISOString().slice(0, 10),
           status: 'active', createdAt: serverTimestamp()
         });
         btn.disabled = false; btn.textContent = 'Pubblica passaggio';
@@ -3145,14 +3186,16 @@
       const time = document.getElementById('o-time').value;
       const price = parseFloat(document.getElementById('o-price').value || '0');
       const transit = document.getElementById('o-transit').value.trim();
+      const date = document.getElementById('o-date')?.value    // ← AGGIUNTO
+        || new Date().toISOString().slice(0, 10);   // ← AGGIUNTO
       if (!from || !to || !time) { alert('Compila almeno partenza, destinazione e orario.'); return; }
       const btn = document.getElementById('publish-btn');
       btn.disabled = true; btn.innerHTML = '<div class="spinner"></div>';
       try {
         const { updateDoc: _ud2, doc: _doc2 } = window._fb;
-        await _ud2(_doc2(db, 'rides', id), { from, to, depTime: time, price, transit });
+        await _ud2(_doc2(db, 'rides', id), { from, to, depTime: time, price, transit, date }); // ← date aggiunto
         const idx = allRides.findIndex(r => r.id === id);
-        if (idx !== -1) allRides[idx] = { ...allRides[idx], from, to, depTime: time, price, transit };
+        if (idx !== -1) allRides[idx] = { ...allRides[idx], from, to, depTime: time, price, transit, date }; // ← date aggiunto
         btn.disabled = false; btn.textContent = 'Pubblica passaggio';
         btn.onclick = () => publishRide();
         window._editRideId = null;
@@ -3162,7 +3205,6 @@
         alert('Errore: ' + e.message);
       }
     };
-
     // ── prenotazioni ─────────────────────────────────────────────────────────────
     window.bookRide = async (rideId, driverId, driverName) => {
       if (!currentUser || !window._fb) return;
@@ -3527,10 +3569,15 @@
       _ALIAS_MAP[canonical] = canonical;
       for (const a of aliases) _ALIAS_MAP[a] = canonical;
     }
+    // MIGLIORAMENTO: cache di normalizeStop per evitare ricalcoli ripetuti nei loop
+    const _normalizeCache = new Map();
     function normalizeStop(q) {
       if (!q) return q;
+      if (_normalizeCache.has(q)) return _normalizeCache.get(q);
       const ql = q.toLowerCase().trim();
-      return _ALIAS_MAP[ql] || ql;
+      const result = _ALIAS_MAP[ql] || ql;
+      _normalizeCache.set(q, result);
+      return result;
     }
 
     // ── FILTRO SCOLASTICO ─────────────────────────────────────────────────────────
@@ -3629,10 +3676,7 @@
                   continue; // direzione sbagliata: "from" arriva dopo "to" in questa corsa
                 }
               } else {
-                // dep.times presente ma manca uno dei due orari:
-                // se times è popolato (>1 fermata), questa corsa non serve quella fermata → salta
-                if (Object.keys(dep.times).length > 1) continue;
-                // times minimale (solo fermata di partenza): fallback proporzionale sulle fermate
+                // dep.times presente ma manca uno dei due orari: fallback proporzionale sulle fermate
                 const idxF = allStopsN.findIndex(s => s === fq || s.includes(fq) || fq.split(/\s+/).filter(w => w.length > 1).some(w => s.includes(w)));
                 const idxT = allStopsN.findIndex(s => s === tq || s.includes(tq) || tq.split(/\s+/).filter(w => w.length > 1).some(w => s.includes(w)));
                 if (idxF >= 0 && idxT >= 0) {
@@ -3699,7 +3743,16 @@
     window._invalidateDynamicHubs = () => { _dynamicHubs = null; };
 
     function buildJourneys(from, to, dateStr) {
+      const MAX_JOURNEYS = 15;      // Limite massimo di percorsi da generare
       const journeys = [], WAIT = 5;
+      // BUG FIX 4: filtro seen applicato durante la costruzione per evitare duplicati visivi
+      const seen = new Set();
+      const addJourney = (j) => {
+        if (seen.has(j.id)) return false;
+        seen.add(j.id);
+        journeys.push(j);
+        return true;
+      };
 
       // FIX: cache globale persistente tra ricerche diverse
       if (window._transitCacheDate !== dateStr) {
@@ -3716,10 +3769,11 @@
 
       // ── Fase 1: corse dirette ────────────────────────────────────────────────
       for (const r of allRides) {
+        if (journeys.length >= MAX_JOURNEYS) break;
         if (!rideMatches(r, from) || !rideMatches(r, to)) continue;
         const dep = toMins(r.depTime), arr = toMins(r.arrTime) || (dep ? dep + 60 : null);
         if (dep == null) continue;
-        journeys.push({
+        addJourney({
           id: 'd_' + r.id, cambi: 0,
           totalMins: arr - dep, totalPrice: parseFloat(r.price || 0),
           depTime: r.depTime, arrTime: r.arrTime || fromMins(arr),
@@ -3736,10 +3790,11 @@
 
       // ── Fase 2: transiti diretti ─────────────────────────────────────────────
       for (const t of cachedTransit(from, to)) {
+        if (journeys.length >= MAX_JOURNEYS) break;
         const mins = t.segMins || 60;
         const arr = t.arrTime || fromMins(toMins(t.depTime) + mins);
         const timeStr = t.arrTime ? t.depTime + ' → ' + t.arrTime : t.depTime + ' –  –';
-        journeys.push({
+        addJourney({
           id: 't_' + t.operatorId + '_' + t.depTime + '_' + t.depStop, cambi: 0,
           totalMins: mins, totalPrice: 0,
           depTime: t.depTime, arrTime: arr,
@@ -3757,13 +3812,16 @@
 
       // ── Fase 3: ride → transit via hub (1 cambio) ────────────────────────────
       for (const hub of allHubs) {
+        if (journeys.length >= MAX_JOURNEYS) break;
         const ridesTo = ridesFromOrigin.filter(r => rideMatches(r, hub));
         if (!ridesTo.length) continue;
         const transitFrom = cachedTransit(hub, to);
         if (!transitFrom.length) continue;
         for (const ride of ridesTo) {
+          if (journeys.length >= MAX_JOURNEYS) break;
           const rArr = (toMins(ride.arrTime) || (toMins(ride.depTime) || 0) + 45);
           for (const t of transitFrom) {
+            if (journeys.length >= MAX_JOURNEYS) break;
             const tDep = toMins(t.depTime); if (!tDep) continue;
             const wait = tDep - rArr;
             if (wait < WAIT) continue;
@@ -3772,7 +3830,7 @@
             const tSeg = t.segMins || 60;
             const tArr = t.arrTime || fromMins(tDep + tSeg);
             const tArrMins = toMins(tArr) || (tDep + tSeg);
-            journeys.push({
+            addJourney({
               id: 'c_' + ride.id + '_' + t.operatorId + '_' + t.depTime,
               cambi: 1, transferNode: hub, transferWait: wait,
               totalMins: tArrMins - (dep || 0), totalPrice: parseFloat(ride.price || 0),
@@ -3800,20 +3858,23 @@
 
       // ── Fase 4: transit → transit via hub (1 cambio) ─────────────────────────
       for (const hub of allHubs) {
+        if (journeys.length >= MAX_JOURNEYS) break;
         const t1List = cachedTransit(from, hub);
         if (!t1List.length) continue;
         const t2List = cachedTransit(hub, to);
         if (!t2List.length) continue;
         for (const t1 of t1List) {
+          if (journeys.length >= MAX_JOURNEYS) break;
           const t1ArrMins = toMins(t1.arrTime) || (toMins(t1.depTime) + (t1.segMins || 60));
           const t1Arr = fromMins(t1ArrMins);
           for (const t2 of t2List) {
+            if (journeys.length >= MAX_JOURNEYS) break;
             const t2Dep = toMins(t2.depTime); if (!t2Dep) continue;
             const wait = t2Dep - t1ArrMins;
             if (wait < WAIT) continue;
             if (filterWait !== 'any' && wait > filterWait) continue;
             const t2ArrMins = toMins(t2.arrTime) || (t2Dep + (t2.segMins || 60));
-            journeys.push({
+            addJourney({
               id: 'tt_' + t1.operatorId + '_' + t1.depTime + '_' + hub + '_' + t2.operatorId + '_' + t2.depTime,
               cambi: 1, transferNode: hub, transferWait: wait,
               totalMins: t2ArrMins - (toMins(t1.depTime) || 0), totalPrice: 0,
@@ -3837,14 +3898,14 @@
       }
 
       // ── Fase 5: 2 cambi (ride→transit→transit e transit→transit→transit) ──────
-      // Per ogni hub1 raggiungibile dall'origine, cerca hub2 raggiungibile da hub1
-      // che abbia a sua volta un transito verso la destinazione.
       for (const hub1 of allHubs) {
+        if (journeys.length >= MAX_JOURNEYS) break;
         const ridesTo1 = ridesFromOrigin.filter(r => rideMatches(r, hub1));
         const t1List = cachedTransit(from, hub1);
         if (!ridesTo1.length && !t1List.length) continue;
 
         for (const hub2 of allHubs) {
+          if (journeys.length >= MAX_JOURNEYS) break;
           if (hub1 === hub2) continue;
           const t2List = cachedTransit(hub1, hub2);
           if (!t2List.length) continue;
@@ -3853,19 +3914,22 @@
 
           // ride → transit(hub1→hub2) → transit(hub2→to)
           for (const ride of ridesTo1) {
+            if (journeys.length >= MAX_JOURNEYS) break;
             const rArr = toMins(ride.arrTime) || (toMins(ride.depTime) || 0) + 45;
             const dep = toMins(ride.depTime);
             for (const t2 of t2List) {
+              if (journeys.length >= MAX_JOURNEYS) break;
               const t2Dep = toMins(t2.depTime); if (!t2Dep) continue;
               const wait1 = t2Dep - rArr;
               if (wait1 < WAIT) continue;
               const t2ArrMins = toMins(t2.arrTime) || (t2Dep + (t2.segMins || 60));
               for (const t3 of t3List) {
+                if (journeys.length >= MAX_JOURNEYS) break;
                 const t3Dep = toMins(t3.depTime); if (!t3Dep) continue;
                 const wait2 = t3Dep - t2ArrMins;
                 if (wait2 < WAIT) continue;
                 const t3ArrMins = toMins(t3.arrTime) || (t3Dep + (t3.segMins || 60));
-                journeys.push({
+                addJourney({
                   id: 'c2_' + ride.id + '_' + hub1 + '_' + t2.depTime + '_' + hub2 + '_' + t3.depTime,
                   cambi: 2, transferNode: hub1 + ' · ' + hub2, transferWait: Math.min(wait1, wait2),
                   totalMins: t3ArrMins - (dep || 0), totalPrice: parseFloat(ride.price || 0),
@@ -3899,18 +3963,21 @@
 
           // transit(from→hub1) → transit(hub1→hub2) → transit(hub2→to)
           for (const t1 of t1List) {
+            if (journeys.length >= MAX_JOURNEYS) break;
             const t1ArrMins = toMins(t1.arrTime) || (toMins(t1.depTime) + (t1.segMins || 60));
             for (const t2 of t2List) {
+              if (journeys.length >= MAX_JOURNEYS) break;
               const t2Dep = toMins(t2.depTime); if (!t2Dep) continue;
               const wait1 = t2Dep - t1ArrMins;
               if (wait1 < WAIT) continue;
               const t2ArrMins = toMins(t2.arrTime) || (t2Dep + (t2.segMins || 60));
               for (const t3 of t3List) {
+                if (journeys.length >= MAX_JOURNEYS) break;
                 const t3Dep = toMins(t3.depTime); if (!t3Dep) continue;
                 const wait2 = t3Dep - t2ArrMins;
                 if (wait2 < WAIT) continue;
                 const t3ArrMins = toMins(t3.arrTime) || (t3Dep + (t3.segMins || 60));
-                journeys.push({
+                addJourney({
                   id: 'ttt_' + t1.operatorId + '_' + t1.depTime + '_' + hub1 + '_' + t2.depTime + '_' + hub2 + '_' + t3.depTime,
                   cambi: 2, transferNode: hub1 + ' · ' + hub2, transferWait: Math.min(wait1, wait2),
                   totalMins: t3ArrMins - (toMins(t1.depTime) || 0), totalPrice: 0,
@@ -3945,7 +4012,24 @@
     }
 
     window._curJourneys = [];
-
+    function getCachedJourneys(from, to, date, callback) {
+      const key = from + '|' + to + '|' + (date || '');
+      if (window._journeyCacheKey === key && window._journeyCache !== null) {
+        callback(window._journeyCache);
+        return;
+      }
+      window._journeyCacheKey = key;
+      // MIGLIORAMENTO: esegue buildJourneys in requestIdleCallback per non bloccare l'UI
+      const run = () => {
+        window._journeyCache = buildJourneys(from, to, date);
+        callback(window._journeyCache);
+      };
+      if (typeof requestIdleCallback === 'function') {
+        requestIdleCallback(run, { timeout: 500 });
+      } else {
+        setTimeout(run, 0);
+      }
+    }
     const _planJourneyFn = () => {
       const from = (document.getElementById('s-from')?.value || '').trim();
       const to = (document.getElementById('s-to')?.value || '').trim();
@@ -3977,29 +4061,33 @@
         renderJourneys(simple); return;
       }
 
-      let jj = buildJourneys(from, to, dateVal);
-      if (filterCambi !== 'any') jj = jj.filter(j => j.cambi <= filterCambi);
-      if (filterWait !== 'any') jj = jj.filter(j => !j.transferWait || j.transferWait <= filterWait);
-      const bestDirectMins = Math.min(...jj.filter(j => j.cambi === 0 && j.totalMins > 0).map(j => j.totalMins), Infinity);
-      if (Number.isFinite(bestDirectMins)) {
-        jj.forEach(j => { if (j.cambi >= 2 && j.totalMins > bestDirectMins * 2) j.slowWarning = true; });
-      }
-      const timeVal = (document.getElementById('s-time')?.value || '').trim();
-      if (timeVal) { const tMin = toMins(timeVal); if (tMin != null) jj = jj.filter(j => (toMins(j.depTime) || 0) >= tMin); }
-      const seen = new Set(); jj = jj.filter(j => { if (seen.has(j.id)) return false; seen.add(j.id); return true; });
-      if (sortMode === 'time') jj.sort((a, b) => a.totalMins - b.totalMins);
-      else if (sortMode === 'cambi') jj.sort((a, b) => a.cambi - b.cambi || a.totalMins - b.totalMins);
-      else if (sortMode === 'price') jj.sort((a, b) => a.totalPrice - b.totalPrice);
-      else if (sortMode === 'dep') jj.sort((a, b) => (toMins(a.depTime) || 0) - (toMins(b.depTime) || 0));
-      if (nearMeActive && userLat && userLng) {
-        jj = jj.map(j => {
-          const rs = j.steps.find(s => s.rideId);
-          if (rs) { const r = allRides.find(x => x.id === rs.rideId); if (r) j._dist = distKm(userLat, userLng, r.lat || 41.07, r.lng || 14.33); }
-          return j;
-        }).sort((a, b) => (a._dist || 999) - (b._dist || 999));
-      }
-      if (cnt) cnt.textContent = jj.length ? jj.length + ' percors' + (jj.length === 1 ? 'o' : 'i') + ' trovati' : '';
-      renderJourneys(jj, from, to);
+      // MIGLIORAMENTO: getCachedJourneys è ora asincrono (usa requestIdleCallback)
+      getCachedJourneys(from, to, dateVal, (rawJj) => {
+        // clona l'array: i filtri successivi non devono mutare la cache
+        let jj = rawJj.slice();
+        if (filterCambi !== 'any') jj = jj.filter(j => j.cambi <= filterCambi);
+        if (filterWait !== 'any') jj = jj.filter(j => !j.transferWait || j.transferWait <= filterWait);
+        const bestDirectMins = Math.min(...jj.filter(j => j.cambi === 0 && j.totalMins > 0).map(j => j.totalMins), Infinity);
+        if (Number.isFinite(bestDirectMins)) {
+          jj.forEach(j => { if (j.cambi >= 2 && j.totalMins > bestDirectMins * 2) j.slowWarning = true; });
+        }
+        const timeVal = (document.getElementById('s-time')?.value || '').trim();
+        if (timeVal) { const tMin = toMins(timeVal); if (tMin != null) jj = jj.filter(j => (toMins(j.depTime) || 0) >= tMin); }
+        const seen = new Set(); jj = jj.filter(j => { if (seen.has(j.id)) return false; seen.add(j.id); return true; });
+        if (sortMode === 'time') jj.sort((a, b) => a.totalMins - b.totalMins);
+        else if (sortMode === 'cambi') jj.sort((a, b) => a.cambi - b.cambi || a.totalMins - b.totalMins);
+        else if (sortMode === 'price') jj.sort((a, b) => a.totalPrice - b.totalPrice);
+        else if (sortMode === 'dep') jj.sort((a, b) => (toMins(a.depTime) || 0) - (toMins(b.depTime) || 0));
+        if (nearMeActive && userLat && userLng) {
+          jj = jj.map(j => {
+            const rs = j.steps.find(s => s.rideId);
+            if (rs) { const r = allRides.find(x => x.id === rs.rideId); if (r) j._dist = distKm(userLat, userLng, r.lat || 41.07, r.lng || 14.33); }
+            return j;
+          }).sort((a, b) => (a._dist || 999) - (b._dist || 999));
+        }
+        if (cnt) cnt.textContent = jj.length ? jj.length + ' percors' + (jj.length === 1 ? 'o' : 'i') + ' trovati' : '';
+        renderJourneys(jj, from, to);
+      }); // fine getCachedJourneys callback
     };
 
     // FIX: debounce 400ms — evita ricalcoli ad ogni tasto
@@ -4052,6 +4140,17 @@
 
     // ── helpers ──────────────────────────────────────────────────────────────────
     function safeStr(s) { return (s || '').replace(/'/g, ' ').replace(/"/g, ' '); }
+
+    // BUG FIX 6: escape HTML per prevenire XSS nei dati dinamici (nomi utente, messaggi, ecc.)
+    function escapeHtml(s) {
+      if (!s) return '';
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
 
     // ── Autocomplete suggerimenti ─────────────────────────────────────────────────
     const AC_PLACES = [
@@ -4107,9 +4206,11 @@
         ? all.slice(0, 6)
         : all.filter(p => p.toLowerCase().includes(q)).slice(0, 6);
       if (!matches.length) { drop.style.display = 'none'; return; }
-      drop.innerHTML = matches.map(p => `<div class="ac-item" onmousedown="document.getElementById('${inputId}').value='${p.replace(/'/g, ' ')}';document.getElementById('${dropId}').style.display='none';planJourney();">${p}</div>`).join('');
+      drop.innerHTML = matches.map(p => `<div class="ac-item" onmousedown="document.getElementById('${inputId}').value='${p.replace(/'/g, ' ')}';document.getElementById('${dropId}').style.display='none';planJourney();">${escapeHtml(p)}</div>`).join('');
       drop.style.display = 'block';
     };
+    // MIGLIORAMENTO: versione con debounce per gli input della home (home-from, home-to)
+    window.acSuggestDebounced = window._debounce(window.acSuggest, 200);
 
     // ── goTo updated to handle new screens ───────────────────────────────────────
     // Override the existing goTo
@@ -4120,6 +4221,10 @@
         window._editRideId = null;
         const btn = document.getElementById('publish-btn');
         if (btn) { btn.textContent = 'Pubblica passaggio'; btn.onclick = () => publishRide(); }
+      }
+      // BUG FIX 2: dismetti il listener chat quando si esce dalla schermata di dettaglio chat
+      if (current && current.id === 'sc-chat-detail' && id !== 'sc-chat-detail') {
+        if (typeof _chatUnsub === 'function') { _chatUnsub(); _chatUnsub = null; }
       }
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       const sc = document.getElementById(id);
@@ -5195,6 +5300,14 @@
       });
     }
 
+    // BUG FIX 3: aggiorna i badge orari ogni 30 secondi senza ricostruire il DOM
+    setInterval(() => {
+      const el = document.getElementById('transit-list');
+      if (!el || el.children.length === 0) return;
+      const nowM = new Date().getHours() * 60 + new Date().getMinutes();
+      _updateTransitTimeBadges(el, nowM);
+    }, 30000);
+
     window.reportLine = async (opId, lineName) => {
       const reason = prompt('Segnala un problema con la linea:\n"' + lineName + '"\n\nDescrivi brevemente:');
       if (!reason || !currentUser) return;
@@ -5211,7 +5324,8 @@
       if (!currentUser || !window._fb) return;
       const { query: fq, collection: fc, where: fw, orderBy: fo, onSnapshot: fs } = window._fb;
       try {
-        fs(fq(fc(db, 'chats'), fw('participants', 'array-contains', currentUser.uid), fo('lastMsgTime', 'desc')), snap => {
+        // BUG FIX 1: salva l'unsubscribe per poterlo annullare al logout
+        window._chatsUnsub = fs(fq(fc(db, 'chats'), fw('participants', 'array-contains', currentUser.uid), fo('lastMsgTime', 'desc')), snap => {
           const chats = snap.docs.map(d => ({ id: d.id, ...d.data() }));
           const el = document.getElementById('chat-list-body');
           if (!chats.length) {
@@ -5223,7 +5337,8 @@
             const oname = (c.names && c.names[oid]) || 'Utente';
             const ini = oname.split(' ').slice(0, 2).map(w => w[0]?.toUpperCase() || '').join('');
             const unread = c.unread && c.unread[currentUser.uid] || 0;
-            return '<div class="chat-item" onclick="openChatDetail(\'' + c.id + '\',\'' + safeStr(oname) + '\',\'' + ini + '\')"><div class="av av-sm av-g">' + ini + '</div><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:500;">' + oname + '</div><div style="font-size:12px;color:var(--txt2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (c.lastMsg || 'Inizia la conversazione') + '</div></div>' + (unread ? '<div class="chat-unread">' + unread + '</div>' : '') + '</div>';
+            // BUG FIX 6: escape nomi utente e ultimo messaggio per prevenire XSS
+            return '<div class="chat-item" onclick="openChatDetail(\'' + c.id + '\',\'' + safeStr(oname) + '\',\'' + ini + '\')"><div class="av av-sm av-g">' + escapeHtml(ini) + '</div><div style="flex:1;min-width:0;"><div style="font-size:14px;font-weight:500;">' + escapeHtml(oname) + '</div><div style="font-size:12px;color:var(--txt2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(c.lastMsg || 'Inizia la conversazione') + '</div></div>' + (unread ? '<div class="chat-unread">' + unread + '</div>' : '') + '</div>';
           }).join('');
         });
       } catch (e) { console.log('Chat listen error:', e.message); }
@@ -5243,8 +5358,9 @@
           el.innerHTML = snap.docs.map(d => {
             const m = d.data(), mine = m.uid === currentUser.uid;
             const timeStr = m.ts?.toDate?.() ? m.ts.toDate().toLocaleTimeString('it', { hour: '2-digit', minute: '2-digit' }) : '';
+            // BUG FIX 6: escape del testo del messaggio per prevenire XSS
             return '<div style="display:flex;flex-direction:column;align-items:' + (mine ? 'flex-end' : 'flex-start') + ';">'
-              + '<div class="msg-bubble ' + (mine ? 'msg-mine' : 'msg-other') + '">' + m.text + '</div>'
+              + '<div class="msg-bubble ' + (mine ? 'msg-mine' : 'msg-other') + '">' + escapeHtml(m.text) + '</div>'
               + '<div class="msg-time ' + (mine ? 'right' : '') + '" >' + timeStr + '</div></div>';
           }).join('');
           el.scrollTop = el.scrollHeight;
