@@ -1461,6 +1461,95 @@
       overflow-y: auto;
     }
 
+    /* STOP PICKER */
+    #stop-picker-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 500;
+      align-items: flex-end;
+    }
+    #stop-picker-overlay.open { display: flex; }
+    #stop-picker-sheet {
+      background: var(--surf);
+      border-radius: 18px 18px 0 0;
+      width: 100%;
+      max-height: 80dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #stop-picker-header {
+      padding: 12px 16px 8px;
+      border-bottom: 1px solid var(--bord);
+      flex-shrink: 0;
+    }
+    #stop-picker-header h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+    #stop-picker-search {
+      width: 100%;
+      border: 1px solid var(--bord);
+      border-radius: var(--rsm);
+      padding: 9px 12px;
+      font-size: 14px;
+      font-family: var(--font);
+      background: var(--surf2);
+      outline: none;
+    }
+    #stop-picker-list {
+      overflow-y: auto;
+      flex: 1;
+    }
+    .sp-group {
+      padding: 6px 16px 2px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--txt3);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+    }
+    .sp-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 16px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--bord);
+      font-size: 14px;
+    }
+    .sp-item:active { background: var(--surf2); }
+    .sp-badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: var(--surf2);
+      color: var(--txt3);
+      flex-shrink: 0;
+      min-width: 28px;
+      text-align: center;
+    }
+    .sinput-picker {
+      cursor: pointer;
+      user-select: none;
+    }
+    /* LOAD MORE */
+    .load-more-btn {
+      display: block;
+      width: calc(100% - 32px);
+      margin: 8px 16px 16px;
+      padding: 12px;
+      background: var(--surf2);
+      border: 1px solid var(--bord);
+      border-radius: var(--r);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--txt2);
+      cursor: pointer;
+      text-align: center;
+    }
+    .load-more-btn:active { background: var(--bord); }
+
     .ac-item {
       padding: 10px 14px;
       font-size: 14px;
@@ -1941,19 +2030,17 @@
         <button onclick="goTo('sc-home',0)"
           style="width:34px;height:34px;border-radius:50%;background:var(--surf2);border:1px solid var(--bord);font-size:16px;cursor:pointer;flex-shrink:0;">←</button>
         <div class="scard" style="margin:0;flex:1;position:relative;">
-          <div class="srow" style="padding:7px 12px;">
-            <div class="sdot sdot-f"></div><input class="sinput" id="s-from" placeholder="Partenza"
-              oninput="acSuggest('s-from','ac-from');planJourney()" onfocus="acSuggest('s-from','ac-from')"
-              onblur="setTimeout(()=>document.getElementById('ac-from').style.display='none',200)" autocomplete="off">
+          <div class="srow" style="padding:7px 12px;" onclick="openStopPicker('from')">
+            <div class="sdot sdot-f"></div>
+            <input class="sinput sinput-picker" id="s-from" placeholder="Tocca per scegliere partenza"
+              readonly autocomplete="off" style="pointer-events:none;">
           </div>
-          <div id="ac-from" class="ac-drop" style="display:none;"></div>
           <div class="sdiv" style="margin-left:28px;"></div>
-          <div class="srow" style="padding:7px 12px;">
-            <div class="sdot sdot-t"></div><input class="sinput" id="s-to" placeholder="Destinazione"
-              oninput="acSuggest('s-to','ac-to');planJourney()" onfocus="acSuggest('s-to','ac-to')"
-              onblur="setTimeout(()=>document.getElementById('ac-to').style.display='none',200)" autocomplete="off">
+          <div class="srow" style="padding:7px 12px;" onclick="openStopPicker('to')">
+            <div class="sdot sdot-t"></div>
+            <input class="sinput sinput-picker" id="s-to" placeholder="Tocca per scegliere destinazione"
+              readonly autocomplete="off" style="pointer-events:none;">
           </div>
-          <div id="ac-to" class="ac-drop" style="display:none;"></div>
           <div class="sdiv" style="margin-left:28px;"></div>
           <div class="srow" style="padding:5px 12px;gap:8px;"><span style="font-size:16px;">📅</span><input
               class="sinput" id="s-date" type="date" style="flex:1;color:var(--txt1);" oninput="planJourney()">
@@ -2225,6 +2312,18 @@
           recensione</button>
         <button class="btn btn-o"
           onclick="document.getElementById('review-modal').style.display='none'">Annulla</button>
+      </div>
+    </div>
+
+    <!-- ══ STOP PICKER ══ -->
+    <div id="stop-picker-overlay" onclick="closeStopPicker(event)">
+      <div id="stop-picker-sheet">
+        <div id="stop-picker-header">
+          <h3 id="stop-picker-title">Scegli fermata</h3>
+          <input id="stop-picker-search" type="text" placeholder="Cerca fermata..." autocomplete="off"
+            oninput="filterStopPicker(this.value)">
+        </div>
+        <div id="stop-picker-list"></div>
       </div>
     </div>
 
@@ -2814,8 +2913,10 @@
     }
 
     window.doSearch = () => {
-      document.getElementById('s-from').value = document.getElementById('home-from').value;
-      document.getElementById('s-to').value = document.getElementById('home-to').value;
+      const fromVal = document.getElementById('home-from').value;
+      const toVal = document.getElementById('home-to').value;
+      document.getElementById('s-from').value = fromVal;
+      document.getElementById('s-to').value = toVal;
       const hDate = document.getElementById('home-date').value;
       if (hDate) document.getElementById('s-date').value = hDate;
       goTo('sc-search', 1);
@@ -4101,7 +4202,10 @@
           jj.forEach(j => { if (j.cambi >= 2 && j.totalMins > bestDirectMins * 2) j.slowWarning = true; });
         }
         const timeVal = (document.getElementById('s-time')?.value || '').trim();
-        if (timeVal) { const tMin = toMins(timeVal); if (tMin != null) jj = jj.filter(j => (toMins(j.depTime) || 0) >= tMin); }
+        // DEFAULT: se nessun orario selezionato, usa l'ora corrente
+        const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
+        const tMin = timeVal ? (toMins(timeVal) ?? nowMins) : nowMins;
+        jj = jj.filter(j => (toMins(j.depTime) || 0) >= tMin);
         const seen = new Set(); jj = jj.filter(j => { if (seen.has(j.id)) return false; seen.add(j.id); return true; });
         if (sortMode === 'time') jj.sort((a, b) => a.totalMins - b.totalMins);
         else if (sortMode === 'cambi') jj.sort((a, b) => a.cambi - b.cambi || a.totalMins - b.totalMins);
@@ -4115,7 +4219,10 @@
           }).sort((a, b) => (a._dist || 999) - (b._dist || 999));
         }
         if (cnt) cnt.textContent = jj.length ? jj.length + ' percors' + (jj.length === 1 ? 'o' : 'i') + ' trovati' : '';
-        renderJourneys(jj, from, to);
+        // Paginazione: mostra i primi 10, il resto è caricabile
+        window._allJourneys = jj;
+        window._journeyPage = 0;
+        renderJourneys(jj.slice(0, 10), from, to, jj.length > 10);
       }); // fine getCachedJourneys callback
     };
 
@@ -4123,12 +4230,12 @@
     window.planJourney = window._debounce(_planJourneyFn, 400);
     window.liveSearch = window.planJourney;
 
-    function renderJourneys(jj, from, to) {
+    function renderJourneys(jj, from, to, hasMore) {
       window._curJourneys = jj;
       const el = document.getElementById('s-results');
       if (!jj.length) {
-        window._curJourneys = [];  // ← reset: evita che openJDetail usi percorsi vecchi
-        el.innerHTML = '<div class="no-results"><div style="font-size:40px;">🔍</div><div style="font-size:16px;font-weight:500;">Nessun percorso trovato</div><div style="font-size:14px;color:var(--txt2);line-height:1.6;">Prova filtri diversi o cerca termini diversi.</div>' + (from && to ? '<button class="btn btn-s" style="margin-top:8px;" onclick="goTo(\'sc-offer\',2)">+ Pubblica questo percorso</button>' : '') + '</div>';
+        window._curJourneys = [];
+        el.innerHTML = '<div class="no-results"><div style="font-size:40px;">🔍</div><div style="font-size:16px;font-weight:500;">Nessun percorso trovato</div><div style="font-size:14px;color:var(--txt2);line-height:1.6;">Prova filtri diversi o un\'altra tratta.</div>' + (from && to ? '<button class="btn btn-s" style="margin-top:8px;" onclick="goTo(\'sc-offer\',2)">+ Pubblica questo percorso</button>' : '') + '</div>';
         return;
       }
       el.innerHTML = jj.map(j => {
@@ -4154,9 +4261,51 @@
           + '<div class="jfoot">' + actH + '</div>'
           + '</div>';
       }).join('');
+      if (hasMore) {
+        const btn = document.createElement('button');
+        btn.className = 'load-more-btn';
+        const shown = (window._journeyPage + 1) * 10;
+        const total = window._allJourneys?.length || 0;
+        btn.textContent = `Cerca altre partenze (${Math.min(10, total - shown)} di ${total - shown} rimasti) →`;
+        btn.onclick = () => loadMoreJourneys();
+        el.appendChild(btn);
+      }
     }
 
-    window.openJDetail = jid => {
+    window.loadMoreJourneys = () => {
+      if (!window._allJourneys) return;
+      window._journeyPage = (window._journeyPage || 0) + 1;
+      const start = window._journeyPage * 10;
+      const next = window._allJourneys.slice(start, start + 10);
+      if (!next.length) return;
+      // aggiungi i nuovi percorsi a _curJourneys e rendi tutto
+      const all = window._curJourneys.concat(next);
+      window._curJourneys = all;
+      const el = document.getElementById('s-results');
+      const hasMore = (start + 10) < window._allJourneys.length;
+      // rimuovi vecchio bottone se presente
+      el.querySelector('.load-more-btn')?.remove();
+      // appendi nuove card
+      next.forEach(j => {
+        const cambiB = j.cambi === 0 ? '<span class="jbadge">🚀 Diretto</span>' : j.slowWarning ? '<span class="jbadge warn">🔄 ' + j.cambi + ' cambi · ⚠️ percorso lento</span>' : '<span class="jbadge warn">🔄 ' + j.cambi + ' cambio' + (j.cambi > 1 ? 'i' : '') + '</span>';
+        const dur = j.totalMins < 60 ? j.totalMins + 'min' : Math.floor(j.totalMins / 60) + 'h ' + (j.totalMins % 60 ? j.totalMins % 60 + 'min' : '');
+        const timeB = '<span class="jbadge info">⏱ ' + dur + '</span>';
+        const priceB = j.totalPrice > 0 ? '<span class="jbadge">€' + j.totalPrice.toFixed(2) + '</span>' : '<span class="jbadge" style="background:var(--surf2);color:var(--txt2);">Gratuito</span>';
+        const stepsH = j.steps.map(s => { if (s.type === 'transfer') return '<div class="jconn"><span style="font-size:14px;">⏳</span><span class="jconntxt">Cambio a ' + s.node + ' · ' + s.wait + ' min di attesa</span></div>'; return '<div class="jstep"><div class="jsi" style="background:' + s.bg + ';">' + s.icon + '</div><div class="jsb"><div class="jst">' + s.title + '</div><div class="jss">' + s.sub + '</div><div class="jstm">' + s.time + '</div></div></div>'; }).join('');
+        const hasRide = j.steps.find(s => s.rideId);
+        const actH = hasRide ? '<button class="btn btn-p" style="flex:1;padding:9px;font-size:13px;" onclick="openJDetail(\'' + j.id + '\')">Prenota percorso</button>' : '<a class="btn btn-s" style="flex:1;padding:9px;font-size:13px;text-decoration:none;" href="' + (j.steps.find(s => s.officialUrl)?.officialUrl || '#') + '" target="_blank">Vedi orari ufficiali ↗</a>';
+        el.insertAdjacentHTML('beforeend', '<div class="jcard" onclick="openJDetail(\'' + j.id + '\')">' + '<div class="jhead"><span style="font-size:15px;font-weight:600;font-family:var(--mono);">' + j.depTime + '</span><span style="font-size:12px;color:var(--txt2);">→</span><span style="font-size:15px;font-weight:600;font-family:var(--mono);">' + j.arrTime + '</span><div style="flex:1;"></div>' + cambiB + ' ' + timeB + ' ' + priceB + '</div>' + '<div class="jsteps">' + stepsH + '</div>' + '<div class="jfoot">' + actH + '</div>' + '</div>');
+      });
+      if (hasMore) {
+        const btn = document.createElement('button');
+        btn.className = 'load-more-btn';
+        const shown = (window._journeyPage + 1) * 10;
+        const total = window._allJourneys.length;
+        btn.textContent = `Cerca altre partenze (${Math.min(10, total - shown)} di ${total - shown} rimasti) →`;
+        btn.onclick = () => loadMoreJourneys();
+        el.appendChild(btn);
+      }
+    };
       const j = window._curJourneys?.find(x => x.id === jid);
       if (!j) return;
       const rs = j.steps.find(s => s.rideId);
@@ -4241,6 +4390,82 @@
     };
     // MIGLIORAMENTO: versione con debounce per gli input della home (home-from, home-to)
     window.acSuggestDebounced = window._debounce(window.acSuggest, 200);
+
+    // ── STOP PICKER ─────────────────────────────────────────────────────────────
+    const STOP_GROUPS = [
+      { label: 'Napoli e area metropolitana', code: 'NA', stops: ['Napoli Centrale','Piazza Garibaldi','Napoli Afragola','Napoli Campi Flegrei','Napoli Mergellina','Pozzuoli','Bagnoli','Agnano','Quarto','Volla','Cercola','Casalnuovo','Acerra','Pomigliano d\'Arco','Saviano','Nola','Ottaviano','Poggiomarino','Sarno','Baiano','San Giorgio a Cremano','Portici','Ercolano','Torre del Greco','Torre Annunziata','Castellammare di Stabia','Vico Equense','Meta','Piano di Sorrento','Sorrento','Pompei','Caivano','Frattamaggiore','Crispano'] },
+      { label: 'Caserta e provincia', code: 'CE', stops: ['Caserta','Santa Maria Capua Vetere','Santa Maria C.V.','Capua','Marcianise','Maddaloni','Casagiove','San Nicola la Strada','San Marco Evangelista','Recale','Capodrise','Orta di Atella','Aversa','Aversa Nord','Teverola','Gricignano','Cancello','Arienzo','Caiazzo','Alvignano','Dragoni','Alife','Piedimonte Matese','Villa Ortensia','S.Marco','Pontelatone','Triflisco','S.Angelo in Formis','Anfiteatro','Piana di Monte Verna','Monte Sant\'Angelo Università','Formicola','Gioia Sannitica','Vairano Scalo','Marzano Appio'] },
+      { label: 'Benevento e Sannio', code: 'BN', stops: ['Benevento','Montesarchio','Sant\'Agata dei Goti','Cerreto Sannita','Guardia Sanframondi','Telese Terme'] },
+      { label: 'Salerno', code: 'SA', stops: ['Salerno','Fisciano','Fisciano (UniSa)'] },
+      { label: 'Costiera Domiziana', code: 'CE', stops: ['Castel Volturno','Pinetamare','Mondragone','Sessa Aurunca','Baia Domizia','Scauri','Minturno'] },
+      { label: 'Torregaveta / Cuma / Licola', code: 'NA', stops: ['Torregaveta','Cuma','Licola'] },
+      { label: 'Cassino e Frosinone', code: 'FR', stops: ['Cassino','Aquino','Pontecorvo','Ceprano','Frosinone','Anagni','Colleferro','Sora','Isola del Liri'] },
+      { label: 'Molise', code: 'IS', stops: ['Venafro','Isernia','Ailano','Pratella','Conca della Campania'] },
+      { label: 'Roma', code: 'RM', stops: ['Roma Termini','Roma Tiburtina'] },
+    ];
+
+    let _stopPickerField = null;
+    let _stopPickerItems = []; // tutti gli item { label, code, stop }
+
+    window.openStopPicker = (field) => {
+      _stopPickerField = field;
+      const overlay = document.getElementById('stop-picker-overlay');
+      const titleEl = document.getElementById('stop-picker-title');
+      const searchEl = document.getElementById('stop-picker-search');
+      titleEl.textContent = field === 'from' ? 'Scegli fermata di partenza' : 'Scegli fermata di arrivo';
+      searchEl.value = '';
+      // Build items combining stops from rides too
+      const rideStops = [...new Set(allRides.flatMap(r => [r.from, r.to]).filter(Boolean))];
+      const knownStops = new Set(STOP_GROUPS.flatMap(g => g.stops));
+      const extraStops = rideStops.filter(s => !knownStops.has(s));
+      _stopPickerItems = [];
+      STOP_GROUPS.forEach(g => g.stops.forEach(s => _stopPickerItems.push({ label: g.label, code: g.code, stop: s })));
+      if (extraStops.length) extraStops.forEach(s => _stopPickerItems.push({ label: 'Da passaggi reali', code: '🚗', stop: s }));
+      renderStopPickerList(_stopPickerItems);
+      overlay.classList.add('open');
+      setTimeout(() => searchEl.focus(), 150);
+    };
+
+    window.closeStopPicker = (e) => {
+      if (!e || e.target === document.getElementById('stop-picker-overlay')) {
+        document.getElementById('stop-picker-overlay').classList.remove('open');
+      }
+    };
+
+    window.filterStopPicker = (q) => {
+      const filtered = q.trim().toLowerCase()
+        ? _stopPickerItems.filter(i => i.stop.toLowerCase().includes(q.trim().toLowerCase()))
+        : _stopPickerItems;
+      renderStopPickerList(filtered);
+    };
+
+    function renderStopPickerList(items) {
+      const list = document.getElementById('stop-picker-list');
+      if (!items.length) { list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--txt3);font-size:14px;">Nessuna fermata trovata</div>'; return; }
+      let html = '';
+      let lastGroup = null;
+      items.forEach(i => {
+        if (i.label !== lastGroup) {
+          html += `<div class="sp-group">${i.label}</div>`;
+          lastGroup = i.label;
+        }
+        html += `<div class="sp-item" onclick="selectStop('${i.stop.replace(/'/g, '\\\'')}')" >
+          <span class="sp-badge">${i.code}</span>
+          <span>${escapeHtml(i.stop)}</span>
+        </div>`;
+      });
+      list.innerHTML = html;
+    }
+
+    window.selectStop = (stop) => {
+      document.getElementById('stop-picker-overlay').classList.remove('open');
+      if (_stopPickerField === 'from') {
+        document.getElementById('s-from').value = stop;
+      } else {
+        document.getElementById('s-to').value = stop;
+      }
+      planJourney();
+    };
 
     // ── goTo updated to handle new screens ───────────────────────────────────────
     // Override the existing goTo
