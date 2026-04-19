@@ -162,7 +162,7 @@ Definisce tutte le linee di trasporto pubblico. **Inizializzato una sola volta**
 | `goTo(screenId, navIdx)` | ~4217 | Naviga tra screens, aggiorna nav bar. **Dismette `_chatUnsub`** quando si abbandona `sc-chat-detail` |
 | `showOv(type, arg)` | ~3338 | Apre overlay (filtri, date) |
 | `acSearch(inp, listId)` | ~2883 | Autocomplete Nominatim (geolocalizzazione) |
-| `acSuggest(inputId, dropId)` | ~4197 | Autocomplete da AC_PLACES (locale). Output con `escapeHtml()` per sicurezza XSS |
+| `acSuggest(inputId, dropId)` | ~4197 | Autocomplete da AC_PLACES (locale). Gli item portano `data-ac-val`/`data-ac-inp`/`data-ac-drop`; la selezione è gestita da un unico listener delegato su `document` (`pointerdown` + `capture:true`) montato una sola volta. Questo sostituisce il vecchio `onmousedown` inline che su mobile perdeva il tap e che rompeva gli apostrofi (Sant'Angelo). `planJourney()` viene invocato solo se l'input è `s-from`/`s-to`. |
 | `acSuggestDebounced(inputId, dropId)` | ~4213 | Versione debounced (200ms) di `acSuggest`, usata dagli input `home-from`/`home-to` |
 | `safeStr(s)` | ~4142 | Sanitizza stringa per uso in attributi HTML inline (es. `onclick`) |
 | `escapeHtml(s)` | ~4145 | Escape HTML per prevenire XSS nei dati dinamici (messaggi, nomi utente, autocomplete) |
@@ -183,7 +183,16 @@ Fase 5a — ride → [hub1] → transit → [hub2] → transit  → cambi: 2
 Fase 5b — transit → [hub1] → transit → [hub2] → transit → cambi: 2
 ```
 
-**Deduplicazione:** `addJourney(j)` aggiunge il percorso solo se il suo `id` non è già nel `Set seen`. Il filtro è applicato **durante** la costruzione in tutte le fasi, non solo alla fine.
+**Bucket separati per sottofase (dopo fix ricerca cambi):**
+- `b0` → Fasi 1+2 (diretti), cap `MAX_DIRECT = 8`
+- `b1a` → Fase 3 (ride→transit), soft cap `SOFT_P3 = 20`
+- `b1b` → Fase 4 (transit→transit), soft cap `SOFT_P4 = 20`
+- `b2a` → Fase 5a (ride→transit→transit), soft cap `SOFT_P5A = 12`
+- `b2b` → Fase 5b (transit→transit→transit), soft cap `SOFT_P5B = 12`
+
+Al termine le fasi con cambi vengono ordinate per qualità (`byQuality`: durata totale, poi attesa minima) e **interleaved** 50/50 tra sotto-bucket per dare equa rappresentanza a ride+transit vs transit+transit. I cap finali esposti alla UI sono `FINAL_CHANGE1 = 10` e `FINAL_CHANGE2 = 6`. In questo modo se la Fase 3 genera 20 ride→transit e la Fase 4 ne genera 5 transit→transit, nella UI arriva sempre un mix — prima succedeva che la Fase 3 riempisse tutti gli slot lasciando la Fase 4 a secco.
+
+**Deduplicazione:** `addTo(bucket, max, j)` aggiunge il percorso solo se il suo `id` non è già nel `Set seen` globale. Il filtro è applicato **durante** la costruzione in tutte le fasi, non solo alla fine.
 
 **Performance:** `cachedTransit(f, t)` memoizza ogni coppia (from, to) per l'intera sessione. `getCachedJourneys` usa `requestIdleCallback` per non bloccare l'UI durante il calcolo.
 

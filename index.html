@@ -1447,21 +1447,19 @@
       display: none;
     }
 
-    .ac-drop{position:absolute;left:0;right:0;top:100%;background:var(--surf);border:1px solid var(--bord);border-radius:var(--rsm);box-shadow:var(--shadow);z-index:100;max-height:180px;overflow-y:auto;}
-    #stop-picker-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:flex-end;}
-    #stop-picker-overlay.open{display:flex;}
-    #stop-picker-sheet{background:var(--surf);border-radius:18px 18px 0 0;width:100%;max-height:80dvh;display:flex;flex-direction:column;overflow:hidden;}
-    #stop-picker-header{padding:12px 16px 8px;border-bottom:1px solid var(--bord);flex-shrink:0;}
-    #stop-picker-header h3{font-size:15px;font-weight:600;margin-bottom:8px;}
-    #stop-picker-search{width:100%;border:1px solid var(--bord);border-radius:var(--rsm);padding:9px 12px;font-size:14px;font-family:var(--font);background:var(--surf2);outline:none;}
-    #stop-picker-list{overflow-y:auto;flex:1;}
-    .sp-group{padding:6px 16px 2px;font-size:10px;font-weight:600;color:var(--txt3);text-transform:uppercase;letter-spacing:.6px;}
-    .sp-item{display:flex;align-items:center;gap:10px;padding:11px 16px;cursor:pointer;border-bottom:1px solid var(--bord);font-size:14px;}
-    .sp-item:active{background:var(--surf2);}
-    .sp-badge{font-size:10px;font-weight:600;padding:2px 6px;border-radius:6px;background:var(--surf2);color:var(--txt3);flex-shrink:0;min-width:28px;text-align:center;}
-    .sinput-picker{cursor:pointer;user-select:none;}
-    .load-more-btn{display:block;width:calc(100% - 32px);margin:8px 16px 16px;padding:12px;background:var(--surf2);border:1px solid var(--bord);border-radius:var(--r);font-size:14px;font-weight:500;color:var(--txt2);cursor:pointer;text-align:center;}
-    .load-more-btn:active{background:var(--bord);}
+    .ac-drop {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 100%;
+      background: var(--surf);
+      border: 1px solid var(--bord);
+      border-radius: var(--rsm);
+      box-shadow: var(--shadow);
+      z-index: 100;
+      max-height: 180px;
+      overflow-y: auto;
+    }
 
     .ac-item {
       padding: 10px 14px;
@@ -1943,15 +1941,19 @@
         <button onclick="goTo('sc-home',0)"
           style="width:34px;height:34px;border-radius:50%;background:var(--surf2);border:1px solid var(--bord);font-size:16px;cursor:pointer;flex-shrink:0;">←</button>
         <div class="scard" style="margin:0;flex:1;position:relative;">
-          <div class="srow" style="padding:7px 12px;" onclick="openStopPicker('from')">
-            <div class="sdot sdot-f"></div>
-            <input class="sinput sinput-picker" id="s-from" placeholder="Tocca per scegliere partenza" readonly style="pointer-events:none;">
+          <div class="srow" style="padding:7px 12px;">
+            <div class="sdot sdot-f"></div><input class="sinput" id="s-from" placeholder="Partenza"
+              oninput="acSuggest('s-from','ac-from');planJourney()" onfocus="acSuggest('s-from','ac-from')"
+              onblur="setTimeout(()=>document.getElementById('ac-from').style.display='none',200)" autocomplete="off">
           </div>
+          <div id="ac-from" class="ac-drop" style="display:none;"></div>
           <div class="sdiv" style="margin-left:28px;"></div>
-          <div class="srow" style="padding:7px 12px;" onclick="openStopPicker('to')">
-            <div class="sdot sdot-t"></div>
-            <input class="sinput sinput-picker" id="s-to" placeholder="Tocca per scegliere destinazione" readonly style="pointer-events:none;">
+          <div class="srow" style="padding:7px 12px;">
+            <div class="sdot sdot-t"></div><input class="sinput" id="s-to" placeholder="Destinazione"
+              oninput="acSuggest('s-to','ac-to');planJourney()" onfocus="acSuggest('s-to','ac-to')"
+              onblur="setTimeout(()=>document.getElementById('ac-to').style.display='none',200)" autocomplete="off">
           </div>
+          <div id="ac-to" class="ac-drop" style="display:none;"></div>
           <div class="sdiv" style="margin-left:28px;"></div>
           <div class="srow" style="padding:5px 12px;gap:8px;"><span style="font-size:16px;">📅</span><input
               class="sinput" id="s-date" type="date" style="flex:1;color:var(--txt1);" oninput="planJourney()">
@@ -2225,9 +2227,6 @@
           onclick="document.getElementById('review-modal').style.display='none'">Annulla</button>
       </div>
     </div>
-
-    <!-- ══ STOP PICKER ══ -->
-    <div id="stop-picker-overlay" onclick="closeStopPicker(event)"><div id="stop-picker-sheet"><div id="stop-picker-header"><h3 id="stop-picker-title">Scegli fermata</h3><input id="stop-picker-search" type="text" placeholder="Cerca fermata..." oninput="filterStopPicker(this.value)"></div><div id="stop-picker-list"></div></div></div>
 
     <!-- ══ TRANSIT ══ -->
     <div class="screen" id="sc-transit">
@@ -2815,8 +2814,8 @@
     }
 
     window.doSearch = () => {
-      const _f=document.getElementById('home-from').value;if(_f)document.getElementById('s-from').value=_f;
-      const _t=document.getElementById('home-to').value;if(_t)document.getElementById('s-to').value=_t;
+      document.getElementById('s-from').value = document.getElementById('home-from').value;
+      document.getElementById('s-to').value = document.getElementById('home-to').value;
       const hDate = document.getElementById('home-date').value;
       if (hDate) document.getElementById('s-date').value = hDate;
       goTo('sc-search', 1);
@@ -3475,7 +3474,7 @@
       'Caiazzo', 'Alvignano', 'Dragoni', 'Alife', 'Piedimonte Matese',
       'Villa Ortensia', 'S.Marco', 'Pontelatone', 'Triflisco',
       'S.Angelo in Formis', 'Anfiteatro', 'Piana di Monte Verna',
-      'Monte Sant\'Angelo',
+      'Monte Sant\'Angelo Università',
       // Benevento e Sannio
       'Benevento', 'Montesarchio', 'Sant\'Agata dei Goti', 'Telese Terme', 'Cerreto Sannita', 'Guardia Sanframondi', 'Gioia Sannitica',
       // AIR Caserta linee interne
@@ -3574,7 +3573,7 @@
       'pontelatone': ['pontelatone eav'],
       'triflisco': ['triflisco eav'],
       'maddaloni inferiore': ['maddaloni inf', 'maddaloni inf rfi', 'maddaloni inferiore rfi'],
-      'monte sant\'angelo': ['università monte sant\'angelo', 'monte sant angelo', 'monte santangelo', 'via cinthia università', 'napoli monte sant angelo', 'napoli universita monte sant angelo', 'napoli univ. federico ii', 'napoli msa'],
+      'monte sant\'angelo università': ['monte sant angelo università', 'monte santangelo università', 'unisannio', 'università del sannio'],
       'via del monte eav': ['via del monte'],
       'napoli centrale': ['napoli c.le', 'napoli centrale rfi', 'na centrale rfi'],
     };
@@ -3657,7 +3656,7 @@
             // Altrimenti "monte" in "Via del Monte" matcha "Monte Sant'Angelo" nel nome linea S1.
             const words = nq2.split(/\s+/).filter(w => w.length > 3);
             if (!words.length) return false;
-            return allStopsN.some(s => words.every(w => s.includes(w))) || allStops.some(s => words.every(w => s.includes(w)));
+            return words.every(w => allStopsN.some(s => s.includes(w)) || allStops.some(s => s.includes(w)));
           };
           if (!matchInText(fq) || !matchInText(tq)) continue;
 
@@ -3696,9 +3695,8 @@
                 }
               } else {
                 // dep.times presente ma manca uno dei due orari: fallback proporzionale sulle fermate
-                const _fw=fq.split(/\s+/).filter(w=>w.length>2),_tw=tq.split(/\s+/).filter(w=>w.length>2);
-                const idxF=allStopsN.findIndex(s=>s===fq||s.includes(fq)||(_fw.length&&_fw.every(w=>s.includes(w))));
-                const idxT=allStopsN.findIndex(s=>s===tq||s.includes(tq)||(_tw.length&&_tw.every(w=>s.includes(w))));
+                const idxF = allStopsN.findIndex(s => s === fq || s.includes(fq) || fq.split(/\s+/).filter(w => w.length > 1).some(w => s.includes(w)));
+                const idxT = allStopsN.findIndex(s => s === tq || s.includes(tq) || tq.split(/\s+/).filter(w => w.length > 1).some(w => s.includes(w)));
                 if (idxF >= 0 && idxT >= 0) {
                   if (idxF >= idxT) continue; // direzione sbagliata nell'array stops
                   if (allStops.length > 1)
@@ -3711,9 +3709,8 @@
               }
             } else {
               // fallback proporzionale (linea senza dep.times)
-              const _fw2=fq.split(/\s+/).filter(w=>w.length>2),_tw2=tq.split(/\s+/).filter(w=>w.length>2);
-              const idxF=allStopsN.findIndex(s=>s.includes(fq)||(_fw2.length&&_fw2.every(w=>s.includes(w))));
-              const idxT=allStopsN.findIndex(s=>s.includes(tq)||(_tw2.length&&_tw2.every(w=>s.includes(w))));
+              const idxF = allStopsN.findIndex(s => s.includes(fq) || fq.split(/\s+/).filter(w => w.length > 1).some(w => s.includes(w)));
+              const idxT = allStopsN.findIndex(s => s.includes(tq) || tq.split(/\s+/).filter(w => w.length > 1).some(w => s.includes(w)));
               if (idxF >= 0 && idxT >= 0) {
                 if (idxF >= idxT) continue; // direzione sbagliata nell'array stops
                 if (allStops.length > 1)
@@ -3768,16 +3765,26 @@
     window._invalidateDynamicHubs = () => { _dynamicHubs = null; };
 
     function buildJourneys(from, to, dateStr) {
-      // Limiti per bucket: ogni fase raccoglie al massimo N candidati indipendentemente.
-      // Così le corse dirette EAV non "occupano" i slot dei bus con cambio.
-      const MAX_DIRECT = 8;   // Fase 1+2: ride diretti + transiti diretti
-      const MAX_CHANGE1 = 6;  // Fase 3+4: 1 cambio (ride→transit, transit→transit)
-      const MAX_CHANGE2 = 4;  // Fase 5: 2 cambi
+      // BUG FIX ricerca cambi: bucket separati per fase.
+      // Prima Fase 3 (ride→transit) e Fase 4 (transit→transit) condividevano lo stesso cap=6,
+      // e la Fase 3 si mangiava tutti gli slot lasciando la Fase 4 a secco → spariva il classico
+      // percorso "bus A + cambio + bus B". Idem per le due varianti della Fase 5.
+      // Ora ogni fase ha il suo soft cap (generoso), e alla fine si ordina per qualità
+      // (durata totale, poi attesa al cambio) e si tiene il meglio.
+      const MAX_DIRECT    = 8;    // Fase 1+2: ride diretti + transiti diretti
+      const SOFT_P3       = 20;   // Fase 3: ride → transit (soft cap di raccolta)
+      const SOFT_P4       = 20;   // Fase 4: transit → transit
+      const SOFT_P5A      = 12;   // Fase 5a: ride → transit → transit
+      const SOFT_P5B      = 12;   // Fase 5b: transit → transit → transit
+      const FINAL_CHANGE1 = 10;   // quanti percorsi a 1 cambio mostriamo al massimo
+      const FINAL_CHANGE2 = 6;    // quanti percorsi a 2 cambi mostriamo al massimo
       const WAIT = 5;
 
-      // Bucket separati per fase
-      const b0 = [], b1 = [], b2 = []; // direct, 1-cambio, 2-cambi
-      const seen = new Set();
+      // Bucket separati per sottofase. `b1` e `b2` si ottengono mergiandoli alla fine.
+      const b0 = [];                            // diretti (ride + transit)
+      const b1a = [], b1b = [];                 // 1 cambio: ride→transit, transit→transit
+      const b2a = [], b2b = [];                 // 2 cambi: ride→tr→tr, tr→tr→tr
+      const seen = new Set();                   // dedup globale per id
       const addTo = (bucket, max, j) => {
         if (seen.has(j.id) || bucket.length >= max) return false;
         seen.add(j.id);
@@ -3842,16 +3849,16 @@
 
       // ── Fase 3: ride → transit via hub (1 cambio) ────────────────────────────
       for (const hub of allHubs) {
-        if (b1.length >= MAX_CHANGE1) break;
+        if (b1a.length >= SOFT_P3) break;
         const ridesTo = ridesFromOrigin.filter(r => rideMatches(r, hub));
         if (!ridesTo.length) continue;
         const transitFrom = cachedTransit(hub, to);
         if (!transitFrom.length) continue;
         for (const ride of ridesTo) {
-          if (b1.length >= MAX_CHANGE1) break;
+          if (b1a.length >= SOFT_P3) break;
           const rArr = (toMins(ride.arrTime) || (toMins(ride.depTime) || 0) + 45);
           for (const t of transitFrom) {
-            if (b1.length >= MAX_CHANGE1) break;
+            if (b1a.length >= SOFT_P3) break;
             const tDep = toMins(t.depTime); if (!tDep) continue;
             const wait = tDep - rArr;
             if (wait < WAIT) continue;
@@ -3860,7 +3867,7 @@
             const tSeg = t.segMins || 60;
             const tArr = t.arrTime || fromMins(tDep + tSeg);
             const tArrMins = toMins(tArr) || (tDep + tSeg);
-            addTo(b1, MAX_CHANGE1, {
+            addTo(b1a, SOFT_P3, {
               id: 'c_' + ride.id + '_' + t.operatorId + '_' + t.depTime,
               cambi: 1, transferNode: hub, transferWait: wait,
               totalMins: tArrMins - (dep || 0), totalPrice: parseFloat(ride.price || 0),
@@ -3888,23 +3895,23 @@
 
       // ── Fase 4: transit → transit via hub (1 cambio) ─────────────────────────
       for (const hub of allHubs) {
-        if (b1.length >= MAX_CHANGE1) break;
+        if (b1b.length >= SOFT_P4) break;
         const t1List = cachedTransit(from, hub);
         if (!t1List.length) continue;
         const t2List = cachedTransit(hub, to);
         if (!t2List.length) continue;
         for (const t1 of t1List) {
-          if (b1.length >= MAX_CHANGE1) break;
+          if (b1b.length >= SOFT_P4) break;
           const t1ArrMins = toMins(t1.arrTime) || (toMins(t1.depTime) + (t1.segMins || 60));
           const t1Arr = fromMins(t1ArrMins);
           for (const t2 of t2List) {
-            if (b1.length >= MAX_CHANGE1) break;
+            if (b1b.length >= SOFT_P4) break;
             const t2Dep = toMins(t2.depTime); if (!t2Dep) continue;
             const wait = t2Dep - t1ArrMins;
             if (wait < WAIT) continue;
             if (filterWait !== 'any' && wait > filterWait) continue;
             const t2ArrMins = toMins(t2.arrTime) || (t2Dep + (t2.segMins || 60));
-            addTo(b1, MAX_CHANGE1, {
+            addTo(b1b, SOFT_P4, {
               id: 'tt_' + t1.operatorId + '_' + t1.depTime + '_' + hub + '_' + t2.operatorId + '_' + t2.depTime,
               cambi: 1, transferNode: hub, transferWait: wait,
               totalMins: t2ArrMins - (toMins(t1.depTime) || 0), totalPrice: 0,
@@ -3929,37 +3936,37 @@
 
       // ── Fase 5: 2 cambi ──────────────────────────────────────────────────────
       for (const hub1 of allHubs) {
-        if (b2.length >= MAX_CHANGE2) break;
+        if (b2a.length >= SOFT_P5A && b2b.length >= SOFT_P5B) break;
         const ridesTo1 = ridesFromOrigin.filter(r => rideMatches(r, hub1));
         const t1List = cachedTransit(from, hub1);
         if (!ridesTo1.length && !t1List.length) continue;
 
         for (const hub2 of allHubs) {
-          if (b2.length >= MAX_CHANGE2) break;
+          if (b2a.length >= SOFT_P5A && b2b.length >= SOFT_P5B) break;
           if (hub1 === hub2) continue;
           const t2List = cachedTransit(hub1, hub2);
           if (!t2List.length) continue;
           const t3List = cachedTransit(hub2, to);
           if (!t3List.length) continue;
 
-          // ride → transit(hub1→hub2) → transit(hub2→to)
+          // ride → transit(hub1→hub2) → transit(hub2→to)  → bucket b2a
           for (const ride of ridesTo1) {
-            if (b2.length >= MAX_CHANGE2) break;
+            if (b2a.length >= SOFT_P5A) break;
             const rArr = toMins(ride.arrTime) || (toMins(ride.depTime) || 0) + 45;
             const dep = toMins(ride.depTime);
             for (const t2 of t2List) {
-              if (b2.length >= MAX_CHANGE2) break;
+              if (b2a.length >= SOFT_P5A) break;
               const t2Dep = toMins(t2.depTime); if (!t2Dep) continue;
               const wait1 = t2Dep - rArr;
               if (wait1 < WAIT) continue;
               const t2ArrMins = toMins(t2.arrTime) || (t2Dep + (t2.segMins || 60));
               for (const t3 of t3List) {
-                if (b2.length >= MAX_CHANGE2) break;
+                if (b2a.length >= SOFT_P5A) break;
                 const t3Dep = toMins(t3.depTime); if (!t3Dep) continue;
                 const wait2 = t3Dep - t2ArrMins;
                 if (wait2 < WAIT) continue;
                 const t3ArrMins = toMins(t3.arrTime) || (t3Dep + (t3.segMins || 60));
-                addTo(b2, MAX_CHANGE2, {
+                addTo(b2a, SOFT_P5A, {
                   id: 'c2_' + ride.id + '_' + hub1 + '_' + t2.depTime + '_' + hub2 + '_' + t3.depTime,
                   cambi: 2, transferNode: hub1 + ' · ' + hub2, transferWait: Math.min(wait1, wait2),
                   totalMins: t3ArrMins - (dep || 0), totalPrice: parseFloat(ride.price || 0),
@@ -3991,23 +3998,23 @@
             }
           }
 
-          // transit(from→hub1) → transit(hub1→hub2) → transit(hub2→to)
+          // transit(from→hub1) → transit(hub1→hub2) → transit(hub2→to)  → bucket b2b
           for (const t1 of t1List) {
-            if (b2.length >= MAX_CHANGE2) break;
+            if (b2b.length >= SOFT_P5B) break;
             const t1ArrMins = toMins(t1.arrTime) || (toMins(t1.depTime) + (t1.segMins || 60));
             for (const t2 of t2List) {
-              if (b2.length >= MAX_CHANGE2) break;
+              if (b2b.length >= SOFT_P5B) break;
               const t2Dep = toMins(t2.depTime); if (!t2Dep) continue;
               const wait1 = t2Dep - t1ArrMins;
               if (wait1 < WAIT) continue;
               const t2ArrMins = toMins(t2.arrTime) || (t2Dep + (t2.segMins || 60));
               for (const t3 of t3List) {
-                if (b2.length >= MAX_CHANGE2) break;
+                if (b2b.length >= SOFT_P5B) break;
                 const t3Dep = toMins(t3.depTime); if (!t3Dep) continue;
                 const wait2 = t3Dep - t2ArrMins;
                 if (wait2 < WAIT) continue;
                 const t3ArrMins = toMins(t3.arrTime) || (t3Dep + (t3.segMins || 60));
-                addTo(b2, MAX_CHANGE2, {
+                addTo(b2b, SOFT_P5B, {
                   id: 'ttt_' + t1.operatorId + '_' + t1.depTime + '_' + hub1 + '_' + t2.depTime + '_' + hub2 + '_' + t3.depTime,
                   cambi: 2, transferNode: hub1 + ' · ' + hub2, transferWait: Math.min(wait1, wait2),
                   totalMins: t3ArrMins - (toMins(t1.depTime) || 0), totalPrice: 0,
@@ -4038,8 +4045,28 @@
         }
       }
 
-      // Merge dei bucket e sort per orario di partenza.
-      // I bucket separati garantiscono rappresentanza bilanciata tra diretti, 1 cambio e 2 cambi.
+      // ── Selezione finale: ordina per qualità (durata, poi attesa minima) e tiene i migliori.
+      // Così anche se una fase ha raccolto tante candidate, sopravvivono quelle effettivamente utili
+      // e il mix di 1-cambio (ride+transit vs transit+transit) viene preservato equamente.
+      const byQuality = (a, b) =>
+        (a.totalMins - b.totalMins) ||
+        ((a.transferWait || 0) - (b.transferWait || 0));
+      b1a.sort(byQuality); b1b.sort(byQuality);
+      b2a.sort(byQuality); b2b.sort(byQuality);
+      // Interleave equo: alterno i migliori di ciascun sotto-bucket così nessuna variante domina.
+      const interleave = (a, b, max) => {
+        const out = [];
+        const aa = a.slice(), bb = b.slice();
+        while (out.length < max && (aa.length || bb.length)) {
+          if (aa.length) out.push(aa.shift());
+          if (out.length < max && bb.length) out.push(bb.shift());
+        }
+        return out;
+      };
+      const b1 = interleave(b1a, b1b, FINAL_CHANGE1);
+      const b2 = interleave(b2a, b2b, FINAL_CHANGE2);
+
+      // Merge finale e sort per orario di partenza (come prima, per una lista temporale coerente).
       return [...b0, ...b1, ...b2].sort((a, b) => (toMins(a.depTime) || 0) - (toMins(b.depTime) || 0));
     }
 
@@ -4103,11 +4130,8 @@
         if (Number.isFinite(bestDirectMins)) {
           jj.forEach(j => { if (j.cambi >= 2 && j.totalMins > bestDirectMins * 2) j.slowWarning = true; });
         }
-        const timeVal=(document.getElementById('s-time')?.value||'').trim();
-        const _tod=new Date().toISOString().slice(0,10),_sd=(document.getElementById('s-date')?.value||'').trim();
-        const _nowM=new Date().getHours()*60+new Date().getMinutes();
-        const _tmn=timeVal?(toMins(timeVal)??(!_sd||_sd===_tod?_nowM:0)):(!_sd||_sd===_tod?_nowM:0);
-        jj=jj.filter(j=>(toMins(j.depTime)||0)>=_tmn);
+        const timeVal = (document.getElementById('s-time')?.value || '').trim();
+        if (timeVal) { const tMin = toMins(timeVal); if (tMin != null) jj = jj.filter(j => (toMins(j.depTime) || 0) >= tMin); }
         const seen = new Set(); jj = jj.filter(j => { if (seen.has(j.id)) return false; seen.add(j.id); return true; });
         if (sortMode === 'time') jj.sort((a, b) => a.totalMins - b.totalMins);
         else if (sortMode === 'cambi') jj.sort((a, b) => a.cambi - b.cambi || a.totalMins - b.totalMins);
@@ -4120,9 +4144,8 @@
             return j;
           }).sort((a, b) => (a._dist || 999) - (b._dist || 999));
         }
-        if(cnt)cnt.textContent=jj.length?jj.length+' percors'+(jj.length===1?'o':'i')+' trovati':'';
-        window._allJ=jj;window._shownN=0;
-        renderJourneys(jj.slice(0,10),from,to,jj.length>10);
+        if (cnt) cnt.textContent = jj.length ? jj.length + ' percors' + (jj.length === 1 ? 'o' : 'i') + ' trovati' : '';
+        renderJourneys(jj, from, to);
       }); // fine getCachedJourneys callback
     };
 
@@ -4130,7 +4153,7 @@
     window.planJourney = window._debounce(_planJourneyFn, 400);
     window.liveSearch = window.planJourney;
 
-    function renderJourneys(jj, from, to, hasMore) {
+    function renderJourneys(jj, from, to) {
       window._curJourneys = jj;
       const el = document.getElementById('s-results');
       if (!jj.length) {
@@ -4161,26 +4184,6 @@
           + '<div class="jfoot">' + actH + '</div>'
           + '</div>';
       }).join('');
-      window._shownN=jj.length;
-      if(hasMore){const _mb=document.createElement('button');_mb.className='load-more-btn';_mb.textContent='Cerca altre partenze ('+((window._allJ||[]).length-jj.length)+' rimasti) →';_mb.onclick=loadMoreJourneys;document.getElementById('s-results').appendChild(_mb);}
-    }
-    function loadMoreJourneys(){
-      const all=window._allJ||[],shown=window._shownN||0,next=all.slice(shown,shown+10);
-      if(!next.length)return;
-      window._shownN=shown+next.length;
-      window._curJourneys=(window._curJourneys||[]).concat(next);
-      const el=document.getElementById('s-results');
-      el.querySelector('.load-more-btn')?.remove();
-      next.forEach(j=>{
-        const cB=j.cambi===0?'<span class="jbadge">Diretto</span>':j.slowWarning?'<span class="jbadge warn">'+j.cambi+' cambi · percorso lento</span>':'<span class="jbadge warn">'+j.cambi+' cambio'+(j.cambi>1?'i':'')+'</span>';
-        const dur=j.totalMins<60?j.totalMins+'min':Math.floor(j.totalMins/60)+'h '+(j.totalMins%60?j.totalMins%60+'min':'');
-        const stH=j.steps.map(s=>s.type==='transfer'?'<div class="jconn"><span class="jconntxt">Cambio a '+s.node+' · '+s.wait+' min</span></div>':'<div class="jstep"><div class="jsi" style="background:'+s.bg+';">'+s.icon+'</div><div class="jsb"><div class="jst">'+s.title+'</div><div class="jss">'+s.sub+'</div><div class="jstm">'+s.time+'</div></div></div>').join('');
-        const hR=j.steps.find(s=>s.rideId);
-        const aH=hR?'<button class="btn btn-p" style="flex:1;padding:9px;font-size:13px;" onclick="openJDetail(\''+j.id+'\')">' +'Prenota percorso</button>':'<a class="btn btn-s" style="flex:1;padding:9px;font-size:13px;text-decoration:none;" href="'+(j.steps.find(s=>s.officialUrl)?.officialUrl||'#')+'" target="_blank">Vedi orari ↗</a>';
-        el.insertAdjacentHTML('beforeend','<div class="jcard" onclick="openJDetail(\''+j.id+'\')"><div class="jhead"><span style="font-size:15px;font-weight:600;font-family:var(--mono);">'+j.depTime+'</span><span style="font-size:12px;color:var(--txt2);">→</span><span style="font-size:15px;font-weight:600;font-family:var(--mono);">'+j.arrTime+'</span><div style="flex:1;"></div>'+cB+' <span class="jbadge info">'+dur+'</span>'+(j.totalPrice>0?'<span class="jbadge">€'+j.totalPrice.toFixed(2)+'</span>':'<span class="jbadge" style="background:var(--surf2);color:var(--txt2);">Gratuito</span>')+'</div><div class="jsteps">'+stH+'</div><div class="jfoot">'+aH+'</div></div>');
-      });
-      const rem=all.length-window._shownN;
-      if(rem>0){const b=document.createElement('button');b.className='load-more-btn';b.textContent='Cerca altre partenze ('+rem+' rimasti) →';b.onclick=loadMoreJourneys;el.appendChild(b);}
     }
 
     window.openJDetail = jid => {
@@ -4234,7 +4237,7 @@
       'Caiazzo', 'Alvignano', 'Dragoni', 'Alife', 'Piedimonte Matese',
       'Villa Ortensia', 'S.Marco', 'Pontelatone', 'Triflisco',
       'S.Angelo in Formis', 'Anfiteatro', 'Piana di Monte Verna',
-      'Monte Sant\'Angelo',
+      'Monte Sant\'Angelo Università',
       'Formicola', 'Gioia Sannitica', 'Telese Terme', 'Cerreto Sannita', 'Guardia Sanframondi',
       'Ailano', 'Pratella', 'Conca della Campania',
       // Vairano / Cassino
@@ -4263,48 +4266,41 @@
         ? all.slice(0, 6)
         : all.filter(p => p.toLowerCase().includes(q)).slice(0, 6);
       if (!matches.length) { drop.style.display = 'none'; return; }
-      drop.innerHTML = matches.map(p => `<div class="ac-item" onmousedown="document.getElementById('${inputId}').value='${p.replace(/'/g, ' ')}';document.getElementById('${dropId}').style.display='none';planJourney();">${escapeHtml(p)}</div>`).join('');
+      // BUG FIX: salviamo il valore in data-* e deleghiamo il click a un listener globale.
+      // Risolve 3 problemi del vecchio `onmousedown` inline:
+      //  1) onmousedown era inaffidabile su mobile (il blur nascondeva la dropdown prima del tap)
+      //  2) interpolare `p` nella stringa JS rompeva gli apostrofi (Sant'Angelo → "Sant Angelo")
+      //  3) chiamava sempre planJourney() anche dalla home, dove s-from/s-to non esistono
+      drop.innerHTML = matches.map(p =>
+        `<div class="ac-item" data-ac-val="${escapeHtml(p)}" data-ac-inp="${inputId}" data-ac-drop="${dropId}">${escapeHtml(p)}</div>`
+      ).join('');
       drop.style.display = 'block';
     };
-    window.acSuggestDebounced = window._debounce(window.acSuggest, 200);
-    const STOP_GROUPS=[
-      {label:'Napoli città',code:'NA',stops:['Napoli Centrale','Piazza Garibaldi','Napoli Corso Garibaldi','Napoli Piazza Municipio','Napoli Montesanto','Napoli Campi Flegrei','Napoli Mergellina','Piazzale Tecchio']},
-      {label:'Monte Sant’Angelo — Univ. Federico II (Napoli)',code:'NA',stops:["Monte Sant'Angelo"]},
-      {label:'Area nord Napoli',code:'NA',stops:['Pozzuoli','Bagnoli','Quarto','Licola','Cuma','Torregaveta','Caivano','Frattamaggiore','Crispano','Acerra','Casalnuovo','Cercola','Volla',"Pomigliano d'Arco"]},
-      {label:'Area est Napoli / Vesuviana',code:'NA',stops:['San Giorgio a Cremano','Portici','Ercolano','Torre del Greco','Torre Annunziata','Castellammare di Stabia','Vico Equense','Meta','Piano di Sorrento','Sorrento','Pompei','Ottaviano','Nola','Saviano','Poggiomarino','Sarno','Baiano','Napoli Afragola']},
-      {label:'Caserta e provincia',code:'CE',stops:['Caserta','Santa Maria Capua Vetere','Capua','Marcianise','Maddaloni','Casagiove','San Nicola la Strada','Aversa','Aversa Nord','Teverola','Gricignano','Cancello','Arienzo','Orta di Atella']},
-      {label:'Valle del Volturno / Matese',code:'CE',stops:['Caiazzo','Alvignano','Dragoni','Alife','Piedimonte Matese','Villa Ortensia','S.Marco','Pontelatone','Triflisco','S.Angelo in Formis','Anfiteatro','Piana di Monte Verna','Formicola','Gioia Sannitica']},
-      {label:'Benevento e Sannio',code:'BN',stops:['Benevento','Montesarchio',"Sant'Agata dei Goti",'Cerreto Sannita','Guardia Sanframondi','Telese Terme']},
-      {label:'Salerno / UniSa',code:'SA',stops:['Salerno','Fisciano','Fisciano (UniSa)']},
-      {label:'Costiera Domiziana',code:'CE',stops:['Castel Volturno','Pinetamare','Mondragone','Sessa Aurunca','Baia Domizia','Scauri','Minturno']},
-      {label:'Cassino e Frosinone',code:'FR',stops:['Cassino','Aquino','Pontecorvo','Ceprano','Frosinone','Sora','Isola del Liri']},
-      {label:'Molise',code:'IS',stops:['Venafro','Isernia','Ailano','Pratella','Conca della Campania']},
-      {label:'Roma',code:'RM',stops:['Roma Termini','Roma Tiburtina']},
-    ];
-    let _spField=null,_spItems=[];
-    window.openStopPicker=field=>{
-      _spField=field;
-      document.getElementById('stop-picker-title').textContent=field==='from'?'Scegli fermata di partenza':'Scegli fermata di arrivo';
-      document.getElementById('stop-picker-search').value='';
-      const rideStops=[...new Set(allRides.flatMap(r=>[r.from,r.to]).filter(Boolean))];
-      const known=new Set(STOP_GROUPS.flatMap(g=>g.stops));
-      _spItems=[];
-      STOP_GROUPS.forEach(g=>g.stops.forEach(s=>_spItems.push({label:g.label,code:g.code,stop:s})));
-      rideStops.filter(s=>!known.has(s)).forEach(s=>_spItems.push({label:'Da passaggi reali',code:'🚗',stop:s}));
-      _renderSP(_spItems);
-      document.getElementById('stop-picker-overlay').classList.add('open');
-      setTimeout(()=>document.getElementById('stop-picker-search').focus(),150);
-    };
-    window.closeStopPicker=e=>{if(!e||e.target===document.getElementById('stop-picker-overlay'))document.getElementById('stop-picker-overlay').classList.remove('open');};
-    window.filterStopPicker=q=>{_renderSP(q.trim().toLowerCase()?_spItems.filter(i=>i.stop.toLowerCase().includes(q.trim().toLowerCase())):_spItems);};
-    function _renderSP(items){
-      const list=document.getElementById('stop-picker-list');
-      if(!items.length){list.innerHTML='<div style="padding:20px;text-align:center;color:var(--txt3);font-size:14px;">Nessuna fermata trovata</div>';return;}
-      let html='',lastG=null;
-      items.forEach(i=>{if(i.label!==lastG){html+='<div class="sp-group">'+i.label+'</div>';lastG=i.label;}html+='<div class="sp-item" onclick="selectStop('+JSON.stringify(i.stop)+')"><span class="sp-badge">'+i.code+'</span><span>'+escapeHtml(i.stop)+'</span></div>';});
-      list.innerHTML=html;
+    // Listener globale delegato: `pointerdown` copre sia mouse sia touch.
+    // `preventDefault()` impedisce al blur di nascondere la dropdown prima del commit.
+    // Usiamo `capture: true` per intercettare prima del blur sui browser che serializzano diversamente.
+    if (!window._acClickBound) {
+      window._acClickBound = true;
+      document.addEventListener('pointerdown', (e) => {
+        const item = e.target && e.target.closest && e.target.closest('.ac-item[data-ac-val]');
+        if (!item) return;
+        e.preventDefault();
+        const val = item.getAttribute('data-ac-val');
+        const inpId = item.getAttribute('data-ac-inp');
+        const dropId = item.getAttribute('data-ac-drop');
+        const inp = document.getElementById(inpId);
+        const drop = document.getElementById(dropId);
+        if (!inp || !drop) return;
+        inp.value = val;
+        drop.style.display = 'none';
+        // planJourney() serve solo sulla schermata di ricerca (input s-from/s-to).
+        if ((inpId === 's-from' || inpId === 's-to') && typeof planJourney === 'function') {
+          planJourney();
+        }
+      }, true);
     }
-    window.selectStop=stop=>{document.getElementById('stop-picker-overlay').classList.remove('open');document.getElementById(_spField==='from'?'s-from':'s-to').value=stop;planJourney();};
+    // MIGLIORAMENTO: versione con debounce per gli input della home (home-from, home-to)
+    window.acSuggestDebounced = window._debounce(window.acSuggest, 200);
 
     // ── goTo updated to handle new screens ───────────────────────────────────────
     // Override the existing goTo
@@ -4375,23 +4371,7 @@
               { name: 'R6 · Via Vicinale Santa Maria del Pianto → Piazza Garibaldi', url: 'https://www.anm.it/', stops: ['Via Vicinale S. Maria del Pianto', 'Ponticelli', 'Via Brin', 'Piazza Garibaldi'], deps: [{ t: '06:00', s: 'Via Vicinale S. Maria del Pianto' }, { t: '06:25', s: 'Via Vicinale S. Maria del Pianto' }, { t: '06:50', s: 'Via Vicinale S. Maria del Pianto' }, { t: '07:15', s: 'Via Vicinale S. Maria del Pianto' }, { t: '07:40', s: 'Via Vicinale S. Maria del Pianto' }, { t: '08:05', s: 'Via Vicinale S. Maria del Pianto' }] },
               { name: 'R7 · Pianura → Piazzale Tecchio', url: 'https://www.anm.it/', stops: ['Pianura', 'Soccavo', 'Via Cinthia', 'Piazzale Tecchio'], deps: [{ t: '06:00', s: 'Pianura' }, { t: '06:20', s: 'Pianura' }, { t: '06:40', s: 'Pianura' }, { t: '07:00', s: 'Pianura' }, { t: '07:20', s: 'Pianura' }, { t: '07:40', s: 'Pianura' }, { t: '08:00', s: 'Pianura' }] },
               { name: '154 · Via Brin → Piazza Vittoria', url: 'https://www.anm.it/', stops: ['Via Brin', 'Centro Direzionale', 'Corso Meridionale', 'Piazza Garibaldi', 'Via Marina', 'Piazza Vittoria'], deps: [{ t: '06:00', s: 'Via Brin' }, { t: '06:20', s: 'Via Brin' }, { t: '06:40', s: 'Via Brin' }, { t: '07:00', s: 'Via Brin' }, { t: '07:20', s: 'Via Brin' }, { t: '07:40', s: 'Via Brin' }, { t: '08:00', s: 'Via Brin' }] },
-              { name: 'S1 · Piazzale Tecchio → Monte Sant\'Angelo (circolare)', url: 'https://www.anm.it/', noSun: true,
-                note: 'Circolare breve Fuorigrotta, lun-ven.',
-                stops: ['Piazzale Tecchio', 'Via D\'Annunzio', 'Monte Sant\'Angelo', 'Via Cinthia Parco San Paolo', 'Piazzale Tecchio'],
-                deps: [{ t: '07:00', s: 'Piazzale Tecchio' }, { t: '07:30', s: 'Piazzale Tecchio' }, { t: '08:00', s: 'Piazzale Tecchio' }, { t: '08:30', s: 'Piazzale Tecchio' }, { t: '09:00', s: 'Piazzale Tecchio' }, { t: '09:30', s: 'Piazzale Tecchio' }, { t: '10:00', s: 'Piazzale Tecchio' }, { t: '11:00', s: 'Piazzale Tecchio' }, { t: '12:00', s: 'Piazzale Tecchio' }, { t: '13:00', s: 'Piazzale Tecchio' }, { t: '14:00', s: 'Piazzale Tecchio' }, { t: '15:00', s: 'Piazzale Tecchio' }, { t: '16:00', s: 'Piazzale Tecchio' }, { t: '17:00', s: 'Piazzale Tecchio' }, { t: '18:00', s: 'Piazzale Tecchio' }] },
-              { name: 'S2 · Quattro Giornate → Monte Sant\'Angelo → Piazzale Tecchio', url: 'https://www.anm.it/', noSun: true,
-                note: 'Solo lun-ven. Percorso: Quattro Giornate → Vomero → Via Cinthia → Tecchio.',
-                stops: ['Quattro Giornate', 'Piazza Quattro Giornate', 'Gemito', 'Via Cinthia Traiano', 'Monte Sant\'Angelo', 'Via Cinthia Parco San Paolo', 'Via Leopardi', 'Piazzale Tecchio'],
-                deps: [{ t: '08:09', s: 'Quattro Giornate' }, { t: '09:00', s: 'Quattro Giornate' }, { t: '10:00', s: 'Quattro Giornate' }, { t: '11:00', s: 'Quattro Giornate' }, { t: '12:00', s: 'Quattro Giornate' }, { t: '13:00', s: 'Quattro Giornate' }, { t: '14:00', s: 'Quattro Giornate' }, { t: '15:00', s: 'Quattro Giornate' }, { t: '16:00', s: 'Quattro Giornate' }, { t: '17:00', s: 'Quattro Giornate' }, { t: '18:42', s: 'Quattro Giornate' }] },
-              { name: 'R6 · Piazzale Tecchio → Monte Sant\'Angelo → Pianura', url: 'https://www.anm.it/',
-                note: 'Attivo tutto il giorno inclusa notte. Tecchio (Campi Flegrei M2) → Via Cinthia → Pianura Circumflegrea.',
-                stops: ['Piazzale Tecchio', 'Via D\'Annunzio', 'Via Cinthia Traiano', 'Monte Sant\'Angelo', 'Via Cinthia Parco San Paolo', 'Soccavo', 'Pianura'],
-                deps: [{ t: '05:20', s: 'Piazzale Tecchio' }, { t: '06:00', s: 'Piazzale Tecchio' }, { t: '06:30', s: 'Piazzale Tecchio' }, { t: '07:00', s: 'Piazzale Tecchio' }, { t: '07:20', s: 'Piazzale Tecchio' }, { t: '07:40', s: 'Piazzale Tecchio' }, { t: '08:00', s: 'Piazzale Tecchio' }, { t: '08:20', s: 'Piazzale Tecchio' }, { t: '08:40', s: 'Piazzale Tecchio' }, { t: '09:00', s: 'Piazzale Tecchio' }, { t: '09:30', s: 'Piazzale Tecchio' }, { t: '10:00', s: 'Piazzale Tecchio' }, { t: '11:00', s: 'Piazzale Tecchio' }, { t: '12:00', s: 'Piazzale Tecchio' }, { t: '13:00', s: 'Piazzale Tecchio' }, { t: '14:00', s: 'Piazzale Tecchio' }, { t: '15:00', s: 'Piazzale Tecchio' }, { t: '16:00', s: 'Piazzale Tecchio' }, { t: '17:00', s: 'Piazzale Tecchio' }, { t: '18:00', s: 'Piazzale Tecchio' }, { t: '19:00', s: 'Piazzale Tecchio' }, { t: '20:00', s: 'Piazzale Tecchio' }, { t: '21:00', s: 'Piazzale Tecchio' }, { t: '22:00', s: 'Piazzale Tecchio' }, { t: '23:00', s: 'Piazzale Tecchio' }] },
-              { name: '180 · Piazzale Tecchio → Monte Sant\'Angelo → Scampia', url: 'https://www.anm.it/',
-                note: 'Tecchio (Campi Flegrei M2) → Via Leopardi → Via Cinthia (MSA) → Aeroporto Capodichino → Scampia (M1 Piscinola).',
-                stops: ['Piazzale Tecchio', 'Via Leopardi', 'Monte Sant\'Angelo', 'Aeroporto Capodichino', 'Secondigliano', 'Scampia'],
-                deps: [{ t: '05:10', s: 'Piazzale Tecchio' }, { t: '05:50', s: 'Piazzale Tecchio' }, { t: '06:20', s: 'Piazzale Tecchio' }, { t: '06:50', s: 'Piazzale Tecchio' }, { t: '07:20', s: 'Piazzale Tecchio' }, { t: '07:50', s: 'Piazzale Tecchio' }, { t: '08:20', s: 'Piazzale Tecchio' }, { t: '08:50', s: 'Piazzale Tecchio' }, { t: '09:20', s: 'Piazzale Tecchio' }, { t: '10:00', s: 'Piazzale Tecchio' }, { t: '11:00', s: 'Piazzale Tecchio' }, { t: '12:00', s: 'Piazzale Tecchio' }, { t: '13:00', s: 'Piazzale Tecchio' }, { t: '14:00', s: 'Piazzale Tecchio' }, { t: '15:00', s: 'Piazzale Tecchio' }, { t: '16:00', s: 'Piazzale Tecchio' }, { t: '17:00', s: 'Piazzale Tecchio' }, { t: '18:00', s: 'Piazzale Tecchio' }, { t: '19:00', s: 'Piazzale Tecchio' }, { t: '20:00', s: 'Piazzale Tecchio' }, { t: '21:00', s: 'Piazzale Tecchio' }] },
-              
+              { name: 'S1 · Piazzale Tecchio → Università Monte Sant\'Angelo', url: 'https://www.anm.it/', stops: ['Piazzale Tecchio', 'Via Giulio Cesare', 'Via Diocleziano', 'Via Cinthia', 'Università Monte Sant\'Angelo'], deps: [{ t: '07:00', s: 'Piazzale Tecchio' }, { t: '07:30', s: 'Piazzale Tecchio' }, { t: '08:00', s: 'Piazzale Tecchio' }, { t: '08:30', s: 'Piazzale Tecchio' }] },
               { name: '130 · P.za Garibaldi → Piazza Medaglie d\'Oro', url: 'https://www.anm.it/', stops: ['Piazza Garibaldi', 'Corso Meridionale', 'Via Taddeo da Sessa', 'Via Brin', 'Frullone', 'Colli Aminei', 'Piazza Medaglie d\'Oro'], deps: [{ t: '06:00', s: 'Piazza Garibaldi' }, { t: '06:30', s: 'Piazza Garibaldi' }, { t: '07:00', s: 'Piazza Garibaldi' }, { t: '07:30', s: 'Piazza Garibaldi' }, { t: '08:00', s: 'Piazza Garibaldi' }] },
               { name: '460 · Giugliano → Via Brin', url: 'https://www.anm.it/', stops: ['Giugliano', 'Qualiano', 'Marano', 'Piscinola', 'Frullone', 'Colli Aminei', 'Via Brin'], deps: [{ t: '06:00', s: 'Giugliano' }, { t: '06:30', s: 'Giugliano' }, { t: '07:00', s: 'Giugliano' }, { t: '07:30', s: 'Giugliano' }, { t: '08:00', s: 'Giugliano' }] },
               { name: 'Alibus · Aeroporto Capodichino → Porto Molo Beverello', url: 'https://www.anm.it/', stops: ['Aeroporto Capodichino', 'Piazza Garibaldi', 'Porto Molo Beverello'], deps: [{ t: '06:00', s: 'Aeroporto Capodichino' }, { t: '06:30', s: 'Aeroporto Capodichino' }, { t: '07:00', s: 'Aeroporto Capodichino' }, { t: '07:30', s: 'Aeroporto Capodichino' }, { t: '08:00', s: 'Aeroporto Capodichino' }, { t: '08:30', s: 'Aeroporto Capodichino' }, { t: '09:00', s: 'Aeroporto Capodichino' }] },
@@ -5073,8 +5053,8 @@
               },
               {
                 name: 'ANG \u00B7 Napoli Universita M.S.A. \u2192 Caserta FS', url: 'https://www.angelinobus.it/?section=orari',
-                stops: ['Monte Sant\'Angelo', 'Napoli Piazza Municipio', 'Casoria', 'Afragola', 'Cardito', 'Caivano', 'Caserta'],
-                deps: [{ t: '13:30', s: "Monte Sant'Angelo" }, { t: '14:10', s: "Monte Sant'Angelo" }, { t: '16:30', s: "Monte Sant'Angelo" }, { t: '18:10', s: "Monte Sant'Angelo" }]
+                stops: ['Napoli Universita Monte Sant Angelo', 'Napoli Piazza Municipio', 'Casoria', 'Afragola', 'Cardito', 'Caivano', 'Caserta'],
+                deps: [{ t: '13:30', s: 'Napoli Univ. M.S.A.' }, { t: '14:10', s: 'Napoli Univ. M.S.A.' }, { t: '16:30', s: 'Napoli Univ. M.S.A.' }, { t: '18:10', s: 'Napoli Univ. M.S.A.' }]
               },
               {
                 name: 'ANG \u00B7 Napoli Zona Ospedaliera \u2192 Caserta FS', url: 'https://www.angelinobus.it/?section=orari',
@@ -5088,7 +5068,7 @@
               },
               {
                 name: 'ANG \u00B7 Caserta FS \u2192 Napoli Universita M.S.A.', url: 'https://www.angelinobus.it/?section=orari',
-                stops: ['Caserta', 'Caivano', 'Afragola', 'Napoli Piazza Municipio', "Monte Sant'Angelo"],
+                stops: ['Caserta', 'Caivano', 'Afragola', 'Napoli Piazza Municipio', 'Napoli Universita Monte Sant Angelo'],
                 deps: [{ t: '07:15', s: 'Caserta' }, { t: '08:50', s: 'Caserta' }, { t: '09:30', s: 'Caserta' }, { t: '10:30', s: 'Caserta' }, { t: '12:30', s: 'Caserta' }, { t: '13:00', s: 'Caserta' }, { t: '14:00', s: 'Caserta' }, { t: '14:10', s: 'Caserta' }, { t: '15:00', s: 'Caserta' }, { t: '15:10', s: 'Caserta' }, { t: '16:00', s: 'Caserta' }, { t: '16:10', s: 'Caserta' }, { t: '16:50', s: 'Caserta' }, { t: '17:10', s: 'Caserta' }]
               },
               {
