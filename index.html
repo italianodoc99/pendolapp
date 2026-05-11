@@ -3573,7 +3573,22 @@
       'pontelatone': ['pontelatone eav'],
       'triflisco': ['triflisco eav'],
       'maddaloni inferiore': ['maddaloni inf', 'maddaloni inf rfi', 'maddaloni inferiore rfi'],
-      'monte sant\'angelo università': ['monte sant angelo università', 'monte santangelo università', 'unisannio', 'università del sannio'],
+      // FIX: la canonica è 'università monte sant'angelo' perché è il nome reale della
+      // fermata della linea S1 (Università Monte Sant'Angelo). Tutte le forme abbreviate
+      // o con "napoli" davanti convergono qui. Senza questi alias, query come
+      // "Napoli Monte Sant'Angelo" venivano spezzate in parole e potevano matchare per
+      // sbaglio linee EAV con fermate distinte (S.Angelo in Formis, Piana di Monte Verna).
+      'università monte sant\'angelo': [
+        'monte sant\'angelo università', 'monte sant angelo università', 'monte santangelo università',
+        'università monte sant angelo', 'università monte santangelo',
+        'monte sant\'angelo', 'monte sant angelo', 'monte santangelo',
+        'napoli monte sant\'angelo', 'napoli monte sant angelo', 'napoli monte santangelo',
+        'napoli università monte sant\'angelo', 'napoli università monte sant angelo',
+        'napoli universita monte sant angelo'  // forma usata nelle linee Angelino
+      ],
+      // NOTA: 'unisannio' / 'università del sannio' erano qui ma sono Benevento (UniSannio),
+      // non Monte Sant'Angelo (Federico II). Rimossi dagli alias — se servono andranno
+      // mappati alla loro canonica corretta separatamente.
       'via del monte eav': ['via del monte'],
       'napoli centrale': ['napoli c.le', 'napoli centrale rfi', 'na centrale rfi'],
     };
@@ -3618,20 +3633,32 @@
       const selDate = dateStr ? new Date(dateStr + 'T12:00:00') : new Date();
       const dayOfWeek = selDate.getDay(); // 0=domenica
 
-      // Helper: trova un orario nell'oggetto times cercando per chiave normalizzata/parziale
+      // Helper: trova un orario nell'oggetto times cercando per chiave normalizzata/parziale.
+      // FIX: rimosse le sottostringhe inverse (`nq.includes(nk)` e `q.includes(k)`) che
+      // accettavano per match qualsiasi chiave breve contenuta nella query — è quello che
+      // faceva ricadere "Monte Sant'Angelo" su "Piana di Monte Verna" via la sottostringa
+      // "monte". E word-match cambiato da `some` a `every`: la chiave deve contenere tutte
+      // le parole della query, non solo una.
       const findTime = (times, q) => {
         if (!times || !q) return null;
         const nq = normalizeStop(q);
         const keys = Object.keys(times);
-        // match diretto grezzo o normalizzato
+        // 1) match diretto grezzo o normalizzato
         let k = keys.find(k => k.toLowerCase() === q || normalizeStop(k.toLowerCase()) === nq);
         if (k) return times[k];
-        // match parziale (normalizzato)
-        k = keys.find(k => { const nk = normalizeStop(k.toLowerCase()); return nk.includes(nq) || (nk.length > 4 && nq.includes(nk)) || k.toLowerCase().includes(q) || (k.length > 4 && q.includes(k.toLowerCase())); });
+        // 2) match parziale: la chiave contiene la query (non più il contrario)
+        k = keys.find(k => {
+          const nk = normalizeStop(k.toLowerCase());
+          return nk.includes(nq) || k.toLowerCase().includes(q);
+        });
         if (k) return times[k];
-        // match per parola (normalizzato)
-        const words = nq.split(/\s+/).filter(w => w.length > 2);
-        k = keys.find(k => { const nk = normalizeStop(k.toLowerCase()); return words.some(w => nk.includes(w) || k.toLowerCase().includes(w)); });
+        // 3) match per parole: la chiave deve contenere TUTTE le parole della query
+        const words = nq.split(/\s+/).filter(w => w.length > 3);
+        if (!words.length) return null;
+        k = keys.find(k => {
+          const nk = normalizeStop(k.toLowerCase());
+          return words.every(w => nk.includes(w));
+        });
         return k ? times[k] : null;
       };
 
@@ -3648,15 +3675,21 @@
           const matchInText = (q) => {
             if (!q) return true;
             const nq2 = normalizeStop(q);
-            // Match esatto sul nome linea (es. "R2", "EAV") o sulle fermate
-            if (n.includes(q)) return true;
-            if (allStopsN.some(s => s === nq2 || s.includes(nq2) || (s.length > 4 && nq2.includes(s)))) return true;
-            if (allStops.some(s => s.includes(q))) return true;
-            // Word-split: controlla SOLO le fermate, non il nome della linea.
-            // Altrimenti "monte" in "Via del Monte" matcha "Monte Sant'Angelo" nel nome linea S1.
+            // FIX: rimosso il match `nq2.includes(s)` (sottostringa inversa: una qualsiasi
+            // fermata corta della linea che fosse contenuta nella query bastava a far matchare
+            // la linea — es. fermata "Università" della Metro L1 dentro la query "Università
+            // Monte Sant'Angelo"). Ora la query DEVE essere contenuta nella fermata, non
+            // viceversa. Stesso ragionamento per il check sul nome linea (n.includes(q)).
+            if (n === nq2 || n.includes(nq2)) return true;
+            if (allStopsN.some(s => s === nq2 || s.includes(nq2))) return true;
+            // FIX: word-split ora richiede che UNA SINGOLA fermata contenga TUTTE le parole.
+            // Prima: ogni parola poteva essere distribuita su fermate diverse della linea
+            // (es. "napoli monte sant'angelo" matchava la EAV Piedimonte→Napoli perché
+            //  "napoli" stava in "Napoli Centrale", "monte" in "Piana di Monte Verna",
+            //  "sant" in "Santa Maria CV", "angelo" in "S.Angelo in Formis"). Falso positivo.
             const words = nq2.split(/\s+/).filter(w => w.length > 3);
             if (!words.length) return false;
-            return words.every(w => allStopsN.some(s => s.includes(w)) || allStops.some(s => s.includes(w)));
+            return allStopsN.some(s => words.every(w => s.includes(w)));
           };
           if (!matchInText(fq) || !matchInText(tq)) continue;
 
@@ -4616,19 +4649,24 @@
                 ]
               },
               {
-                name: '18-CE · Caserta → San Leucio → Caiazzo → Alvignano → Piedimonte Matese', url: 'https://www.aircampania.it/',
-                stops: ['Caserta', 'San Leucio', 'Piana di Monte Verna', 'Caiazzo', 'Alvignano', 'Dragoni', 'Alife', 'Piedimonte Matese'],
+                // 18-CE: dati dal PDF AIR ufficiale (orario 01/09/2025).
+                // Validità A6/FE6 = lun-sab tutto l'anno. Domenica già coperta da noSun:true.
+                // 5 corse Piedimonte → Caserta + 5 Caserta → Piedimonte. Non festivo.
+                name: '18-CE · Piedimonte Matese ↔ Caserta (via Alvignano, Caiazzo, San Leucio)', url: 'https://www.aircampania.it/',
+                stops: ['Piedimonte Matese', 'Alife', 'Dragoni', 'Alvignano', 'Caiazzo', 'Piana di Monte Verna', 'San Leucio', 'Caserta'],
                 deps: [
-                  { t: '05:10', s: 'Caserta', times: { 'Caserta': '05:10', 'San Leucio': '05:15', 'Piana di Monte Verna': '05:25', 'Caiazzo': '05:30', 'Alvignano': '05:40', 'Dragoni': '05:50', 'Alife': '06:00', 'Piedimonte Matese': '06:10' } },
-                  { t: '07:45', s: 'Caserta', times: { 'Caserta': '07:45', 'San Leucio': '07:50', 'Piana di Monte Verna': '08:00', 'Caiazzo': '08:06', 'Alvignano': '08:16', 'Dragoni': '08:23', 'Alife': '08:31', 'Piedimonte Matese': '08:35' } },
-                  { t: '10:55', s: 'Caserta', times: { 'Caserta': '10:55', 'San Leucio': '11:00', 'Piana di Monte Verna': '11:10', 'Caiazzo': '11:16', 'Alvignano': '11:26', 'Dragoni': '11:33', 'Alife': '11:41', 'Piedimonte Matese': '11:45' } },
-                  { t: '14:10', s: 'Caserta', times: { 'Caserta': '14:10', 'San Leucio': '14:15', 'Piana di Monte Verna': '14:25', 'Caiazzo': '14:31', 'Alvignano': '14:41', 'Dragoni': '14:48', 'Alife': '14:56', 'Piedimonte Matese': '15:00' } },
-                  { t: '17:00', s: 'Caserta', times: { 'Caserta': '17:00', 'San Leucio': '17:05', 'Piana di Monte Verna': '17:15', 'Caiazzo': '17:21', 'Alvignano': '17:31', 'Dragoni': '17:38', 'Alife': '17:46', 'Piedimonte Matese': '17:50' } },
-                  { t: '06:35', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '06:35', 'Alife': '06:39', 'Dragoni': '06:47', 'Alvignano': '06:57', 'Caiazzo': '07:07', 'Piana di Monte Verna': '07:10', 'San Leucio': '07:20', 'Caserta': '07:25' } },
-                  { t: '09:50', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '09:50', 'Alife': '09:54', 'Dragoni': '10:02', 'Alvignano': '10:12', 'Caiazzo': '10:22', 'Piana di Monte Verna': '10:25', 'San Leucio': '10:35', 'Caserta': '10:40' } },
-                  { t: '12:50', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '12:50', 'Alife': '12:54', 'Dragoni': '13:02', 'Alvignano': '13:12', 'Caiazzo': '13:22', 'Piana di Monte Verna': '13:25', 'San Leucio': '13:35', 'Caserta': '13:40' } },
-                  { t: '16:05', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '16:05', 'Alife': '16:09', 'Dragoni': '16:17', 'Alvignano': '16:27', 'Caiazzo': '16:37', 'Piana di Monte Verna': '16:40', 'San Leucio': '16:50', 'Caserta': '16:55' } },
-                  { t: '18:50', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '18:50', 'Alife': '18:54', 'Dragoni': '19:02', 'Alvignano': '19:12', 'Caiazzo': '19:22', 'Piana di Monte Verna': '19:25', 'San Leucio': '19:35', 'Caserta': '19:40' } }
+                  // ── Piedimonte → Caserta (5 corse) ──
+                  { t: '05:10', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '05:10', 'Alife': '05:19', 'Dragoni': '05:30', 'Alvignano': '05:40', 'Caiazzo': '05:50', 'Piana di Monte Verna': '05:54', 'San Leucio': '06:05', 'Caserta': '06:20' } },
+                  { t: '07:45', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '07:45', 'Alife': '07:58', 'Dragoni': '08:06', 'Alvignano': '08:16', 'Caiazzo': '08:26', 'Piana di Monte Verna': '08:35', 'San Leucio': '08:40', 'Caserta': '09:00' } },
+                  { t: '10:55', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '10:55', 'Alife': '11:08', 'Dragoni': '11:16', 'Alvignano': '11:26', 'Caiazzo': '11:36', 'Piana di Monte Verna': '11:45', 'San Leucio': '11:50', 'Caserta': '12:10' } },
+                  { t: '14:10', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '14:10', 'Alife': '14:19', 'Dragoni': '14:30', 'Alvignano': '14:40', 'Caiazzo': '14:50', 'Piana di Monte Verna': '14:54', 'San Leucio': '15:05', 'Caserta': '15:20' } },
+                  { t: '17:00', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '17:00', 'Alife': '17:11', 'Dragoni': '17:22', 'Alvignano': '17:34', 'Caiazzo': '17:45', 'Piana di Monte Verna': '17:49', 'San Leucio': '18:00', 'Caserta': '18:20' } },
+                  // ── Caserta → Piedimonte (5 corse) ──
+                  { t: '06:35', s: 'Caserta', times: { 'Caserta': '06:35', 'San Leucio': '06:51', 'Piana di Monte Verna': '06:59', 'Caiazzo': '07:05', 'Alvignano': '07:18', 'Dragoni': '07:25', 'Alife': '07:38', 'Piedimonte Matese': '07:45' } },
+                  { t: '09:50', s: 'Caserta', times: { 'Caserta': '09:50', 'San Leucio': '10:06', 'Piana di Monte Verna': '10:13', 'Caiazzo': '10:31', 'Alvignano': '10:38', 'Dragoni': '10:48', 'Alife': '10:57', 'Piedimonte Matese': '11:00' } },
+                  { t: '12:50', s: 'Caserta', times: { 'Caserta': '12:50', 'San Leucio': '13:11', 'Piana di Monte Verna': '13:19', 'Caiazzo': '13:25', 'Alvignano': '13:38', 'Dragoni': '13:45', 'Alife': '13:58', 'Piedimonte Matese': '14:05' } },
+                  { t: '16:05', s: 'Caserta', times: { 'Caserta': '16:05', 'San Leucio': '16:26', 'Piana di Monte Verna': '16:34', 'Caiazzo': '16:40', 'Alvignano': '16:53', 'Dragoni': '17:00', 'Alife': '17:13', 'Piedimonte Matese': '17:20' } },
+                  { t: '18:50', s: 'Caserta', times: { 'Caserta': '18:50', 'San Leucio': '19:11', 'Piana di Monte Verna': '19:19', 'Caiazzo': '19:25', 'Alvignano': '19:38', 'Dragoni': '19:45', 'Alife': '19:58', 'Piedimonte Matese': '20:05' } }
                 ]
               },
               {
@@ -4698,22 +4736,72 @@
                 ]
               },
               {
-                name: '30-CE · Piedimonte Matese → Alife → Prata Sannita → Fontegreca → Capriati → Venafro', url: 'https://www.aircampania.it/',
-                stops: ['Piedimonte Matese', 'Alife', 'Quattroventi', 'Ailano', 'Pratella', 'Prata Sannita', 'Fontegreca', 'Ciorlano', 'Capriati al Volturno', 'Capriati a Volturno', 'Gallo Matese', 'Letino', 'Venafro', 'Pozzilli'],
+                // 30-CE: dati dal PDF AIR ufficiale (orario 02/04/2026).
+                // Validità A6=lun-sab tutto l'anno; SA=solo sabato; Sc=scolastica (lun-ven).
+                // Operatore AIR ha noSun:true (no domenica). Le corse zona alta (Letino,
+                // Gallo Matese, Vallelunga) sono in '30-CE bis' qui sotto.
+                name: '30-CE · Piedimonte Matese ↔ Capriati ↔ Venafro / Pozzilli', url: 'https://www.aircampania.it/',
+                stops: ['Piedimonte Matese', 'Alife', 'Pietravairano', 'Marzanello', 'Vairano Scalo', 'Quattroventi', 'Ailano', 'Valle Agricola', 'Pratella', 'Prata Sannita', 'Fontegreca', 'Ciorlano', 'Capriati a Volturno', 'Venafro', 'Pozzilli'],
                 deps: [
-                  { t: '05:05', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '05:05', 'Alife': '05:15', 'Quattroventi': '05:30', 'Ailano': '05:36', 'Pratella': '05:41', 'Prata Sannita': '05:46', 'Fontegreca': '05:53', 'Capriati al Volturno': '06:00', 'Venafro': '06:22', 'Pozzilli': '06:25' } },
-                  { t: '05:45', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '05:45', 'Alife': '05:55', 'Quattroventi': '06:10', 'Ailano': '06:16', 'Pratella': '06:21', 'Prata Sannita': '06:27', 'Fontegreca': '06:34', 'Capriati al Volturno': '06:40', 'Venafro': '07:00' } },
-                  { t: '05:55', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '05:55', 'Alife': '06:05', 'Quattroventi': '06:26', 'Ailano': '06:37', 'Valle Agricola': '06:58', 'Pratella': '07:01', 'Prata Sannita': '07:07', 'Fontegreca': '07:16', 'Capriati al Volturno': '07:25', 'Venafro': '07:53' } },
-                  { t: '06:20', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '06:20', 'Alife': '06:35', 'Quattroventi': '06:51', 'Ailano': '06:56', 'Pratella': '07:01', 'Prata Sannita': '07:06', 'Fontegreca': '07:14', 'Capriati al Volturno': '07:25', 'Venafro': '07:56' } },
-                  { t: '08:35', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '08:35', 'Alife': '08:50', 'Quattroventi': '09:06', 'Ailano': '09:17', 'Pratella': '09:22', 'Prata Sannita': '09:27', 'Fontegreca': '09:34', 'Capriati al Volturno': '09:39', 'Venafro': '10:03', 'Pozzilli': '10:10' } },
-                  { t: '10:40', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '10:40', 'Alife': '10:52', 'Quattroventi': '11:09', 'Ailano': '11:14', 'Pratella': '11:19', 'Prata Sannita': '11:25', 'Fontegreca': '11:39', 'Gallo Matese': '11:58', 'Letino': '12:02', 'Capriati al Volturno': '12:30', 'Venafro': '13:00', 'Pozzilli': '14:00' } },
-                  { t: '12:20', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '12:20', 'Alife': '12:36', 'Quattroventi': '12:56', 'Ailano': '13:00', 'Pratella': '13:07', 'Prata Sannita': '13:10', 'Fontegreca': '13:18', 'Capriati al Volturno': '13:25', 'Venafro': '13:51' } },
-                  { t: '14:30', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '14:30', 'Alife': '14:40', 'Quattroventi': '14:57', 'Ailano': '15:02', 'Pratella': '15:08', 'Prata Sannita': '15:14', 'Fontegreca': '15:19', 'Capriati al Volturno': '15:30', 'Venafro': '15:50' } },
-                  { t: '17:25', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '17:25', 'Alife': '17:40', 'Quattroventi': '17:56', 'Ailano': '18:00', 'Pratella': '18:07', 'Prata Sannita': '18:10', 'Fontegreca': '18:18', 'Capriati al Volturno': '18:25', 'Venafro': '18:51' } },
-                  { t: '08:35', s: 'Pozzilli', times: { 'Pozzilli': '08:35', 'Venafro': '08:44', 'Capriati al Volturno': '09:10', 'Ciorlano': '09:14', 'Fontegreca': '09:21', 'Prata Sannita': '09:28', 'Pratella': '09:35', 'Ailano': '09:38', 'Quattroventi': '09:45', 'Alife': '10:00', 'Piedimonte Matese': '10:15' } },
-                  { t: '10:30', s: 'Pozzilli', times: { 'Pozzilli': '10:30', 'Venafro': '10:39', 'Capriati al Volturno': '11:02', 'Ciorlano': '11:06', 'Fontegreca': '11:13', 'Gallo Matese': '12:05', 'Letino': '12:09', 'Prata Sannita': '12:53', 'Pratella': '13:00', 'Ailano': '13:07', 'Quattroventi': '13:17', 'Alife': '13:32', 'Piedimonte Matese': '13:40' } },
-                  { t: '14:15', s: 'Pozzilli', times: { 'Pozzilli': '14:15', 'Venafro': '14:24', 'Capriati al Volturno': '14:50', 'Ciorlano': '14:54', 'Fontegreca': '15:02', 'Prata Sannita': '15:09', 'Pratella': '15:15', 'Ailano': '15:18', 'Quattroventi': '15:25', 'Alife': '15:40', 'Piedimonte Matese': '15:55' } },
-                  { t: '19:30', s: 'Pozzilli', times: { 'Pozzilli': '19:30', 'Venafro': '19:39', 'Capriati al Volturno': '20:05', 'Ciorlano': '20:09', 'Fontegreca': '20:17', 'Prata Sannita': '20:24', 'Pratella': '20:30', 'Ailano': '20:33', 'Quattroventi': '20:40', 'Alife': '20:55', 'Piedimonte Matese': '21:10' } }
+                  // ── Piedimonte → Venafro/Pozzilli (andate) ──
+                  { t: '05:05', s: 'Piedimonte Matese', validity: 'A6', times: { 'Piedimonte Matese': '05:05', 'Alife': '05:15', 'Quattroventi': '05:30', 'Ailano': '05:36', 'Pratella': '05:41', 'Prata Sannita': '05:47', 'Fontegreca': '05:53', 'Ciorlano': '05:55', 'Capriati a Volturno': '06:00', 'Venafro': '06:22' } },
+                  { t: '05:45', s: 'Piedimonte Matese', validity: 'SA', times: { 'Piedimonte Matese': '05:45', 'Alife': '05:55', 'Quattroventi': '06:10', 'Ailano': '06:16', 'Pratella': '06:21', 'Prata Sannita': '06:27', 'Fontegreca': '06:34', 'Ciorlano': '06:35', 'Capriati a Volturno': '06:40', 'Venafro': '07:00' } },
+                  { t: '05:55', s: 'Piedimonte Matese', validity: 'A6', times: { 'Piedimonte Matese': '05:55', 'Alife': '06:12', 'Quattroventi': '06:26', 'Ailano': '06:37', 'Valle Agricola': '06:58', 'Pratella': '07:01', 'Prata Sannita': '07:07', 'Fontegreca': '07:16', 'Ciorlano': '07:20', 'Capriati a Volturno': '07:25', 'Venafro': '07:53' } },
+                  { t: '06:20', s: 'Piedimonte Matese', validity: 'A6', times: { 'Piedimonte Matese': '06:20', 'Alife': '06:35', 'Quattroventi': '06:51', 'Ailano': '06:56', 'Pratella': '07:01', 'Prata Sannita': '07:07', 'Fontegreca': '07:14', 'Capriati a Volturno': '07:25', 'Venafro': '07:55' } },
+                  { t: '08:35', s: 'Piedimonte Matese', validity: 'A6', times: { 'Piedimonte Matese': '08:35', 'Alife': '08:50', 'Quattroventi': '09:06', 'Ailano': '09:17', 'Pratella': '09:22', 'Prata Sannita': '09:27', 'Fontegreca': '09:33', 'Ciorlano': '09:36', 'Capriati a Volturno': '09:39', 'Venafro': '10:03' } },
+                  { t: '08:40', s: 'Piedimonte Matese', validity: 'SA', times: { 'Piedimonte Matese': '08:40', 'Alife': '08:58', 'Quattroventi': '09:12', 'Pratella': '09:26', 'Prata Sannita': '09:27', 'Fontegreca': '09:34', 'Capriati a Volturno': '09:39' } },
+                  { t: '10:40', s: 'Piedimonte Matese', validity: 'A6', times: { 'Piedimonte Matese': '10:40', 'Alife': '10:53', 'Quattroventi': '11:09', 'Ailano': '11:14', 'Pratella': '11:19', 'Prata Sannita': '11:25', 'Fontegreca': '11:39', 'Ciorlano': '11:42', 'Capriati a Volturno': '11:32', 'Venafro': '12:50' } },
+                  { t: '12:25', s: 'Piedimonte Matese', validity: 'A6', times: { 'Piedimonte Matese': '12:25', 'Alife': '12:42', 'Pietravairano': '12:48', 'Marzanello': '12:56', 'Vairano Scalo': '13:00' } },
+                  { t: '13:15', s: 'Piedimonte Matese', validity: 'A6', times: { 'Piedimonte Matese': '13:15', 'Alife': '13:36', 'Quattroventi': '13:53', 'Pratella': '14:08', 'Prata Sannita': '14:15', 'Fontegreca': '14:27', 'Capriati a Volturno': '14:45', 'Venafro': '15:01' } },
+                  { t: '14:30', s: 'Piedimonte Matese', validity: 'A6', times: { 'Piedimonte Matese': '14:30', 'Alife': '14:42', 'Quattroventi': '14:55', 'Ailano': '15:02', 'Pratella': '15:08', 'Prata Sannita': '15:14', 'Fontegreca': '15:18', 'Capriati a Volturno': '15:30', 'Venafro': '15:50' } },
+                  { t: '17:25', s: 'Piedimonte Matese', validity: 'A6', times: { 'Piedimonte Matese': '17:25', 'Alife': '17:42', 'Quattroventi': '17:56', 'Ailano': '18:02', 'Pratella': '18:07', 'Prata Sannita': '18:10', 'Fontegreca': '18:18', 'Capriati a Volturno': '18:25', 'Venafro': '18:51' } },
+                  // ── Pozzilli/Venafro → Piedimonte (ritorni) ──
+                  { t: '08:35', s: 'Pozzilli', validity: 'A6', times: { 'Pozzilli': '08:35', 'Venafro': '08:44', 'Capriati a Volturno': '09:10', 'Ciorlano': '09:14', 'Fontegreca': '09:21', 'Prata Sannita': '09:28', 'Pratella': '09:35', 'Ailano': '09:38', 'Quattroventi': '09:45', 'Alife': '10:00', 'Piedimonte Matese': '10:15' } },
+                  { t: '10:30', s: 'Pozzilli', validity: 'A6', times: { 'Pozzilli': '10:30', 'Venafro': '10:39', 'Capriati a Volturno': '11:02', 'Ciorlano': '11:08', 'Fontegreca': '11:13', 'Prata Sannita': '11:20', 'Pratella': '11:26', 'Ailano': '11:31', 'Quattroventi': '11:36', 'Alife': '11:51', 'Piedimonte Matese': '12:00' } },
+                  { t: '14:15', s: 'Pozzilli', validity: 'A6', times: { 'Pozzilli': '14:15', 'Venafro': '14:24', 'Capriati a Volturno': '14:50', 'Ciorlano': '14:57', 'Fontegreca': '15:02', 'Prata Sannita': '15:09', 'Pratella': '15:15', 'Ailano': '15:20', 'Quattroventi': '15:25', 'Alife': '15:42', 'Piedimonte Matese': '15:55' } },
+                  { t: '19:30', s: 'Pozzilli', validity: 'A6', times: { 'Pozzilli': '19:30', 'Venafro': '19:39', 'Capriati a Volturno': '20:05', 'Ciorlano': '20:09', 'Fontegreca': '20:17', 'Prata Sannita': '20:24', 'Pratella': '20:30', 'Ailano': '20:35', 'Quattroventi': '20:40', 'Alife': '20:55', 'Piedimonte Matese': '21:10' } }
+                ]
+              },
+              {
+                // 30-CE bis: corse autonome zona alta (Letino, Gallo Matese, Vallelunga)
+                // che NON partono da Piedimonte. Linea separata perché il routing va da
+                // Pratella/Capriati come hub. Stesso operatore AIR (noSun:true).
+                name: '30-CE bis · Pratella ↔ Letino ↔ Gallo Matese ↔ Vallelunga (zona alta)', url: 'https://www.aircampania.it/',
+                stops: ['Pratella', 'Prata Sannita', 'Fontegreca', 'Ciorlano', 'Capriati a Volturno', 'Letino', 'Gallo Matese', 'Vallelunga'],
+                deps: [
+                  // Pratella → Vallelunga via Letino/Gallo Matese (corsa autonoma del primo mattino)
+                  { t: '05:15', s: 'Pratella', validity: 'A6', times: { 'Pratella': '05:15', 'Prata Sannita': '05:17', 'Fontegreca': '05:20', 'Letino': '05:35', 'Gallo Matese': '05:45', 'Vallelunga': '05:59' } },
+                  // Vallelunga/Letino → Pratella (ritorno mattina presto)
+                  { t: '06:00', s: 'Vallelunga', validity: 'A6', times: { 'Vallelunga': '06:00', 'Gallo Matese': '06:35', 'Letino': '06:43', 'Fontegreca': '07:05', 'Prata Sannita': '07:25', 'Pratella': '07:30' } },
+                  // Capriati → Letino/Gallo Matese (variante mattutina della 10:30 dal centro)
+                  { t: '11:02', s: 'Capriati a Volturno', validity: 'A6', times: { 'Capriati a Volturno': '11:02', 'Ciorlano': '11:06', 'Fontegreca': '11:13', 'Gallo Matese': '11:58', 'Letino': '12:02' } },
+                  // Letino → Capriati (ritorno collegato alla 14:15 ritorno principale)
+                  { t: '12:05', s: 'Letino', validity: 'A6', times: { 'Letino': '12:05', 'Gallo Matese': '12:35', 'Fontegreca': '12:47', 'Ciorlano': '12:45', 'Capriati a Volturno': '12:52' } },
+                  // Capriati → Letino/Vallelunga (pomeriggio)
+                  { t: '15:01', s: 'Capriati a Volturno', validity: 'A6', times: { 'Capriati a Volturno': '15:01', 'Fontegreca': '15:05', 'Vallelunga': '16:21', 'Gallo Matese': '16:34', 'Letino': '16:42' } },
+                  // Vallelunga → Pratella (pomeriggio tardo)
+                  { t: '16:20', s: 'Vallelunga', validity: 'A6', times: { 'Vallelunga': '16:20', 'Gallo Matese': '16:34', 'Letino': '16:42', 'Fontegreca': '16:59', 'Prata Sannita': '17:05', 'Pratella': '17:16' } }
+                ]
+              },
+              {
+                // 20-CE: dati dal PDF AIR ufficiale (estratto con extract_air.py).
+                // Validità A6 = lun-sab tutto l'anno. 4 corse andata + 4 ritorno.
+                // Le fermate puntuali di Benevento (Bachelet, Meomartini, Nenni, Pertini)
+                // sono aggregate al canonico 'Benevento' per il routing; il Terminal Bus
+                // è il capolinea effettivo.
+                name: '20-CE · Piedimonte Matese ↔ Benevento (via Gioia Sannitica)', url: 'https://www.aircampania.it/',
+                stops: ['Piedimonte Matese', 'San Potito Sannitico', 'Gioia Sannitica', 'Benevento'],
+                deps: [
+                  // ── Piedimonte → Benevento ──
+                  { t: '06:55', s: 'Piedimonte Matese', validity: 'A6', times: { 'Piedimonte Matese': '06:55', 'San Potito Sannitico': '07:04', 'Gioia Sannitica': '07:10', 'Benevento': '08:10' } },
+                  { t: '10:15', s: 'Piedimonte Matese', validity: 'A6', times: { 'Piedimonte Matese': '10:15', 'San Potito Sannitico': '10:24', 'Gioia Sannitica': '10:30', 'Benevento': '11:30' } },
+                  { t: '12:40', s: 'Piedimonte Matese', validity: 'A6', times: { 'Piedimonte Matese': '12:40', 'San Potito Sannitico': '12:49', 'Gioia Sannitica': '12:55', 'Benevento': '14:00' } },
+                  { t: '16:35', s: 'Piedimonte Matese', validity: 'A6', times: { 'Piedimonte Matese': '16:35', 'San Potito Sannitico': '16:44', 'Gioia Sannitica': '16:50', 'Benevento': '17:55' } },
+                  // ── Benevento → Piedimonte ──
+                  { t: '08:25', s: 'Benevento', validity: 'A6', times: { 'Benevento': '08:25', 'Gioia Sannitica': '09:27', 'San Potito Sannitico': '09:36', 'Piedimonte Matese': '09:45' } },
+                  { t: '11:50', s: 'Benevento', validity: 'A6', times: { 'Benevento': '11:50', 'Gioia Sannitica': '12:52', 'San Potito Sannitico': '13:01', 'Piedimonte Matese': '13:10' } },
+                  { t: '14:10', s: 'Benevento', validity: 'A6', times: { 'Benevento': '14:10', 'Gioia Sannitica': '15:12', 'San Potito Sannitico': '15:21', 'Piedimonte Matese': '15:30' } },
+                  { t: '18:35', s: 'Benevento', validity: 'A6', times: { 'Benevento': '18:35', 'Gioia Sannitica': '19:32', 'San Potito Sannitico': '19:41', 'Piedimonte Matese': '19:50' } }
                 ]
               },
               // ── Linee NA (Napoli e bacino) ──
@@ -5195,21 +5283,38 @@
                 ]
               },
               {
-                name: 'ERF · Piedimonte Matese → Alife → Raviscanina → Quattroventi → Vairano Scalo', url: 'https://eredirobertoferrazza.it/',
-                stops: ['Piedimonte Matese', 'Alife', 'S.Angelo Brognaturo', 'Raviscanina', 'Quattroventi', 'Pietravairano', 'Vairano Scalo'],
+                // Linea Eredi Piedimonte ↔ Vairano Scalo (coincidenza treni a Vairano).
+                // Dati dal PDF Ferrazza ottobre 2025. Validità: F=feriale, Sc=scolastica.
+                // Le corse 12:35 e 13:35 (Sc) terminano a Quattroventi e non proseguono a Vairano.
+                // La 6:05 (Sc) salta S.Angelo Centro e Raviscanina.
+                // FIX: rinominato 'S.Angelo Brognaturo' (Brognaturo è in Calabria, errore) in
+                // 'S.Angelo d\'Alife Bivio' + nuovo 'S.Angelo d\'Alife Centro'.
+                name: 'ERF · Piedimonte Matese → Alife → S.Angelo d\'Alife → Quattroventi → Vairano Scalo', url: 'https://eredirobertoferrazza.it/',
+                stops: ['Piedimonte Matese', 'Alife', 'S.Angelo d\'Alife Bivio', 'S.Angelo d\'Alife Centro', 'Raviscanina', 'Quattroventi', 'Pietravairano', 'Vairano Scalo'],
                 deps: [
-                  { t: '05:40', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '05:40', 'Alife': '05:50', 'S.Angelo Brognaturo': '05:55', 'Raviscanina': '06:05', 'Quattroventi': '06:10', 'Pietravairano': '06:15', 'Vairano Scalo': '06:25' } },
-                  { t: '06:05', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '06:05', 'Alife': '06:10', 'S.Angelo Brognaturo': '06:15', 'Raviscanina': '06:25', 'Quattroventi': '06:30', 'Vairano Scalo': '06:40' } },
-                  { t: '07:45', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '07:45', 'Alife': '07:55', 'S.Angelo Brognaturo': '08:00', 'Raviscanina': '08:10', 'Quattroventi': '08:15', 'Pietravairano': '08:20', 'Vairano Scalo': '08:30' } }
+                  { t: '05:40', s: 'Piedimonte Matese', validity: 'A6', times: { 'Piedimonte Matese': '05:40', 'Alife': '05:50', 'S.Angelo d\'Alife Bivio': '05:55', 'S.Angelo d\'Alife Centro': '06:00', 'Raviscanina': '06:05', 'Quattroventi': '06:10', 'Pietravairano': '06:15', 'Vairano Scalo': '06:25' } },
+                  { t: '06:05', s: 'Piedimonte Matese', validity: 'Sc', times: { 'Piedimonte Matese': '06:05', 'Alife': '06:10', 'S.Angelo d\'Alife Bivio': '06:15', 'Quattroventi': '06:25', 'Pietravairano': '06:30', 'Vairano Scalo': '06:40' } },
+                  { t: '07:45', s: 'Piedimonte Matese', validity: 'A6', times: { 'Piedimonte Matese': '07:45', 'Alife': '07:55', 'S.Angelo d\'Alife Bivio': '08:00', 'S.Angelo d\'Alife Centro': '08:05', 'Raviscanina': '08:10', 'Quattroventi': '08:15', 'Pietravairano': '08:20', 'Vairano Scalo': '08:30' } },
+                  // 12:35 e 13:35: corse scolastiche che terminano a Quattroventi (no Pietra/Vairano).
+                  { t: '12:35', s: 'Piedimonte Matese', validity: 'Sc', times: { 'Piedimonte Matese': '12:35', 'Alife': '12:45', 'S.Angelo d\'Alife Bivio': '12:50', 'S.Angelo d\'Alife Centro': '12:55', 'Raviscanina': '13:00', 'Quattroventi': '13:05' } },
+                  { t: '13:35', s: 'Piedimonte Matese', validity: 'Sc', times: { 'Piedimonte Matese': '13:35', 'Alife': '13:45', 'S.Angelo d\'Alife Bivio': '13:50', 'S.Angelo d\'Alife Centro': '13:55', 'Raviscanina': '14:00', 'Quattroventi': '14:05' } },
+                  { t: '13:55', s: 'Piedimonte Matese', validity: 'Sc', times: { 'Piedimonte Matese': '13:55', 'Alife': '14:00', 'S.Angelo d\'Alife Bivio': '14:05', 'S.Angelo d\'Alife Centro': '14:10', 'Raviscanina': '14:15', 'Quattroventi': '14:20', 'Pietravairano': '14:25', 'Vairano Scalo': '14:35' } },
+                  { t: '14:35', s: 'Piedimonte Matese', validity: 'A6', times: { 'Piedimonte Matese': '14:35', 'Alife': '14:45', 'S.Angelo d\'Alife Bivio': '14:50', 'S.Angelo d\'Alife Centro': '14:55', 'Raviscanina': '15:00', 'Quattroventi': '15:05', 'Pietravairano': '15:10', 'Vairano Scalo': '15:20' } }
                 ]
               },
               {
-                name: 'ERF · Vairano Scalo → Quattroventi → Raviscanina → Alife → Piedimonte Matese', url: 'https://eredirobertoferrazza.it/',
-                stops: ['Vairano Scalo', 'Pietravairano', 'Quattroventi', 'Raviscanina', 'S.Angelo Brognaturo', 'Alife', 'Piedimonte Matese'],
+                name: 'ERF · Vairano Scalo → Quattroventi → S.Angelo d\'Alife → Alife → Piedimonte Matese', url: 'https://eredirobertoferrazza.it/',
+                stops: ['Vairano Scalo', 'Pietravairano', 'Quattroventi', 'Raviscanina', 'S.Angelo d\'Alife Centro', 'S.Angelo d\'Alife Bivio', 'Alife', 'Piedimonte Matese'],
                 deps: [
-                  { t: '06:45', s: 'Vairano Scalo', times: { 'Vairano Scalo': '06:45', 'Pietravairano': '07:00', 'Quattroventi': '07:05', 'Raviscanina': '07:15', 'S.Angelo Brognaturo': '07:25', 'Alife': '07:30', 'Piedimonte Matese': '07:45' } },
-                  { t: '07:10', s: 'Vairano Scalo', times: { 'Vairano Scalo': '07:10', 'Pietravairano': '07:20', 'Quattroventi': '07:25', 'Raviscanina': '07:35', 'S.Angelo Brognaturo': '07:40', 'Alife': '07:45', 'Piedimonte Matese': '07:50' } },
-                  { t: '08:30', s: 'Vairano Scalo', times: { 'Vairano Scalo': '08:30', 'Quattroventi': '08:45', 'Raviscanina': '08:50', 'S.Angelo Brognaturo': '09:00', 'Alife': '09:05', 'Piedimonte Matese': '09:15' } }
+                  { t: '06:45', s: 'Vairano Scalo', validity: 'A6', times: { 'Vairano Scalo': '06:45', 'Pietravairano': '07:00', 'Quattroventi': '07:05', 'Raviscanina': '07:15', 'S.Angelo d\'Alife Centro': '07:20', 'S.Angelo d\'Alife Bivio': '07:25', 'Alife': '07:30', 'Piedimonte Matese': '07:45' } },
+                  { t: '07:10', s: 'Vairano Scalo', validity: 'Sc', times: { 'Vairano Scalo': '07:10', 'Pietravairano': '07:20', 'Quattroventi': '07:25', 'S.Angelo d\'Alife Bivio': '07:35', 'Alife': '07:40', 'Piedimonte Matese': '07:45' } },
+                  { t: '08:30', s: 'Vairano Scalo', validity: 'A6', times: { 'Vairano Scalo': '08:30', 'Pietravairano': '08:40', 'Quattroventi': '08:45', 'Raviscanina': '08:50', 'S.Angelo d\'Alife Centro': '08:55', 'S.Angelo d\'Alife Bivio': '09:00', 'Alife': '09:05', 'Piedimonte Matese': '09:15' } },
+                  // Corse pomeridiane scolastiche che partono da Quattroventi (coincidenza con
+                  // l'andata 12:35/13:35 che termina lì): bus che torna verso Piedimonte.
+                  { t: '13:05', s: 'Quattroventi', validity: 'Sc', times: { 'Quattroventi': '13:05', 'S.Angelo d\'Alife Bivio': '13:15', 'Alife': '13:20', 'Piedimonte Matese': '13:30' } },
+                  { t: '14:05', s: 'Quattroventi', validity: 'Sc', times: { 'Quattroventi': '14:05', 'S.Angelo d\'Alife Bivio': '14:15', 'Alife': '14:20', 'Piedimonte Matese': '14:30' } },
+                  { t: '14:35', s: 'Vairano Scalo', validity: 'Sc', times: { 'Vairano Scalo': '14:35', 'Pietravairano': '14:45', 'Quattroventi': '14:50', 'Raviscanina': '14:55', 'S.Angelo d\'Alife Centro': '15:00', 'S.Angelo d\'Alife Bivio': '15:05', 'Alife': '15:10', 'Piedimonte Matese': '15:20' } },
+                  { t: '15:50', s: 'Vairano Scalo', validity: 'A6', times: { 'Vairano Scalo': '15:50', 'Pietravairano': '16:00', 'Quattroventi': '16:05', 'Raviscanina': '16:10', 'S.Angelo d\'Alife Centro': '16:15', 'S.Angelo d\'Alife Bivio': '16:20', 'Alife': '16:25', 'Piedimonte Matese': '16:35' } }
                 ]
               },
               {
@@ -5256,26 +5361,36 @@
                 ]
               },
               {
+                // Linea Eredi Piedimonte ↔ Letino (via Castello, S.Gregorio, Miralago).
+                // Dati dal PDF Ferrazza ottobre 2025. Validità: F=feriale, Sc=scolastica, L=solo lunedì.
+                // La corsa 5:40 dal Piedimonte è l'unica che prosegue oltre S.Gregorio fino a Letino.
+                // Tutte le altre fanno solo Piedimonte ↔ S.Gregorio.
                 name: 'ERF · S.Gregorio Matese → Castello Matese → Piedimonte Matese', url: 'https://eredirobertoferrazza.it/',
-                stops: ['San Gregorio Matese', 'Castello Matese', 'Miralago', 'Letino', 'Piedimonte Matese'],
+                stops: ['Letino', 'Miralago', 'San Gregorio Matese', 'Castello Matese', 'Piedimonte Matese'],
                 deps: [
-                  { t: '06:05', s: 'San Gregorio Matese', times: { 'San Gregorio Matese': '06:05', 'Castello Matese': '06:20', 'Piedimonte Matese': '06:30' } },
-                  { t: '07:15', s: 'San Gregorio Matese', times: { 'San Gregorio Matese': '07:15', 'Castello Matese': '07:30', 'Piedimonte Matese': '07:45' } },
-                  { t: '07:20', s: 'San Gregorio Matese', times: { 'San Gregorio Matese': '07:20', 'Castello Matese': '07:35', 'Piedimonte Matese': '07:45' } },
-                  { t: '08:15', s: 'San Gregorio Matese', times: { 'San Gregorio Matese': '08:15', 'Castello Matese': '08:30', 'Piedimonte Matese': '08:40' } },
-                  { t: '14:00', s: 'San Gregorio Matese', times: { 'San Gregorio Matese': '14:00', 'Castello Matese': '14:15', 'Piedimonte Matese': '14:25' } }
+                  // Solo la 6:45 da Letino è corsa lunga; le altre partono da S.Gregorio.
+                  { t: '06:45', s: 'Letino', validity: 'Sc', times: { 'Letino': '06:45', 'Miralago': '07:05', 'San Gregorio Matese': '07:20', 'Castello Matese': '07:35', 'Piedimonte Matese': '07:45' } },
+                  { t: '07:20', s: 'San Gregorio Matese', validity: 'A6', times: { 'San Gregorio Matese': '07:20', 'Castello Matese': '07:35', 'Piedimonte Matese': '07:45' } },
+                  { t: '08:15', s: 'San Gregorio Matese', validity: 'A6', times: { 'San Gregorio Matese': '08:15', 'Castello Matese': '08:30', 'Piedimonte Matese': '08:40' } },
+                  { t: '11:30', s: 'San Gregorio Matese', validity: 'L',  times: { 'San Gregorio Matese': '11:30', 'Castello Matese': '11:45', 'Piedimonte Matese': '11:55' } },
+                  { t: '13:05', s: 'San Gregorio Matese', validity: 'Sc', times: { 'San Gregorio Matese': '13:05', 'Castello Matese': '13:20', 'Piedimonte Matese': '13:30' } },
+                  { t: '14:00', s: 'San Gregorio Matese', validity: 'A6', times: { 'San Gregorio Matese': '14:00', 'Castello Matese': '14:15', 'Piedimonte Matese': '14:25' } },
+                  { t: '15:00', s: 'San Gregorio Matese', validity: 'Sc', times: { 'San Gregorio Matese': '15:00', 'Castello Matese': '15:15', 'Piedimonte Matese': '15:25' } },
+                  { t: '16:10', s: 'San Gregorio Matese', validity: 'Sc', times: { 'San Gregorio Matese': '16:10', 'Castello Matese': '16:25', 'Piedimonte Matese': '16:35' } }
                 ]
               },
               {
-                name: 'ERF · Piedimonte Matese → Castello Matese → S.Gregorio Matese', url: 'https://eredirobertoferrazza.it/',
-                stops: ['Piedimonte Matese', 'Castello Matese', 'Miralago', 'Letino', 'San Gregorio Matese'],
+                name: 'ERF · Piedimonte Matese → Castello Matese → S.Gregorio Matese (→ Letino)', url: 'https://eredirobertoferrazza.it/',
+                stops: ['Piedimonte Matese', 'Castello Matese', 'San Gregorio Matese', 'Miralago', 'Letino'],
                 deps: [
-                  { t: '05:40', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '05:40', 'Castello Matese': '05:50', 'San Gregorio Matese': '06:05' } },
-                  { t: '06:50', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '06:50', 'Castello Matese': '07:00', 'San Gregorio Matese': '07:15' } },
-                  { t: '07:50', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '07:50', 'Castello Matese': '08:00', 'San Gregorio Matese': '08:15' } },
-                  { t: '11:00', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '11:00', 'Castello Matese': '11:10', 'San Gregorio Matese': '11:25' } },
-                  { t: '13:35', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '13:35', 'Castello Matese': '13:45', 'San Gregorio Matese': '14:00' } },
-                  { t: '14:35', s: 'Piedimonte Matese', times: { 'Piedimonte Matese': '14:35', 'Castello Matese': '14:45', 'Letino': '15:35', 'Miralago': '15:55', 'San Gregorio Matese': '16:10' } }
+                  // Solo la 5:40 prosegue fino a Letino. Le altre terminano a S.Gregorio.
+                  { t: '05:40', s: 'Piedimonte Matese', validity: 'Sc', times: { 'Piedimonte Matese': '05:40', 'Castello Matese': '05:50', 'San Gregorio Matese': '06:05', 'Miralago': '06:20', 'Letino': '06:40' } },
+                  { t: '06:50', s: 'Piedimonte Matese', validity: 'A6', times: { 'Piedimonte Matese': '06:50', 'Castello Matese': '07:00', 'San Gregorio Matese': '07:15' } },
+                  { t: '07:50', s: 'Piedimonte Matese', validity: 'A6', times: { 'Piedimonte Matese': '07:50', 'Castello Matese': '08:00', 'San Gregorio Matese': '08:15' } },
+                  { t: '11:00', s: 'Piedimonte Matese', validity: 'L',  times: { 'Piedimonte Matese': '11:00', 'Castello Matese': '11:10', 'San Gregorio Matese': '11:25' } },
+                  { t: '12:40', s: 'Piedimonte Matese', validity: 'Sc', times: { 'Piedimonte Matese': '12:40', 'Castello Matese': '12:50', 'San Gregorio Matese': '13:05' } },
+                  { t: '13:35', s: 'Piedimonte Matese', validity: 'A6', times: { 'Piedimonte Matese': '13:35', 'Castello Matese': '13:45', 'San Gregorio Matese': '14:00' } },
+                  { t: '14:35', s: 'Piedimonte Matese', validity: 'Sc', times: { 'Piedimonte Matese': '14:35', 'Castello Matese': '14:45', 'San Gregorio Matese': '15:00' } }
                 ]
               },
             ]
